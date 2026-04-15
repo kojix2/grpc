@@ -1,0 +1,15 @@
+name: grpc
+version: 0.1.0
+
+authors:
+  - kojix2 <2xijok@gmail.com>
+
+targets:
+  grpc:
+    main: src/grpc.cr
+  protoc-gen-crystal-grpc:
+    main: src/protoc-gen-crystal-grpc_main.cr
+
+crystal: '>= 1.19.1'
+
+license: MIT

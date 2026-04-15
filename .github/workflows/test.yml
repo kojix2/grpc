@@ -1,0 +1,50 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        crystal: [latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: ${{ matrix.crystal }}
+
+      - name: Install libnghttp2 (Ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y libnghttp2-dev
+
+      - name: Install libnghttp2 (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install libnghttp2
+          echo "LIBRARY_PATH=$(brew --prefix libnghttp2)/lib" >> $GITHUB_ENV
+
+      - name: Install shards
+        run: shards install --without-development
+
+      - name: Run specs
+        run: crystal spec
+
+      - name: Build examples
+        run: |
+          find examples -name "*.cr" | sort | while read f; do
+            echo "Building $f ..."
+            crystal build --no-codegen "$f"
+          done
+
+      - name: Check formatting
+        run: crystal tool format --check

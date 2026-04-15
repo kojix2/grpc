@@ -1,0 +1,353 @@
+require "./spec_helper"
+
+describe GRPC do
+  describe GRPC::StatusCode do
+    it "has standard gRPC status codes" do
+      GRPC::StatusCode::OK.value.should eq(0)
+      GRPC::StatusCode::CANCELLED.value.should eq(1)
+      GRPC::StatusCode::UNIMPLEMENTED.value.should eq(12)
+    end
+  end
+
+  describe GRPC::Status do
+    it "creates OK status" do
+      s = GRPC::Status.ok
+      s.ok?.should be_true
+      s.code.should eq(GRPC::StatusCode::OK)
+    end
+
+    it "creates error status" do
+      s = GRPC::Status.new(GRPC::StatusCode::NOT_FOUND, "resource not found")
+      s.ok?.should be_false
+      s.message.should eq("resource not found")
+    end
+  end
+
+  describe GRPC::Metadata do
+    it "sets and gets values" do
+      m = GRPC::Metadata.new
+      m.set("x-request-id", "abc123")
+      m.get("x-request-id").should eq("abc123")
+    end
+
+    it "normalises keys to lowercase" do
+      m = GRPC::Metadata.new
+      m.set("X-Custom-Header", "value")
+      m.get("x-custom-header").should eq("value")
+    end
+
+    it "accumulates multiple values" do
+      m = GRPC::Metadata.new
+      m.add("x-tag", "a")
+      m.add("x-tag", "b")
+      m.get_all("x-tag").should eq(["a", "b"])
+    end
+
+    it "can be constructed from a Hash" do
+      m = GRPC::Metadata.new({"x-foo" => "bar"})
+      m.get("x-foo").should eq("bar")
+    end
+  end
+
+  describe GRPC::Endpoint do
+    it "parses plain host and port" do
+      endpoint = GRPC::Endpoint.parse("example.com:1234")
+      endpoint.host.should eq("example.com")
+      endpoint.port.should eq(1234)
+      endpoint.tls?.should be_false
+    end
+
+    it "parses scheme-specific default ports" do
+      plain = GRPC::Endpoint.parse("http://example.com")
+      plain.host.should eq("example.com")
+      plain.port.should eq(50051)
+      plain.tls?.should be_false
+
+      tls = GRPC::Endpoint.parse("https://example.com")
+      tls.host.should eq("example.com")
+      tls.port.should eq(443)
+      tls.tls?.should be_true
+    end
+
+    it "strips trailing path components" do
+      endpoint = GRPC::Endpoint.parse("https://example.com:8443/foo/bar")
+      endpoint.host.should eq("example.com")
+      endpoint.port.should eq(8443)
+      endpoint.tls?.should be_true
+    end
+
+    it "parses bracketed IPv6 endpoints with and without explicit port" do
+      endpoint = GRPC::Endpoint.parse("http://[::1]:8080")
+      endpoint.host.should eq("[::1]")
+      endpoint.port.should eq(8080)
+      endpoint.tls?.should be_false
+
+      tls_endpoint = GRPC::Endpoint.parse("https://[::1]")
+      tls_endpoint.host.should eq("[::1]")
+      tls_endpoint.port.should eq(443)
+      tls_endpoint.tls?.should be_true
+    end
+
+    it "renders addresses with the correct scheme" do
+      GRPC::Endpoint.new("example.com", 50051).to_address.should eq("http://example.com:50051")
+      GRPC::Endpoint.new("example.com", 443, true).to_address.should eq("https://example.com:443")
+    end
+  end
+
+  describe GRPC::Codec do
+    it "round-trips a message" do
+      original = "Hello, gRPC!".to_slice
+      framed = GRPC::Codec.encode(original)
+      framed.size.should eq(original.size + GRPC::Codec::HEADER_SIZE)
+
+      decoded, consumed = GRPC::Codec.decode(framed)
+      decoded.should eq(original)
+      consumed.should eq(framed.size)
+    end
+
+    it "decodes multiple messages" do
+      msgs = ["foo", "bar", "baz"].map(&.to_slice)
+      data = msgs.reduce(Bytes.empty) { |acc, msg| acc + GRPC::Codec.encode(msg) }
+      result = GRPC::Codec.decode_all(data)
+      result.size.should eq(3)
+      result.map { |bytes| String.new(bytes) }.should eq(["foo", "bar", "baz"])
+    end
+
+    it "round-trips a gzip-compressed message" do
+      original = "Hello, compressed gRPC!".to_slice
+      framed = GRPC::Codec.encode(original, compress: true)
+      framed[0].should eq(1_u8) # compression flag set
+
+      decoded, consumed = GRPC::Codec.decode(framed)
+      decoded.should eq(original)
+      consumed.should eq(framed.size)
+    end
+
+    it "transparently decodes mixed compressed/uncompressed frames" do
+      plain = GRPC::Codec.encode("hello".to_slice)
+      compressed = GRPC::Codec.encode("world".to_slice, compress: true)
+      data = plain + compressed
+      result = GRPC::Codec.decode_all(data)
+      result.size.should eq(2)
+      String.new(result[0]).should eq("hello")
+      String.new(result[1]).should eq("world")
+    end
+
+    it "raises on unknown compression flag" do
+      # Flag 0x02 is not a recognised compression algorithm
+      bad_frame = Bytes[0x02, 0x00, 0x00, 0x00, 0x00]
+      expect_raises(GRPC::StatusError) do
+        GRPC::Codec.decode(bad_frame)
+      end
+    end
+  end
+
+  describe GRPC::StatusError do
+    it "exposes code and message" do
+      ex = GRPC::StatusError.new(GRPC::StatusCode::NOT_FOUND, "missing")
+      ex.code.should eq(GRPC::StatusCode::NOT_FOUND)
+      ex.message.should eq("missing")
+    end
+
+    it "can be constructed from a Status" do
+      status = GRPC::Status.new(GRPC::StatusCode::INTERNAL, "boom")
+      ex = GRPC::StatusError.new(status)
+      ex.status.should eq(status)
+    end
+
+    it "CallError is an alias for StatusError" do
+      GRPC::CallError.should eq(GRPC::StatusError)
+    end
+  end
+
+  describe GRPC::Transport::LiveSendBuffer do
+    it "unbounded mode: push never blocks" do
+      buf = GRPC::Transport::LiveSendBuffer.new(0)
+      100.times { |i| buf.push(Bytes[i.to_u8]) }
+    end
+
+    it "bounded mode: blocks when full, unblocks when drained" do
+      buf = GRPC::Transport::LiveSendBuffer.new(2)
+
+      # Fill queue to capacity without blocking
+      buf.push(Bytes[1_u8])
+      buf.push(Bytes[2_u8])
+
+      unblocked = false
+
+      # Third push should block until read_into drains one entry
+      spawn do
+        buf.push(Bytes[3_u8])
+        unblocked = true
+      end
+
+      Fiber.yield
+
+      # The spawned fiber should still be blocked
+      unblocked.should be_false
+
+      # Simulate DATA_READ_CB_LIVE draining one chunk via read_into
+      raw_buf = Bytes.new(64)
+      flags = 0_u32
+      buf.read_into(raw_buf.to_unsafe, 64_u64, pointerof(flags))
+
+      Fiber.yield
+
+      # Now the slot is free and the push should have completed
+      unblocked.should be_true
+    end
+
+    it "bounded mode: close after full push unblocks reads with EOF" do
+      buf = GRPC::Transport::LiveSendBuffer.new(1)
+      buf.push(Bytes[42_u8])
+      buf.close
+
+      raw_buf = Bytes.new(64)
+      flags = 0_u32
+      bytes_read = buf.read_into(raw_buf.to_unsafe, 64_u64, pointerof(flags))
+      bytes_read.should eq(1)
+
+      # Second call: queue empty and closed → EOF
+      flags2 = 0_u32
+      buf.read_into(raw_buf.to_unsafe, 64_u64, pointerof(flags2))
+      (flags2 & LibNghttp2::DATA_FLAG_EOF).should_not eq(0)
+    end
+  end
+
+  describe GRPC::RawServerStream do
+    it "runs finish hooks once after iteration completes" do
+      ch = ::Channel(Bytes?).new(2)
+      ch.send(Bytes[1_u8])
+      ch.close
+
+      finishes = 0
+      stream = GRPC::RawServerStream.new(ch, -> { GRPC::Status.ok }).with_on_finish(-> { finishes += 1; nil })
+
+      received = [] of Bytes
+      stream.each { |msg| received << msg }
+
+      received.should eq([Bytes[1_u8]])
+      finishes.should eq(1)
+    end
+
+    it "runs finish hooks once across repeated cancel calls" do
+      ch = ::Channel(Bytes?).new(1)
+      cancels = 0
+      finishes = 0
+      stream = GRPC::RawServerStream.new(ch, -> { GRPC::Status.ok }, -> { GRPC::Metadata.new }, -> { cancels += 1; nil }).with_on_finish(-> { finishes += 1; nil })
+
+      stream.cancel
+      stream.cancel
+
+      cancels.should eq(2)
+      finishes.should eq(1)
+    end
+  end
+
+  describe GRPC::RawClientCall do
+    it "runs finish hooks once even if cancel follows close_and_recv" do
+      finishes = 0
+      call = GRPC::RawClientCall.new(
+        ->(_b : Bytes) { },
+        -> { Bytes[7_u8] },
+        -> { GRPC::Status.ok },
+        -> { GRPC::Metadata.new },
+        -> { }
+      ).with_on_finish(-> { finishes += 1; nil })
+
+      call.close_and_recv.should eq(Bytes[7_u8])
+      call.cancel
+
+      finishes.should eq(1)
+    end
+  end
+
+  describe GRPC::RawBidiCall do
+    it "runs finish hooks once even if cancel follows iteration" do
+      ch = ::Channel(Bytes?).new(2)
+      ch.send(Bytes[9_u8])
+      ch.close
+
+      finishes = 0
+      call = GRPC::RawBidiCall.new(
+        ->(_b : Bytes) { },
+        -> { },
+        ch,
+        -> { GRPC::Status.ok },
+        -> { GRPC::Metadata.new },
+        -> { }
+      ).with_on_finish(-> { finishes += 1; nil })
+
+      received = [] of Bytes
+      call.each { |msg| received << msg }
+      call.cancel
+
+      received.should eq([Bytes[9_u8]])
+      finishes.should eq(1)
+    end
+  end
+
+  describe GRPC::ServerContext do
+    it "exposes peer and metadata" do
+      meta = GRPC::Metadata.new({"x-foo" => "bar"})
+      ctx = GRPC::ServerContext.new("127.0.0.1:12345", meta)
+      ctx.peer.should eq("127.0.0.1:12345")
+      ctx.metadata.get("x-foo").should eq("bar")
+    end
+
+    it "tracks cancellation" do
+      ctx = GRPC::ServerContext.new("peer")
+      ctx.cancelled?.should be_false
+      ctx.cancel
+      ctx.cancelled?.should be_true
+    end
+
+    it "detects deadline expiry" do
+      ctx = GRPC::ServerContext.new("peer", GRPC::Metadata.new, Time.utc - 1.second)
+      ctx.timed_out?.should be_true
+    end
+
+    it "reports no timeout when deadline is in the future" do
+      ctx = GRPC::ServerContext.new("peer", GRPC::Metadata.new, Time.utc + 60.seconds)
+      ctx.timed_out?.should be_false
+    end
+  end
+
+  describe GRPC::ClientContext do
+    it "holds metadata from a hash" do
+      ctx = GRPC::ClientContext.new(metadata: {"authorization" => "Bearer token"})
+      ctx.metadata.get("authorization").should eq("Bearer token")
+    end
+
+    it "converts a span deadline to absolute time" do
+      before = Time.utc
+      ctx = GRPC::ClientContext.new(deadline: 5.seconds)
+      after = Time.utc
+      dl = ctx.deadline.as(Time)
+      dl.should be >= (before + 5.seconds)
+      dl.should be <= (after + 5.seconds)
+    end
+
+    it "includes grpc-timeout in effective_metadata when deadline is set" do
+      ctx = GRPC::ClientContext.new(deadline: 10.seconds)
+      meta = ctx.effective_metadata
+      meta.get("grpc-timeout").should_not be_nil
+    end
+
+    it "does not add grpc-timeout when no deadline is set" do
+      ctx = GRPC::ClientContext.new
+      meta = ctx.effective_metadata
+      meta.get("grpc-timeout").should be_nil
+    end
+
+    it "reports remaining time before deadline" do
+      ctx = GRPC::ClientContext.new(deadline: 10.seconds)
+      ctx.remaining.should_not be_nil
+    end
+
+    it "returns nil remaining when no deadline" do
+      ctx = GRPC::ClientContext.new
+      ctx.remaining.should be_nil
+    end
+  end
+end
