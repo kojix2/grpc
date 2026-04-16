@@ -147,6 +147,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/RawBidiCall" data-name="grpc::rawbidicall">
+      <a href="../../GRPC/RawBidiCall.html">RawBidiCall</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/RawResponseStream" data-name="grpc::rawresponsestream">
       <a href="../../GRPC/RawResponseStream.html">RawResponseStream</a>
       
@@ -234,6 +239,11 @@
   
   <li class=" " data-id="grpc/GRPC/Transport/Http2ServerConnection" data-name="grpc::transport::http2serverconnection">
       <a href="../../GRPC/Transport/Http2ServerConnection.html">Http2ServerConnection</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Transport/LiveSendBuffer" data-name="grpc::transport::livesendbuffer">
+      <a href="../../GRPC/Transport/LiveSendBuffer.html">LiveSendBuffer</a>
       
     </li>
   
@@ -364,7 +374,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L6" target="_blank">
+      <a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L6" target="_blank">
         grpc/transport/http2_client_connection.cr
       </a>
     
@@ -432,6 +442,13 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#close_send%3ANil-instance-method" class="signature"><strong>#close_send</strong> : Nil</a>
+        
+          <div class="summary"><p>close_send signals the end of the client request stream for live bidi.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#drain_grpc_frames%3ANil-instance-method" class="signature"><strong>#drain_grpc_frames</strong> : Nil</a>
         
           <div class="summary"><p>drain_grpc_frames parses all complete gRPC frames from recv_buf and delivers the message payloads to the messages channel.</p></div>
@@ -452,6 +469,16 @@
         <a href="#grpc_trailers%3AMetadata-instance-method" class="signature"><strong>#grpc_trailers</strong> : Metadata</a>
         
           <div class="summary"><p>grpc_trailers returns the raw trailer hash received from the server.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#live_send_buf%3ALiveSendBuffer%7CNil-instance-method" class="signature"><strong>#live_send_buf</strong> : LiveSendBuffer | Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#live_send_buf%3D%28live_send_buf%3ALiveSendBuffer%7CNil%29-instance-method" class="signature"><strong>#live_send_buf=</strong>(live_send_buf : LiveSendBuffer | Nil)</a>
         
       </li>
     
@@ -482,6 +509,23 @@
     
       <li class="entry-summary">
         <a href="#send_buf%3D%28send_buf%3ASendBuffer%7CNil%29-instance-method" class="signature"><strong>#send_buf=</strong>(send_buf : SendBuffer | Nil)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#send_outgoing%28framed_bytes%3ABytes%29%3ANil-instance-method" class="signature"><strong>#send_outgoing</strong>(framed_bytes : Bytes) : Nil</a>
+        
+          <div class="summary"><p>send_outgoing enqueues a pre-framed gRPC message for live bidi streaming and signals nghttp2 to resume data transmission.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#send_resume_proc%3A-%3ENil%7CNil-instance-method" class="signature"><strong>#send_resume_proc</strong> :  -> Nil | Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#send_resume_proc%3D%28send_resume_proc%3A-%3ENil%7CNil%29-instance-method" class="signature"><strong>#send_resume_proc=</strong>(send_resume_proc :  -> Nil | Nil)</a>
         
       </li>
     
@@ -550,7 +594,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L14" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L16" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -588,7 +632,7 @@ message channel so waiting iterators unblock.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L49" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L66" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -604,7 +648,7 @@ message channel so waiting iterators unblock.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L11" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L13" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -620,7 +664,7 @@ message channel so waiting iterators unblock.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L11" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L13" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -636,7 +680,28 @@ message channel so waiting iterators unblock.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L56" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L73" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="close_send:Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>close_send</strong> : Nil
+
+        <a class="method-permalink" href="#close_send%3ANil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>close_send signals the end of the client request stream for live bidi.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L59" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -659,7 +724,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L26" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L30" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -675,7 +740,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L43" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L47" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -691,7 +756,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L70" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L87" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -712,7 +777,39 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L61" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L78" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="live_send_buf:LiveSendBuffer|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>live_send_buf</strong> : <a href="../../GRPC/Transport/LiveSendBuffer.html">LiveSendBuffer</a> | Nil
+
+        <a class="method-permalink" href="#live_send_buf%3ALiveSendBuffer%7CNil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L11" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="live_send_buf=(live_send_buf:LiveSendBuffer|Nil)-instance-method">
+      <div class="signature">
+        
+        def <strong>live_send_buf=</strong>(live_send_buf : <a href="../../GRPC/Transport/LiveSendBuffer.html">LiveSendBuffer</a> | Nil)
+
+        <a class="method-permalink" href="#live_send_buf%3D%28live_send_buf%3ALiveSendBuffer%7CNil%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L11" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -728,7 +825,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L8" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L8" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -744,7 +841,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L8" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L8" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -760,7 +857,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L9" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L9" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -776,7 +873,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L9" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L9" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -792,7 +889,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L10" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L10" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -808,7 +905,61 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L10" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L10" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="send_outgoing(framed_bytes:Bytes):Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>send_outgoing</strong>(framed_bytes : Bytes) : Nil
+
+        <a class="method-permalink" href="#send_outgoing%28framed_bytes%3ABytes%29%3ANil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>send_outgoing enqueues a pre-framed gRPC message for live bidi streaming
+and signals nghttp2 to resume data transmission.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L53" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="send_resume_proc:-&gt;Nil|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>send_resume_proc</strong> :  -> Nil | Nil
+
+        <a class="method-permalink" href="#send_resume_proc%3A-%3ENil%7CNil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L12" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="send_resume_proc=(send_resume_proc:-&gt;Nil|Nil)-instance-method">
+      <div class="signature">
+        
+        def <strong>send_resume_proc=</strong>(send_resume_proc :  -> Nil | Nil)
+
+        <a class="method-permalink" href="#send_resume_proc%3D%28send_resume_proc%3A-%3ENil%7CNil%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L12" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -824,7 +975,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L7" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L7" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -840,7 +991,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/dbf97470fce32f807e4804b46e8444d3f54a7ea9/src/grpc/transport/http2_client_connection.cr#L7" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L7" target="_blank">View source</a>]
         
       </div>
     </div>

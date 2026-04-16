@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../js/doc.js"></script>
 
   <meta name="repository-name" content="grpc">
-  <title>GRPC::Transport - grpc main</title>
+  <title>GRPC::RawBidiCall - grpc main</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../";
   </script>
@@ -147,7 +147,7 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/RawBidiCall" data-name="grpc::rawbidicall">
+  <li class=" current" data-id="grpc/GRPC/RawBidiCall" data-name="grpc::rawbidicall">
       <a href="../GRPC/RawBidiCall.html">RawBidiCall</a>
       
     </li>
@@ -222,7 +222,7 @@
       
     </li>
   
-  <li class="parent open current" data-id="grpc/GRPC/Transport" data-name="grpc::transport">
+  <li class="parent " data-id="grpc/GRPC/Transport" data-name="grpc::transport">
       <a href="../GRPC/Transport.html">Transport</a>
       
         <ul>
@@ -327,12 +327,29 @@
 <h1 class="type-name">
 
   <span class="kind">
-    module
-  </span> GRPC::<wbr>Transport
+    class
+  </span> GRPC::<wbr>RawBidiCall
 
 </h1>
 
 
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../GRPC/RawBidiCall.html">GRPC::RawBidiCall</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+
+
+
+
+  <h2>
+    <a id="overview" class="anchor" href="#overview">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Overview
+  </h2>
+
+  <p>RawBidiCall is the client-side handle for a full-duplex bidi-streaming RPC.
+It wraps a PendingStream and exposes send_raw / close_send / each / cancel.
+Generated client stubs wrap this in a typed BidiCall(Req, Res).</p>
 
 
 
@@ -340,7 +357,19 @@
 
 
 
-
+  <h2>
+    <a id="included-modules" class="anchor" href="#included-modules">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Included Modules
+  </h2>
+  <ul class="other-types-list">
+    
+      <li class="other-type">Enumerable(Slice(UInt8))</li>
+    
+  </ul>
 
 
 
@@ -361,22 +390,8 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_client_connection.cr#L4" target="_blank">
-        grpc/transport/http2_client_connection.cr
-      </a>
-    
-    <br/>
-  
-    
-      <a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_connection.cr#L6" target="_blank">
-        grpc/transport/http2_connection.cr
-      </a>
-    
-    <br/>
-  
-    
-      <a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/transport/http2_server_connection.cr#L4" target="_blank">
-        grpc/transport/http2_server_connection.cr
+      <a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/stream.cr#L268" target="_blank">
+        grpc/stream.cr
       </a>
     
     <br/>
@@ -387,25 +402,280 @@
 
 
   
+  <h2>
+    <a id="constructors" class="anchor" href="#constructors">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructors
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#new%28ps%3ATransport%3A%3APendingStream%29-class-method" class="signature"><strong>.new</strong>(ps : Transport::PendingStream)</a>
+        
+      </li>
+    
+  </ul>
+
 
   
 
   
 
   
+  <h2>
+    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#cancel%3ANil-instance-method" class="signature"><strong>#cancel</strong> : Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#close_send%3ANil-instance-method" class="signature"><strong>#close_send</strong> : Nil</a>
+        
+          <div class="summary"><p>close_send signals the end of the client request stream.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#each%28%26%3ABytes-%3E%29%3ANil-instance-method" class="signature"><strong>#each</strong>(& : Bytes -> ) : Nil</a>
+        
+          <div class="summary"><p>Must yield this collection's elements to the block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#send_raw%28message_bytes%3ABytes%29%3ANil-instance-method" class="signature"><strong>#send_raw</strong>(message_bytes : Bytes) : Nil</a>
+        
+          <div class="summary"><p>send_raw encodes <em>message_bytes</em> as a gRPC frame and enqueues it for sending.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#status%3AStatus-instance-method" class="signature"><strong>#status</strong> : Status</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#trailers%3AMetadata-instance-method" class="signature"><strong>#trailers</strong> : Metadata</a>
+        
+      </li>
+    
+  </ul>
+
 
 
   <div class="methods-inherited">
     
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
   </div>
 
   
+  <h2>
+    <a id="constructor-detail" class="anchor" href="#constructor-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructor Detail
+  </h2>
+  
+    <div class="entry-detail" id="new(ps:Transport::PendingStream)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(ps : <a href="../GRPC/Transport/PendingStream.html">Transport::PendingStream</a>)
+
+        <a class="method-permalink" href="#new%28ps%3ATransport%3A%3APendingStream%29-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/stream.cr#L271" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
 
   
 
   
 
   
+  <h2>
+    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="cancel:Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>cancel</strong> : Nil
+
+        <a class="method-permalink" href="#cancel%3ANil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/stream.cr#L292" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="close_send:Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>close_send</strong> : Nil
+
+        <a class="method-permalink" href="#close_send%3ANil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>close_send signals the end of the client request stream.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/stream.cr#L280" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="each(&amp;:Bytes-&gt;):Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>each</strong>(& : Bytes -> ) : Nil
+
+        <a class="method-permalink" href="#each%28%26%3ABytes-%3E%29%3ANil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from module Enumerable(Slice(UInt8))
+            </div>
+          
+          <p>Must yield this collection's elements to the block.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/stream.cr#L284" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="send_raw(message_bytes:Bytes):Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>send_raw</strong>(message_bytes : Bytes) : Nil
+
+        <a class="method-permalink" href="#send_raw%28message_bytes%3ABytes%29%3ANil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>send_raw encodes <em>message_bytes</em> as a gRPC frame and enqueues it for sending.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/stream.cr#L275" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="status:Status-instance-method">
+      <div class="signature">
+        
+        def <strong>status</strong> : <a href="../GRPC/Status.html">Status</a>
+
+        <a class="method-permalink" href="#status%3AStatus-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/stream.cr#L296" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="trailers:Metadata-instance-method">
+      <div class="signature">
+        
+        def <strong>trailers</strong> : <a href="../GRPC/Metadata.html">Metadata</a>
+
+        <a class="method-permalink" href="#trailers%3AMetadata-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/f291bf70b8c4e1212c46e230cad4b1bc6cb24595/src/grpc/stream.cr#L300" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
 
 
 </div>
