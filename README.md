@@ -32,7 +32,13 @@ crystal spec
 Run grpcurl E2E tests explicitly via the non-auto entry file:
 
 ```sh
-crystal spec spec/e2e.cr
+crystal spec spec/grpcurl.cr
+```
+
+Run GripMock client E2E tests (requires GripMock at `127.0.0.1:4770` and admin API at `127.0.0.1:4771`):
+
+```sh
+crystal spec spec/gripmock.cr
 ```
 
 ## Code generation

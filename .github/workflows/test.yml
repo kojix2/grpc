@@ -95,4 +95,55 @@ jobs:
         run: shards install --without-development
 
       - name: Run grpcurl E2E tests
-        run: crystal spec spec/e2e.cr
+        run: crystal spec spec/grpcurl.cr
+
+  e2e-gripmock:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Install libnghttp2 (Ubuntu)
+        run: sudo apt-get install -y libnghttp2-dev
+
+      - name: Start GripMock
+        run: |
+          docker run -d --name gripmock \
+            -p 4770:4770 \
+            -p 4771:4771 \
+            -v "$PWD/spec/fixtures/grpcurl:/proto:ro" \
+            tkpd/gripmock:latest \
+            -grpc-listen 0.0.0.0 \
+            -admin-listen 0.0.0.0 \
+            /proto/e2e.proto
+
+      - name: Wait for GripMock ports
+        run: |
+          for i in $(seq 1 30); do
+            if (echo > /dev/tcp/127.0.0.1/4770) >/dev/null 2>&1 && \
+               (echo > /dev/tcp/127.0.0.1/4771) >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs gripmock || true
+          exit 1
+
+      - name: Install shards
+        run: shards install --without-development
+
+      - name: Run GripMock E2E tests
+        run: crystal spec spec/gripmock.cr
+
+      - name: Print GripMock logs on failure
+        if: failure()
+        run: docker logs gripmock
+
+      - name: Stop GripMock
+        if: always()
+        run: docker rm -f gripmock || true

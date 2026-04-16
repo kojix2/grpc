@@ -1,4 +1,5 @@
 Lint/SpecFilename:
   Excluded:
-    - spec/e2e.cr
+    - spec/grpcurl.cr
+    - spec/gripmock.cr
     - spec/e2e/**/*.cr
