@@ -447,11 +447,44 @@ decoded, _ <span class="o">=</span> <span class="t">GRPC</span><span class="t">:
     <use href="#octicon-link"/>
   </svg>
 </a>Examples</h2>
+<h3><a id="helloworld-unary-rpc" class="anchor" href="#helloworld-unary-rpc">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Helloworld — unary RPC</h3>
 <pre><code class="language-sh">crystal run examples/helloworld/server.cr
 crystal run examples/helloworld/client.cr -- localhost 50051 Alice
-
-crystal run examples/streaming/server.cr
-crystal run examples/streaming/client.cr</code></pre>
+# Hello, Alice!</code></pre>
+<h3><a id="streaming-all-four-rpc-variants" class="anchor" href="#streaming-all-four-rpc-variants">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Streaming — all four RPC variants</h3>
+<pre><code class="language-sh">crystal run examples/streaming/server.cr
+crystal run examples/streaming/client.cr
+# Square(7)    = 49
+# Range(5)     = 1 2 3 4 5
+# Sum(1..5)    = 15
+# Transform([2,3,4]²) = 4 9 16</code></pre>
+<h3><a id="interceptors-logging-auth" class="anchor" href="#interceptors-logging-auth">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Interceptors — logging + auth</h3>
+<pre><code class="language-sh">crystal run examples/interceptors/server.cr
+crystal run examples/interceptors/client.cr -- localhost 50053 Alice secret
+# Hello, Alice!</code></pre>
+<h3><a id="tls-1" class="anchor" href="#tls-1">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>TLS</h3>
+<p>Generate a self-signed certificate for local testing:</p>
+<pre><code class="language-sh">openssl req -x509 -newkey rsa:2048 -keyout server.key -out server.crt \
+        -days 365 -nodes -subj &quot;/CN=localhost&quot;</code></pre>
+<pre><code class="language-sh">crystal run examples/tls/server.cr -- server.crt server.key
+crystal run examples/tls/client.cr -- localhost 50443 Alice
+# Hello over TLS, Alice!</code></pre>
 <h2><a id="license" class="anchor" href="#license">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
