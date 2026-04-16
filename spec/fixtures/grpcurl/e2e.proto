@@ -1,0 +1,19 @@
+syntax = "proto3";
+package e2e;
+
+service Probe {
+  rpc UnaryEcho(EchoRequest) returns (EchoReply);
+  rpc UnaryFail(EchoRequest) returns (EchoReply);
+  rpc SlowUnary(EchoRequest) returns (EchoReply);
+  rpc ServerStream(EchoRequest) returns (stream EchoReply);
+  rpc ClientStream(stream EchoRequest) returns (EchoReply);
+  rpc BidiStream(stream EchoRequest) returns (stream EchoReply);
+}
+
+message EchoRequest {
+  string message = 1;
+}
+
+message EchoReply {
+  string message = 1;
+}

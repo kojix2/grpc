@@ -1,0 +1,4 @@
+Lint/SpecFilename:
+  Excluded:
+    - spec/e2e.cr
+    - spec/e2e/**/*.cr

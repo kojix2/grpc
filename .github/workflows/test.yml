@@ -48,3 +48,51 @@ jobs:
 
       - name: Check formatting
         run: crystal tool format --check
+
+  e2e-grpcurl:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        crystal: [latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: ${{ matrix.crystal }}
+
+      - name: Install libnghttp2 (Ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y libnghttp2-dev
+
+      - name: Install libnghttp2 (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install libnghttp2
+          echo "LIBRARY_PATH=$(brew --prefix libnghttp2)/lib" >> $GITHUB_ENV
+
+      - name: Install grpcurl (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          tag="$(basename "$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/fullstorydev/grpcurl/releases/latest)")"
+          ver="${tag#v}"
+          curl -fL -o /tmp/grpcurl.tgz \
+            "https://github.com/fullstorydev/grpcurl/releases/download/${tag}/grpcurl_${ver}_linux_x86_64.tar.gz"
+          tar -xzf /tmp/grpcurl.tgz -C /tmp grpcurl
+          sudo install -m 0755 /tmp/grpcurl /usr/local/bin/grpcurl
+          grpcurl -version
+
+      - name: Install grpcurl (macOS)
+        if: runner.os == 'macOS'
+        run: brew install grpcurl
+
+      - name: Install shards
+        run: shards install --without-development
+
+      - name: Run grpcurl E2E tests
+        run: crystal spec spec/e2e.cr

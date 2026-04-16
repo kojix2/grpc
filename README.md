@@ -21,6 +21,20 @@ apt install libnghttp2-dev    # Debian/Ubuntu
 pacman -S nghttp2             # Arch
 ```
 
+## Testing
+
+Run the default spec suite (auto-discovers `spec/**/*_spec.cr`):
+
+```sh
+crystal spec
+```
+
+Run grpcurl E2E tests explicitly via the non-auto entry file:
+
+```sh
+crystal spec spec/e2e.cr
+```
+
 ## Code generation
 
 ```sh
