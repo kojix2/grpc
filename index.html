@@ -267,8 +267,18 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Transport/Http2ServerConnection" data-name="grpc::transport::http2serverconnection">
+  <li class="parent " data-id="grpc/GRPC/Transport/Http2ServerConnection" data-name="grpc::transport::http2serverconnection">
       <a href="GRPC/Transport/Http2ServerConnection.html">Http2ServerConnection</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Transport/Http2ServerConnection/LiveRequestState" data-name="grpc::transport::http2serverconnection::liverequeststate">
+      <a href="GRPC/Transport/Http2ServerConnection/LiveRequestState.html">LiveRequestState</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -444,7 +454,9 @@ reply <span class="o">=</span> client.say_hello(req, ctx: ctx)</code></pre>
     <use href="#octicon-link"/>
   </svg>
 </a>Streaming</h2>
-<p>Generated stubs expose typed stream objects for all four RPC variants.</p>
+<p>Generated stubs expose typed stream objects for all four RPC variants.
+Client-streaming and bidirectional-streaming request bodies are delivered to
+the server incrementally (fully live), not buffered until END_STREAM.</p>
 <pre><code class="language-crystal"><span class="c"># Server streaming — iterate typed responses</span>
 stream <span class="o">=</span> client.range(<span class="t">Numbers</span><span class="t">::</span><span class="t">Number</span>.new(<span class="n">5</span>))
 stream.each { <span class="o">|</span>num<span class="o">|</span> puts num.value }
@@ -532,6 +544,9 @@ crystal run examples/streaming/client.cr
 # Square(7)    = 49
 # Range(5)     = 1 2 3 4 5
 # Sum(1..5)    = 15
+# [server] sum recv: 1
+# [server] sum recv: 2
+# ...
 # Transform([2,3,4]²) = 4 9 16</code></pre>
 <h3><a id="interceptors-logging-auth" class="anchor" href="#interceptors-logging-auth">
   <svg class="octicon-link" aria-hidden="true">
