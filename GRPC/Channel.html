@@ -92,8 +92,18 @@
       
     </li>
   
-  <li class=" current" data-id="grpc/GRPC/Channel" data-name="grpc::channel">
+  <li class="parent open current" data-id="grpc/GRPC/Channel" data-name="grpc::channel">
       <a href="../GRPC/Channel.html">Channel</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Channel/ClientTransportFactory" data-name="grpc::channel::clienttransportfactory">
+      <a href="../GRPC/Channel/ClientTransportFactory.html">ClientTransportFactory</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -172,8 +182,18 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/RequestEnvelope" data-name="grpc::requestenvelope">
+      <a href="../GRPC/RequestEnvelope.html">RequestEnvelope</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/RequestStream" data-name="grpc::requeststream(t)">
       <a href="../GRPC/RequestStream.html">RequestStream</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/ResponseEnvelope" data-name="grpc::responseenvelope">
+      <a href="../GRPC/ResponseEnvelope.html">ResponseEnvelope</a>
       
     </li>
   
@@ -187,8 +207,18 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Server" data-name="grpc::server">
+  <li class="parent " data-id="grpc/GRPC/Server" data-name="grpc::server">
       <a href="../GRPC/Server.html">Server</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Server/ServerTransportFactory" data-name="grpc::server::servertransportfactory">
+      <a href="../GRPC/Server/ServerTransportFactory.html">ServerTransportFactory</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -418,7 +448,7 @@ channel = GRPC::Channel.new(&quot;https://localhost:50051&quot;, tls_context: ct
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/channel.cr#L16" target="_blank">
+      <a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/channel.cr#L16" target="_blank">
         grpc/channel.cr
       </a>
     
@@ -441,7 +471,7 @@ channel = GRPC::Channel.new(&quot;https://localhost:50051&quot;, tls_context: ct
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28address%3AString%2Cinterceptors%3AArray%28ClientInterceptor%29%3D%5B%5DofClientInterceptor%2Ctls_context%3AOpenSSL%3A%3ASSL%3A%3AContext%3A%3AClient%7CNil%3Dnil%29-class-method" class="signature"><strong>.new</strong>(address : String, interceptors : Array(ClientInterceptor) = <span class="o">[]</span> <span class="k">of</span> <span class="t">ClientInterceptor</span>, tls_context : OpenSSL::SSL::Context::Client | Nil = <span class="n">nil</span>)</a>
+        <a href="#new%28address%3AString%2Cinterceptors%3AArray%28ClientInterceptor%29%3D%5B%5DofClientInterceptor%2Ctls_context%3AOpenSSL%3A%3ASSL%3A%3AContext%3A%3AClient%7CNil%3Dnil%2Ctransport_factory%3AClientTransportFactory%7CNil%3Dnil%29-class-method" class="signature"><strong>.new</strong>(address : String, interceptors : Array(ClientInterceptor) = <span class="o">[]</span> <span class="k">of</span> <span class="t">ClientInterceptor</span>, tls_context : OpenSSL::SSL::Context::Client | Nil = <span class="n">nil</span>, transport_factory : ClientTransportFactory | Nil = <span class="n">nil</span>)</a>
         
           <div class="summary"><p>Create a channel to <em>address</em>.</p></div>
         
@@ -549,12 +579,12 @@ channel = GRPC::Channel.new(&quot;https://localhost:50051&quot;, tls_context: ct
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(address:String,interceptors:Array(ClientInterceptor)=[]ofClientInterceptor,tls_context:OpenSSL::SSL::Context::Client|Nil=nil)-class-method">
+    <div class="entry-detail" id="new(address:String,interceptors:Array(ClientInterceptor)=[]ofClientInterceptor,tls_context:OpenSSL::SSL::Context::Client|Nil=nil,transport_factory:ClientTransportFactory|Nil=nil)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(address : String, interceptors : Array(<a href="../GRPC/ClientInterceptor.html">ClientInterceptor</a>) = <span class="o">[]</span> <span class="k">of</span> <span class="t">ClientInterceptor</span>, tls_context : OpenSSL::SSL::Context::Client | Nil = <span class="n">nil</span>)
+        def self.<strong>new</strong>(address : String, interceptors : Array(<a href="../GRPC/ClientInterceptor.html">ClientInterceptor</a>) = <span class="o">[]</span> <span class="k">of</span> <span class="t">ClientInterceptor</span>, tls_context : OpenSSL::SSL::Context::Client | Nil = <span class="n">nil</span>, transport_factory : <a href="../GRPC/Channel/ClientTransportFactory.html">ClientTransportFactory</a> | Nil = <span class="n">nil</span>)
 
-        <a class="method-permalink" href="#new%28address%3AString%2Cinterceptors%3AArray%28ClientInterceptor%29%3D%5B%5DofClientInterceptor%2Ctls_context%3AOpenSSL%3A%3ASSL%3A%3AContext%3A%3AClient%7CNil%3Dnil%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28address%3AString%2Cinterceptors%3AArray%28ClientInterceptor%29%3D%5B%5DofClientInterceptor%2Ctls_context%3AOpenSSL%3A%3ASSL%3A%3AContext%3A%3AClient%7CNil%3Dnil%2Ctransport_factory%3AClientTransportFactory%7CNil%3Dnil%29-class-method">#</a>
       </div>
       
         <div class="doc">
@@ -568,7 +598,7 @@ HTTPS triggers TLS; use <em>tls_context</em> to supply a custom OpenSSL context
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/channel.cr#L30" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/channel.cr#L33" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -600,7 +630,7 @@ HTTPS triggers TLS; use <em>tls_context</em> to supply a custom OpenSSL context
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/channel.cr#L134" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/channel.cr#L147" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -623,7 +653,7 @@ caller interleave request messages and response messages freely.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/channel.cr#L97" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/channel.cr#L110" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -646,7 +676,7 @@ caller send messages incrementally then receive the server's single response.</p
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/channel.cr#L117" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/channel.cr#L130" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -669,7 +699,7 @@ This is the internal API used by generated client stubs.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/channel.cr#L76" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/channel.cr#L87" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -693,7 +723,7 @@ If client interceptors are registered they wrap this call outermost-first.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/channel.cr#L44" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/channel.cr#L51" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -715,7 +745,7 @@ Interceptors are NOT applied on this low-level overload.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/channel.cr#L64" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/channel.cr#L75" target="_blank">View source</a>]
         
       </div>
     </div>

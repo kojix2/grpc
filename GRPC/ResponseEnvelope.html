@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../js/doc.js"></script>
 
   <meta name="repository-name" content="grpc">
-  <title>GRPC::LiveBidiStreamClientCall - grpc main</title>
+  <title>GRPC::ResponseEnvelope - grpc main</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../";
   </script>
@@ -142,7 +142,7 @@
       
     </li>
   
-  <li class=" current" data-id="grpc/GRPC/LiveBidiStreamClientCall" data-name="grpc::livebidistreamclientcall">
+  <li class=" " data-id="grpc/GRPC/LiveBidiStreamClientCall" data-name="grpc::livebidistreamclientcall">
       <a href="../GRPC/LiveBidiStreamClientCall.html">LiveBidiStreamClientCall</a>
       
     </li>
@@ -192,7 +192,7 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/ResponseEnvelope" data-name="grpc::responseenvelope">
+  <li class=" current" data-id="grpc/GRPC/ResponseEnvelope" data-name="grpc::responseenvelope">
       <a href="../GRPC/ResponseEnvelope.html">ResponseEnvelope</a>
       
     </li>
@@ -392,26 +392,30 @@
 <h1 class="type-name">
 
   <span class="kind">
-    alias
-  </span> GRPC::<wbr>LiveBidiStreamClientCall
+    struct
+  </span> GRPC::<wbr>ResponseEnvelope
 
 </h1>
 
 
-
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../GRPC/ResponseEnvelope.html">GRPC::ResponseEnvelope</a></li><li class="superclass">Struct</li><li class="superclass">Value</li><li class="superclass">Object</li></ul>
 
 
 
 
   <h2>
-    <a id="alias-definition" class="anchor" href="#alias-definition">
+    <a id="overview" class="anchor" href="#overview">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>
-    Alias Definition
+    Overview
   </h2>
-  <code>String, <a href="../GRPC/ClientContext.html">GRPC::ClientContext</a> -> <a href="../GRPC/RawBidiCall.html">GRPC::RawBidiCall</a></code>
+
+  <p>ResponseEnvelope wraps a raw protobuf response payload, call metadata,
+and final status for unary-style responses.</p>
+
+
 
 
 
@@ -436,7 +440,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/interceptor.cr#L96" target="_blank">
+      <a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/interceptor.cr#L60" target="_blank">
         grpc/interceptor.cr
       </a>
     
@@ -448,25 +452,276 @@
 
 
   
+  <h2>
+    <a id="constructors" class="anchor" href="#constructors">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructors
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#new%28info%3ACallInfo%2Craw%3ABytes%2Cstatus%3AStatus%2Cmetadata%3AMetadata%3DMetadata.new%2Ccodec%3AString%7CNil%3Dnil%2Cdescriptor%3AString%7CNil%3Dnil%29-class-method" class="signature"><strong>.new</strong>(info : CallInfo, raw : Bytes, status : Status, metadata : Metadata = <span class="t">Metadata</span>.new, codec : String | Nil = <span class="n">nil</span>, descriptor : String | Nil = <span class="n">nil</span>)</a>
+        
+      </li>
+    
+  </ul>
+
 
   
 
   
 
   
+  <h2>
+    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#codec%3AString%7CNil-instance-method" class="signature"><strong>#codec</strong> : String | Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#decode%28type%3AT.class%29%3ATforallT-instance-method" class="signature"><strong>#decode</strong>(type : <span class="t">T</span>.<span class="k">class</span>) : T forall T</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#descriptor%3AString%7CNil-instance-method" class="signature"><strong>#descriptor</strong> : String | Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#info%3ACallInfo-instance-method" class="signature"><strong>#info</strong> : CallInfo</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#metadata%3AMetadata-instance-method" class="signature"><strong>#metadata</strong> : Metadata</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#raw%3ABytes-instance-method" class="signature"><strong>#raw</strong> : Bytes</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#status%3AStatus-instance-method" class="signature"><strong>#status</strong> : Status</a>
+        
+      </li>
+    
+  </ul>
+
 
 
   <div class="methods-inherited">
     
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
   </div>
 
   
+  <h2>
+    <a id="constructor-detail" class="anchor" href="#constructor-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructor Detail
+  </h2>
+  
+    <div class="entry-detail" id="new(info:CallInfo,raw:Bytes,status:Status,metadata:Metadata=Metadata.new,codec:String|Nil=nil,descriptor:String|Nil=nil)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(info : <a href="../GRPC/CallInfo.html">CallInfo</a>, raw : Bytes, status : <a href="../GRPC/Status.html">Status</a>, metadata : <a href="../GRPC/Metadata.html">Metadata</a> = <span class="t">Metadata</span>.new, codec : String | Nil = <span class="n">nil</span>, descriptor : String | Nil = <span class="n">nil</span>)
+
+        <a class="method-permalink" href="#new%28info%3ACallInfo%2Craw%3ABytes%2Cstatus%3AStatus%2Cmetadata%3AMetadata%3DMetadata.new%2Ccodec%3AString%7CNil%3Dnil%2Cdescriptor%3AString%7CNil%3Dnil%29-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/interceptor.cr#L68" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
 
   
 
   
 
   
+  <h2>
+    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="codec:String|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>codec</strong> : String | Nil
+
+        <a class="method-permalink" href="#codec%3AString%7CNil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/interceptor.cr#L65" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="decode(type:T.class):TforallT-instance-method">
+      <div class="signature">
+        
+        def <strong>decode</strong>(type : <span class="t">T</span>.<span class="k">class</span>) : T forall T
+
+        <a class="method-permalink" href="#decode%28type%3AT.class%29%3ATforallT-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/interceptor.cr#L73" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="descriptor:String|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>descriptor</strong> : String | Nil
+
+        <a class="method-permalink" href="#descriptor%3AString%7CNil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/interceptor.cr#L66" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="info:CallInfo-instance-method">
+      <div class="signature">
+        
+        def <strong>info</strong> : <a href="../GRPC/CallInfo.html">CallInfo</a>
+
+        <a class="method-permalink" href="#info%3ACallInfo-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/interceptor.cr#L61" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="metadata:Metadata-instance-method">
+      <div class="signature">
+        
+        def <strong>metadata</strong> : <a href="../GRPC/Metadata.html">Metadata</a>
+
+        <a class="method-permalink" href="#metadata%3AMetadata-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/interceptor.cr#L64" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="raw:Bytes-instance-method">
+      <div class="signature">
+        
+        def <strong>raw</strong> : Bytes
+
+        <a class="method-permalink" href="#raw%3ABytes-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/interceptor.cr#L62" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="status:Status-instance-method">
+      <div class="signature">
+        
+        def <strong>status</strong> : <a href="../GRPC/Status.html">Status</a>
+
+        <a class="method-permalink" href="#status%3AStatus-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4124c12c034f8542c7561d8e0b204f380bef4db6/src/grpc/interceptor.cr#L63" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
 
 
 </div>

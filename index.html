@@ -92,8 +92,18 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Channel" data-name="grpc::channel">
+  <li class="parent " data-id="grpc/GRPC/Channel" data-name="grpc::channel">
       <a href="GRPC/Channel.html">Channel</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Channel/ClientTransportFactory" data-name="grpc::channel::clienttransportfactory">
+      <a href="GRPC/Channel/ClientTransportFactory.html">ClientTransportFactory</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -172,8 +182,18 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/RequestEnvelope" data-name="grpc::requestenvelope">
+      <a href="GRPC/RequestEnvelope.html">RequestEnvelope</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/RequestStream" data-name="grpc::requeststream(t)">
       <a href="GRPC/RequestStream.html">RequestStream</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/ResponseEnvelope" data-name="grpc::responseenvelope">
+      <a href="GRPC/ResponseEnvelope.html">ResponseEnvelope</a>
       
     </li>
   
@@ -187,8 +207,18 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Server" data-name="grpc::server">
+  <li class="parent " data-id="grpc/GRPC/Server" data-name="grpc::server">
       <a href="GRPC/Server.html">Server</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Server/ServerTransportFactory" data-name="grpc::server::servertransportfactory">
+      <a href="GRPC/Server/ServerTransportFactory.html">ServerTransportFactory</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -488,23 +518,53 @@ channel <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</
   </svg>
 </a>Interceptors</h2>
 <pre><code class="language-crystal"><span class="k">class</span> <span class="t">LoggingInterceptor</span> <span class="o">&lt;</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">ServerInterceptor</span>
-  <span class="k">def</span> <span class="m">call</span>(method, request, ctx, next_call)
-    <span class="t">STDERR</span>.puts <span class="s">&quot;-&gt; </span><span class="i">#{</span>method<span class="i">}</span><span class="s">&quot;</span>
-    next_call.call(method, request, ctx)
+  <span class="k">def</span> <span class="m">call</span>(request : <span class="t">GRPC</span><span class="t">::</span><span class="t">RequestEnvelope</span>,
+           ctx : <span class="t">GRPC</span><span class="t">::</span><span class="t">ServerContext</span>,
+           next_call : <span class="t">GRPC</span><span class="t">::</span><span class="t">UnaryServerCall</span>) : <span class="t">GRPC</span><span class="t">::</span><span class="t">ResponseEnvelope</span>
+    <span class="t">STDERR</span>.puts <span class="s">&quot;-&gt; </span><span class="i">#{</span>request.info.method_path<span class="i">}</span><span class="s">&quot;</span>
+    next_call.call(request.info.method_path, request, ctx)
   <span class="k">end</span>
 <span class="k">end</span>
 
 server.intercept <span class="t">LoggingInterceptor</span>.new</code></pre>
 <pre><code class="language-crystal"><span class="k">class</span> <span class="t">AuthInterceptor</span> <span class="o">&lt;</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">ClientInterceptor</span>
-  <span class="k">def</span> <span class="m">call</span>(method_path, request, ctx, next_call)
+  <span class="k">def</span> <span class="m">call</span>(request : <span class="t">GRPC</span><span class="t">::</span><span class="t">RequestEnvelope</span>,
+           ctx : <span class="t">GRPC</span><span class="t">::</span><span class="t">ClientContext</span>,
+           next_call : <span class="t">GRPC</span><span class="t">::</span><span class="t">UnaryClientCall</span>) : <span class="t">GRPC</span><span class="t">::</span><span class="t">ResponseEnvelope</span>
     ctx.metadata.set(<span class="s">&quot;authorization&quot;</span>, <span class="s">&quot;Bearer </span><span class="i">#{</span>@token<span class="i">}</span><span class="s">&quot;</span>)
-    next_call.call(method_path, request, ctx)
+    next_call.call(request.info.method_path, request, ctx)
   <span class="k">end</span>
 <span class="k">end</span>
 
 channel <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Channel</span>.new(<span class="s">&quot;localhost:50051&quot;</span>,
   interceptors: [<span class="t">AuthInterceptor</span>.new(token)] <span class="k">of</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">ClientInterceptor</span>)</code></pre>
-<p><code>call_server_stream</code>, <code>call_client_stream</code>, and <code>call_bidi_stream</code> can also be overridden; they default to pass-through.</p>
+<p><code>RequestEnvelope</code> includes <code>#raw</code>, <code>#info</code>, and <code>#decode(T)</code> so interceptors can decode payloads naturally when needed.</p>
+<p>Streaming hooks can also be overridden and default to pass-through:</p>
+<ul>
+<li><code>call_server_stream</code></li>
+<li><code>call_live_client_stream</code></li>
+<li><code>call_live_bidi_stream</code></li>
+</ul>
+<h2><a id="transport-factory-injection" class="anchor" href="#transport-factory-injection">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Transport factory injection</h2>
+<p><code>Channel</code> and <code>Server</code> accept optional factory procs so transport creation can be swapped without changing call sites.</p>
+<pre><code class="language-crystal">client_factory <span class="o">=</span> <span class="o">-&gt;</span>(host : <span class="t">String</span>, port : <span class="t">Int32</span>, use_tls : <span class="t">Bool</span>, tls_ctx : <span class="t">OpenSSL</span><span class="t">::</span><span class="t">SSL</span><span class="t">::</span><span class="t">Context</span><span class="t">::</span><span class="t">Client</span>?) {
+  <span class="t">GRPC</span><span class="t">::</span><span class="t">Transport</span><span class="t">::</span><span class="t">Http2ClientConnection</span>.new(host, port, use_tls, tls_ctx).<span class="k">as</span>(<span class="t">GRPC</span><span class="t">::</span><span class="t">Transport</span><span class="t">::</span><span class="t">ClientTransport</span>)
+}
+
+server_factory <span class="o">=</span> <span class="o">-&gt;</span>(io : <span class="t">IO</span>,
+                    services : <span class="t">Hash</span>(<span class="t">String</span>, <span class="t">GRPC</span><span class="t">::</span><span class="t">Service</span>),
+                    interceptors : <span class="t">Array</span>(<span class="t">GRPC</span><span class="t">::</span><span class="t">ServerInterceptor</span>),
+                    peer : <span class="t">String</span>,
+                    tls_sock : <span class="t">OpenSSL</span><span class="t">::</span><span class="t">SSL</span><span class="t">::</span><span class="t">Socket</span><span class="t">::</span><span class="t">Server</span>?) {
+  <span class="t">GRPC</span><span class="t">::</span><span class="t">Transport</span><span class="t">::</span><span class="t">Http2ServerConnection</span>.new(io, services, interceptors, peer, tls_sock).<span class="k">as</span>(<span class="t">GRPC</span><span class="t">::</span><span class="t">Transport</span><span class="t">::</span><span class="t">ServerTransport</span>)
+}
+
+channel <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Channel</span>.new(<span class="s">&quot;localhost:50051&quot;</span>, transport_factory: client_factory)
+server <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Server</span>.new(transport_factory: server_factory)</code></pre>
 <h2><a id="message-compression" class="anchor" href="#message-compression">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
