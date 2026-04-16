@@ -82,11 +82,6 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/BidiStreamClientCall" data-name="grpc::bidistreamclientcall">
-      <a href="../GRPC/BidiStreamClientCall.html">BidiStreamClientCall</a>
-      
-    </li>
-  
   <li class=" " data-id="grpc/GRPC/BidiStreamServerCall" data-name="grpc::bidistreamservercall">
       <a href="../GRPC/BidiStreamServerCall.html">BidiStreamServerCall</a>
       
@@ -114,11 +109,6 @@
   
   <li class=" " data-id="grpc/GRPC/ClientStream" data-name="grpc::clientstream(req, res)">
       <a href="../GRPC/ClientStream.html">ClientStream</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/ClientStreamClientCall" data-name="grpc::clientstreamclientcall">
-      <a href="../GRPC/ClientStreamClientCall.html">ClientStreamClientCall</a>
       
     </li>
   
@@ -419,7 +409,7 @@ last on the way out).</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L189" target="_blank">
+      <a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L169" target="_blank">
         grpc/interceptor.cr
       </a>
     
@@ -452,16 +442,6 @@ last on the way out).</p>
     
       <li class="entry-summary">
         <a href="#build_client_chain%28interceptors%3AArray%28ClientInterceptor%29%2Cbase%3AServerStreamClientCall%29%3AServerStreamClientCall-class-method" class="signature"><strong>.build_client_chain</strong>(interceptors : Array(ClientInterceptor), base : ServerStreamClientCall) : ServerStreamClientCall</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#build_client_chain%28interceptors%3AArray%28ClientInterceptor%29%2Cbase%3AClientStreamClientCall%29%3AClientStreamClientCall-class-method" class="signature"><strong>.build_client_chain</strong>(interceptors : Array(ClientInterceptor), base : ClientStreamClientCall) : ClientStreamClientCall</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#build_client_chain%28interceptors%3AArray%28ClientInterceptor%29%2Cbase%3ABidiStreamClientCall%29%3ABidiStreamClientCall-class-method" class="signature"><strong>.build_client_chain</strong>(interceptors : Array(ClientInterceptor), base : BidiStreamClientCall) : BidiStreamClientCall</a>
         
       </li>
     
@@ -538,7 +518,7 @@ Returns a single UnaryClientCall that runs interceptors[0] first.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L192" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L172" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -554,39 +534,7 @@ Returns a single UnaryClientCall that runs interceptors[0] first.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L208" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="build_client_chain(interceptors:Array(ClientInterceptor),base:ClientStreamClientCall):ClientStreamClientCall-class-method">
-      <div class="signature">
-        
-        def self.<strong>build_client_chain</strong>(interceptors : Array(<a href="../GRPC/ClientInterceptor.html">ClientInterceptor</a>), base : <a href="../GRPC/ClientStreamClientCall.html">ClientStreamClientCall</a>) : <a href="../GRPC/ClientStreamClientCall.html">ClientStreamClientCall</a>
-
-        <a class="method-permalink" href="#build_client_chain%28interceptors%3AArray%28ClientInterceptor%29%2Cbase%3AClientStreamClientCall%29%3AClientStreamClientCall-class-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L224" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="build_client_chain(interceptors:Array(ClientInterceptor),base:BidiStreamClientCall):BidiStreamClientCall-class-method">
-      <div class="signature">
-        
-        def self.<strong>build_client_chain</strong>(interceptors : Array(<a href="../GRPC/ClientInterceptor.html">ClientInterceptor</a>), base : <a href="../GRPC/BidiStreamClientCall.html">BidiStreamClientCall</a>) : <a href="../GRPC/BidiStreamClientCall.html">BidiStreamClientCall</a>
-
-        <a class="method-permalink" href="#build_client_chain%28interceptors%3AArray%28ClientInterceptor%29%2Cbase%3ABidiStreamClientCall%29%3ABidiStreamClientCall-class-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L240" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L188" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -602,7 +550,7 @@ Returns a single UnaryClientCall that runs interceptors[0] first.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L256" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L204" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -618,7 +566,7 @@ Returns a single UnaryClientCall that runs interceptors[0] first.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L272" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L220" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -640,7 +588,7 @@ Returns a single call proc that runs interceptors[0] first.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L290" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L238" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -656,7 +604,7 @@ Returns a single call proc that runs interceptors[0] first.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L306" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L254" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -672,7 +620,7 @@ Returns a single call proc that runs interceptors[0] first.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L322" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L270" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -688,7 +636,7 @@ Returns a single call proc that runs interceptors[0] first.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L338" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L286" target="_blank">View source</a>]
         
       </div>
     </div>

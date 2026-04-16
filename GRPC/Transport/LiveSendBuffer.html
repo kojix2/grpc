@@ -82,11 +82,6 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/BidiStreamClientCall" data-name="grpc::bidistreamclientcall">
-      <a href="../../GRPC/BidiStreamClientCall.html">BidiStreamClientCall</a>
-      
-    </li>
-  
   <li class=" " data-id="grpc/GRPC/BidiStreamServerCall" data-name="grpc::bidistreamservercall">
       <a href="../../GRPC/BidiStreamServerCall.html">BidiStreamServerCall</a>
       
@@ -114,11 +109,6 @@
   
   <li class=" " data-id="grpc/GRPC/ClientStream" data-name="grpc::clientstream(req, res)">
       <a href="../../GRPC/ClientStream.html">ClientStream</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/ClientStreamClientCall" data-name="grpc::clientstreamclientcall">
-      <a href="../../GRPC/ClientStreamClientCall.html">ClientStreamClientCall</a>
       
     </li>
   
@@ -395,7 +385,11 @@
   <p>LiveSendBuffer is an on-demand queue for full-duplex bidi streaming.
 DATA_READ_CB_LIVE returns NGHTTP2_ERR_DEFERRED when the queue is empty,
 and the caller must call session_resume_data after pushing new data.</p>
-<p><span class="flag purple">NOTE</span>  not safe for -Dpreview_mt (no mutex); assumes single-threaded fibers.</p>
+<p>Lock ordering: callers must NOT hold @lsb_mutex while acquiring the
+connection @mutex.  read_into is called from inside the connection @mutex,
+so it acquires @lsb_mutex as an inner lock — which is safe because push/close
+always release @lsb_mutex before the caller acquires the connection @mutex
+(via send_resume_proc).</p>
 
 
 
@@ -422,7 +416,7 @@ and the caller must call session_resume_data after pushing new data.</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L174" target="_blank">
+      <a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L179" target="_blank">
         grpc/transport/http2_client_connection.cr
       </a>
     
@@ -544,7 +538,7 @@ and the caller must call session_resume_data after pushing new data.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L179" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L185" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -576,7 +570,7 @@ and the caller must call session_resume_data after pushing new data.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L189" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L196" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -592,7 +586,7 @@ and the caller must call session_resume_data after pushing new data.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L193" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L200" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -608,7 +602,7 @@ and the caller must call session_resume_data after pushing new data.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L185" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L192" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -625,13 +619,14 @@ and the caller must call session_resume_data after pushing new data.</p>
           
           <p>read_into fills <em>buf</em> with up to <em>length</em> bytes from the queue.
 Returns the number of bytes written, sets DATA_FLAG_EOF when done,
-or returns NGHTTP2_ERR_DEFERRED when no data is available yet.</p>
+or returns NGHTTP2_ERR_DEFERRED when no data is available yet.
+Called from DATA_READ_CB_LIVE while the connection @mutex is held.</p>
         </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L200" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L208" target="_blank">View source</a>]
         
       </div>
     </div>

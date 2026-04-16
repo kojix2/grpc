@@ -82,11 +82,6 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/BidiStreamClientCall" data-name="grpc::bidistreamclientcall">
-      <a href="../../GRPC/BidiStreamClientCall.html">BidiStreamClientCall</a>
-      
-    </li>
-  
   <li class=" " data-id="grpc/GRPC/BidiStreamServerCall" data-name="grpc::bidistreamservercall">
       <a href="../../GRPC/BidiStreamServerCall.html">BidiStreamServerCall</a>
       
@@ -114,11 +109,6 @@
   
   <li class=" " data-id="grpc/GRPC/ClientStream" data-name="grpc::clientstream(req, res)">
       <a href="../../GRPC/ClientStream.html">ClientStream</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/ClientStreamClientCall" data-name="grpc::clientstreamclientcall">
-      <a href="../../GRPC/ClientStreamClientCall.html">ClientStreamClientCall</a>
       
     </li>
   
@@ -433,7 +423,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L236" target="_blank">
+      <a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L246" target="_blank">
         grpc/transport/http2_client_connection.cr
       </a>
     
@@ -519,13 +509,6 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#client_stream_call%28service%3AString%2Cmethod%3AString%2Crequest_messages%3AArray%28Bytes%29%2Cmetadata%3AMetadata%3DMetadata.new%29%3ATuple%28Bytes%2CStatus%29-instance-method" class="signature"><strong>#client_stream_call</strong>(service : String, method : String, request_messages : Array(Bytes), metadata : Metadata = <span class="t">Metadata</span>.new) : Tuple(Bytes, Status)</a>
-        
-          <div class="summary"><p>client_stream_call sends multiple gRPC request messages (buffered) and blocks until the server returns its single response.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
         <a href="#on_data_chunk_cb%28stream_id%3AInt32%2Cdata%3APointer%28UInt8%29%2Clen%3ALibC%3A%3ASizeT%29%3ANil-instance-method" class="signature"><strong>#on_data_chunk_cb</strong>(stream_id : Int32, data : Pointer(UInt8), len : LibC::SizeT) : Nil</a>
         
       </li>
@@ -542,13 +525,6 @@
     
       <li class="entry-summary">
         <a href="#on_stream_close_cb%28stream_id%3AInt32%2Cerror_code%3AUInt32%29%3ANil-instance-method" class="signature"><strong>#on_stream_close_cb</strong>(stream_id : Int32, error_code : UInt32) : Nil</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#open_bidi_stream%28service%3AString%2Cmethod%3AString%2Crequest_messages%3AArray%28Bytes%29%2Cmetadata%3AMetadata%3DMetadata.new%29%3ARawServerStream-instance-method" class="signature"><strong>#open_bidi_stream</strong>(service : String, method : String, request_messages : Array(Bytes), metadata : Metadata = <span class="t">Metadata</span>.new) : RawServerStream</a>
-        
-          <div class="summary"><p>open_bidi_stream sends multiple gRPC request messages (buffered) and returns a RawServerStream that delivers server-pushed response messages as they arrive.</p></div>
         
       </li>
     
@@ -591,11 +567,6 @@
   <h3>Instance methods inherited from module <code><a href="../../GRPC/Transport/ClientTransport.html">GRPC::Transport::ClientTransport</a></code></h3>
   
   
-    <a href="../../GRPC/Transport/ClientTransport.html#client_stream_call%28service%3AString%2Cmethod%3AString%2Crequest_messages%3AArray%28Bytes%29%2Cmetadata%3AMetadata%29%3ATuple%28Bytes%2CStatus%29-instance-method" class="tooltip">
-      <span>client_stream_call(service : String, method : String, request_messages : Array(Bytes), metadata : Metadata) : Tuple(Bytes, Status)</span>
-    client_stream_call</a>, 
-    
-  
     <a href="../../GRPC/Transport/ClientTransport.html#close%3ANil-instance-method" class="tooltip">
       <span>close : Nil</span>
     close</a>, 
@@ -604,11 +575,6 @@
     <a href="../../GRPC/Transport/ClientTransport.html#closed%3F%3ABool-instance-method" class="tooltip">
       <span>closed? : Bool</span>
     closed?</a>, 
-    
-  
-    <a href="../../GRPC/Transport/ClientTransport.html#open_bidi_stream%28service%3AString%2Cmethod%3AString%2Crequest_messages%3AArray%28Bytes%29%2Cmetadata%3AMetadata%29%3ARawServerStream-instance-method" class="tooltip">
-      <span>open_bidi_stream(service : String, method : String, request_messages : Array(Bytes), metadata : Metadata) : RawServerStream</span>
-    open_bidi_stream</a>, 
     
   
     <a href="../../GRPC/Transport/ClientTransport.html#open_bidi_stream_live%28service%3AString%2Cmethod%3AString%2Cmetadata%3AMetadata%29%3ARawBidiCall-instance-method" class="tooltip">
@@ -758,7 +724,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L266" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L276" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -779,28 +745,6 @@
     Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="client_stream_call(service:String,method:String,request_messages:Array(Bytes),metadata:Metadata=Metadata.new):Tuple(Bytes,Status)-instance-method">
-      <div class="signature">
-        
-        def <strong>client_stream_call</strong>(service : String, method : String, request_messages : Array(Bytes), metadata : <a href="../../GRPC/Metadata.html">Metadata</a> = <span class="t">Metadata</span>.new) : Tuple(Bytes, <a href="../../GRPC/Status.html">Status</a>)
-
-        <a class="method-permalink" href="#client_stream_call%28service%3AString%2Cmethod%3AString%2Crequest_messages%3AArray%28Bytes%29%2Cmetadata%3AMetadata%3DMetadata.new%29%3ATuple%28Bytes%2CStatus%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>client_stream_call sends multiple gRPC request messages (buffered) and blocks
-until the server returns its single response.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L311" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
     <div class="entry-detail" id="on_data_chunk_cb(stream_id:Int32,data:Pointer(UInt8),len:LibC::SizeT):Nil-instance-method">
       <div class="signature">
         
@@ -812,7 +756,7 @@ until the server returns its single response.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L558" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L550" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -828,7 +772,7 @@ until the server returns its single response.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L567" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L559" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -844,7 +788,7 @@ until the server returns its single response.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L538" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L530" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -860,29 +804,7 @@ until the server returns its single response.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L579" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="open_bidi_stream(service:String,method:String,request_messages:Array(Bytes),metadata:Metadata=Metadata.new):RawServerStream-instance-method">
-      <div class="signature">
-        
-        def <strong>open_bidi_stream</strong>(service : String, method : String, request_messages : Array(Bytes), metadata : <a href="../../GRPC/Metadata.html">Metadata</a> = <span class="t">Metadata</span>.new) : <a href="../../GRPC/RawServerStream.html">RawServerStream</a>
-
-        <a class="method-permalink" href="#open_bidi_stream%28service%3AString%2Cmethod%3AString%2Crequest_messages%3AArray%28Bytes%29%2Cmetadata%3AMetadata%3DMetadata.new%29%3ARawServerStream-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>open_bidi_stream sends multiple gRPC request messages (buffered) and returns a
-RawServerStream that delivers server-pushed response messages as they arrive.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L327" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L571" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -905,7 +827,7 @@ caller interleave sends and receives freely.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L337" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L329" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -929,7 +851,7 @@ after close_and_recv returns.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L346" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L338" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -951,7 +873,7 @@ delivers server-pushed messages as they arrive.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L320" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L321" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -972,7 +894,7 @@ delivers server-pushed messages as they arrive.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/http2_client_connection.cr#L304" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/http2_client_connection.cr#L314" target="_blank">View source</a>]
         
       </div>
     </div>

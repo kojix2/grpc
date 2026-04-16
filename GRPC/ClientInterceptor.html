@@ -82,11 +82,6 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/BidiStreamClientCall" data-name="grpc::bidistreamclientcall">
-      <a href="../GRPC/BidiStreamClientCall.html">BidiStreamClientCall</a>
-      
-    </li>
-  
   <li class=" " data-id="grpc/GRPC/BidiStreamServerCall" data-name="grpc::bidistreamservercall">
       <a href="../GRPC/BidiStreamServerCall.html">BidiStreamServerCall</a>
       
@@ -114,11 +109,6 @@
   
   <li class=" " data-id="grpc/GRPC/ClientStream" data-name="grpc::clientstream(req, res)">
       <a href="../GRPC/ClientStream.html">ClientStream</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/ClientStreamClientCall" data-name="grpc::clientstreamclientcall">
-      <a href="../GRPC/ClientStreamClientCall.html">ClientStreamClientCall</a>
       
     </li>
   
@@ -433,7 +423,7 @@ interceptors: [LoggingInterceptor.new] of GRPC::ClientInterceptor)</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L80" target="_blank">
+      <a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L78" target="_blank">
         grpc/interceptor.cr
       </a>
     
@@ -463,16 +453,6 @@ interceptors: [LoggingInterceptor.new] of GRPC::ClientInterceptor)</p>
     
       <li class="entry-summary">
         <a href="#call%28info%3ACallInfo%2Crequest%3ABytes%2Cctx%3AClientContext%2Cnext_call%3AUnaryClientCall%29%3ATuple%28Bytes%2CStatus%29-instance-method" class="signature"><strong>#call</strong>(info : CallInfo, request : Bytes, ctx : ClientContext, next_call : UnaryClientCall) : Tuple(Bytes, Status)</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#call_bidi_stream%28info%3ACallInfo%2Crequests%3AArray%28Bytes%29%2Cctx%3AClientContext%2Cnext_call%3ABidiStreamClientCall%29%3ARawServerStream-instance-method" class="signature"><strong>#call_bidi_stream</strong>(info : CallInfo, requests : Array(Bytes), ctx : ClientContext, next_call : BidiStreamClientCall) : RawServerStream</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#call_client_stream%28info%3ACallInfo%2Crequests%3AArray%28Bytes%29%2Cctx%3AClientContext%2Cnext_call%3AClientStreamClientCall%29%3ATuple%28Bytes%2CStatus%29-instance-method" class="signature"><strong>#call_client_stream</strong>(info : CallInfo, requests : Array(Bytes), ctx : ClientContext, next_call : ClientStreamClientCall) : Tuple(Bytes, Status)</a>
         
       </li>
     
@@ -552,39 +532,7 @@ interceptors: [LoggingInterceptor.new] of GRPC::ClientInterceptor)</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L81" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="call_bidi_stream(info:CallInfo,requests:Array(Bytes),ctx:ClientContext,next_call:BidiStreamClientCall):RawServerStream-instance-method">
-      <div class="signature">
-        
-        def <strong>call_bidi_stream</strong>(info : <a href="../GRPC/CallInfo.html">CallInfo</a>, requests : Array(Bytes), ctx : <a href="../GRPC/ClientContext.html">ClientContext</a>, next_call : <a href="../GRPC/BidiStreamClientCall.html">BidiStreamClientCall</a>) : <a href="../GRPC/RawServerStream.html">RawServerStream</a>
-
-        <a class="method-permalink" href="#call_bidi_stream%28info%3ACallInfo%2Crequests%3AArray%28Bytes%29%2Cctx%3AClientContext%2Cnext_call%3ABidiStreamClientCall%29%3ARawServerStream-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L106" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="call_client_stream(info:CallInfo,requests:Array(Bytes),ctx:ClientContext,next_call:ClientStreamClientCall):Tuple(Bytes,Status)-instance-method">
-      <div class="signature">
-        
-        def <strong>call_client_stream</strong>(info : <a href="../GRPC/CallInfo.html">CallInfo</a>, requests : Array(Bytes), ctx : <a href="../GRPC/ClientContext.html">ClientContext</a>, next_call : <a href="../GRPC/ClientStreamClientCall.html">ClientStreamClientCall</a>) : Tuple(Bytes, <a href="../GRPC/Status.html">Status</a>)
-
-        <a class="method-permalink" href="#call_client_stream%28info%3ACallInfo%2Crequests%3AArray%28Bytes%29%2Cctx%3AClientContext%2Cnext_call%3AClientStreamClientCall%29%3ATuple%28Bytes%2CStatus%29-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L97" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L79" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -600,7 +548,7 @@ interceptors: [LoggingInterceptor.new] of GRPC::ClientInterceptor)</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L123" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L103" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -616,7 +564,7 @@ interceptors: [LoggingInterceptor.new] of GRPC::ClientInterceptor)</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L115" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L95" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -632,7 +580,7 @@ interceptors: [LoggingInterceptor.new] of GRPC::ClientInterceptor)</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/interceptor.cr#L88" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/interceptor.cr#L86" target="_blank">View source</a>]
         
       </div>
     </div>

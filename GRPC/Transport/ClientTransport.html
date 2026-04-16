@@ -82,11 +82,6 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/BidiStreamClientCall" data-name="grpc::bidistreamclientcall">
-      <a href="../../GRPC/BidiStreamClientCall.html">BidiStreamClientCall</a>
-      
-    </li>
-  
   <li class=" " data-id="grpc/GRPC/BidiStreamServerCall" data-name="grpc::bidistreamservercall">
       <a href="../../GRPC/BidiStreamServerCall.html">BidiStreamServerCall</a>
       
@@ -114,11 +109,6 @@
   
   <li class=" " data-id="grpc/GRPC/ClientStream" data-name="grpc::clientstream(req, res)">
       <a href="../../GRPC/ClientStream.html">ClientStream</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/ClientStreamClientCall" data-name="grpc::clientstreamclientcall">
-      <a href="../../GRPC/ClientStreamClientCall.html">ClientStreamClientCall</a>
       
     </li>
   
@@ -433,7 +423,7 @@ All methods return public stream types; PendingStream stays internal.</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/interface.cr#L6" target="_blank">
+      <a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/interface.cr#L6" target="_blank">
         grpc/transport/interface.cr
       </a>
     
@@ -462,22 +452,12 @@ All methods return public stream types; PendingStream stays internal.</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#client_stream_call%28service%3AString%2Cmethod%3AString%2Crequest_messages%3AArray%28Bytes%29%2Cmetadata%3AMetadata%29%3ATuple%28Bytes%2CStatus%29-instance-method" class="signature"><strong>#client_stream_call</strong>(service : String, method : String, request_messages : Array(Bytes), metadata : Metadata) : Tuple(Bytes, Status)</a>
-        
-      </li>
-    
-      <li class="entry-summary">
         <a href="#close%3ANil-instance-method" class="signature"><strong>#close</strong> : Nil</a>
         
       </li>
     
       <li class="entry-summary">
         <a href="#closed%3F%3ABool-instance-method" class="signature"><strong>#closed?</strong> : Bool</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#open_bidi_stream%28service%3AString%2Cmethod%3AString%2Crequest_messages%3AArray%28Bytes%29%2Cmetadata%3AMetadata%29%3ARawServerStream-instance-method" class="signature"><strong>#open_bidi_stream</strong>(service : String, method : String, request_messages : Array(Bytes), metadata : Metadata) : RawServerStream</a>
         
       </li>
     
@@ -525,22 +505,6 @@ All methods return public stream types; PendingStream stays internal.</p>
     Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="client_stream_call(service:String,method:String,request_messages:Array(Bytes),metadata:Metadata):Tuple(Bytes,Status)-instance-method">
-      <div class="signature">
-        abstract 
-        def <strong>client_stream_call</strong>(service : String, method : String, request_messages : Array(Bytes), metadata : <a href="../../GRPC/Metadata.html">Metadata</a>) : Tuple(Bytes, <a href="../../GRPC/Status.html">Status</a>)
-
-        <a class="method-permalink" href="#client_stream_call%28service%3AString%2Cmethod%3AString%2Crequest_messages%3AArray%28Bytes%29%2Cmetadata%3AMetadata%29%3ATuple%28Bytes%2CStatus%29-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/interface.cr#L10" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
     <div class="entry-detail" id="close:Nil-instance-method">
       <div class="signature">
         abstract 
@@ -552,7 +516,7 @@ All methods return public stream types; PendingStream stays internal.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/interface.cr#L29" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/interface.cr#L21" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -568,23 +532,7 @@ All methods return public stream types; PendingStream stays internal.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/interface.cr#L28" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="open_bidi_stream(service:String,method:String,request_messages:Array(Bytes),metadata:Metadata):RawServerStream-instance-method">
-      <div class="signature">
-        abstract 
-        def <strong>open_bidi_stream</strong>(service : String, method : String, request_messages : Array(Bytes), metadata : <a href="../../GRPC/Metadata.html">Metadata</a>) : <a href="../../GRPC/RawServerStream.html">RawServerStream</a>
-
-        <a class="method-permalink" href="#open_bidi_stream%28service%3AString%2Cmethod%3AString%2Crequest_messages%3AArray%28Bytes%29%2Cmetadata%3AMetadata%29%3ARawServerStream-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/interface.cr#L18" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/interface.cr#L20" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -600,7 +548,7 @@ All methods return public stream types; PendingStream stays internal.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/interface.cr#L22" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/interface.cr#L14" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -616,7 +564,7 @@ All methods return public stream types; PendingStream stays internal.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/interface.cr#L25" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/interface.cr#L17" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -632,7 +580,7 @@ All methods return public stream types; PendingStream stays internal.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/interface.cr#L14" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/interface.cr#L10" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -648,7 +596,7 @@ All methods return public stream types; PendingStream stays internal.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/3bbcb8db2a48cb7e5ddc5fc944117765f58b5ad3/src/grpc/transport/interface.cr#L7" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc.cr/blob/4f6994971ad7d4e4ef8ae38c07938c2760e0f174/src/grpc/transport/interface.cr#L7" target="_blank">View source</a>]
         
       </div>
     </div>
