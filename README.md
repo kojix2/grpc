@@ -1,8 +1,9 @@
 # grpc.cr
 
 [![Test](https://github.com/kojix2/grpc.cr/actions/workflows/test.yml/badge.svg)](https://github.com/kojix2/grpc.cr/actions/workflows/test.yml)
+[![Lines of Code](https://img.shields.io/endpoint?url=https%3A%2F%2Ftokei.kojix2.net%2Fbadge%2Fgithub%2Fkojix2%2Fgrpc.cr%2Flines)](https://tokei.kojix2.net/github/kojix2/grpc.cr)
 
-A native Crystal gRPC library built on [libnghttp2](https://nghttp2.org/).
+A native Crystal [gRPC](https://grpc.io/) library built on [libnghttp2](https://nghttp2.org/).
 This library was generated using an AI agent.
 
 ## Installation
