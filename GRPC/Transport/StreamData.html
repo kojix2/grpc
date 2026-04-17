@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Crystal Docs 1.18.2">
+<meta name="generator" content="Crystal Docs 1.19.1">
 <meta name="crystal_docs.project_version" content="main">
 <meta name="crystal_docs.project_name" content="grpc">
 
@@ -57,18 +57,8 @@
   <div class="types-list">
     <ul>
   
-  <li class=" " data-id="grpc/CrystalGRPCGenerator" data-name="crystalgrpcgenerator">
-      <a href="../../CrystalGRPCGenerator.html">CrystalGRPCGenerator</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/FileDesc" data-name="filedesc">
-      <a href="../../FileDesc.html">FileDesc</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GeneratorRequest" data-name="generatorrequest">
-      <a href="../../GeneratorRequest.html">GeneratorRequest</a>
+  <li class=" " data-id="grpc/CrystalGrpcCodeGenerator" data-name="crystalgrpccodegenerator">
+      <a href="../../CrystalGrpcCodeGenerator.html">CrystalGrpcCodeGenerator</a>
       
     </li>
   
@@ -152,6 +142,31 @@
       
     </li>
   
+  <li class="parent " data-id="grpc/GRPC/Generator" data-name="grpc::generator">
+      <a href="../../GRPC/Generator.html">Generator</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Generator/CanonicalTypeNameResolver" data-name="grpc::generator::canonicaltypenameresolver">
+      <a href="../../GRPC/Generator/CanonicalTypeNameResolver.html">CanonicalTypeNameResolver</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Generator/TypeMapNameResolver" data-name="grpc::generator::typemapnameresolver">
+      <a href="../../GRPC/Generator/TypeMapNameResolver.html">TypeMapNameResolver</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Generator/TypeNameResolver" data-name="grpc::generator::typenameresolver">
+      <a href="../../GRPC/Generator/TypeNameResolver.html">TypeNameResolver</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Interceptors" data-name="grpc::interceptors">
       <a href="../../GRPC/Interceptors.html">Interceptors</a>
       
@@ -172,8 +187,18 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Marshaller" data-name="grpc::marshaller(t)">
+      <a href="../../GRPC/Marshaller.html">Marshaller</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
       <a href="../../GRPC/Metadata.html">Metadata</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/ProtoMarshaller" data-name="grpc::protomarshaller(t)">
+      <a href="../../GRPC/ProtoMarshaller.html">ProtoMarshaller</a>
       
     </li>
   
@@ -382,18 +407,23 @@
       
     </li>
   
-  <li class=" " data-id="grpc/MethodDesc" data-name="methoddesc">
-      <a href="../../MethodDesc.html">MethodDesc</a>
+  <li class=" " data-id="grpc/MethodDescriptor" data-name="methoddescriptor">
+      <a href="../../MethodDescriptor.html">MethodDescriptor</a>
       
     </li>
   
-  <li class=" " data-id="grpc/ProtoDecode" data-name="protodecode">
-      <a href="../../ProtoDecode.html">ProtoDecode</a>
+  <li class=" " data-id="grpc/PluginCodeGeneratorRequest" data-name="plugincodegeneratorrequest">
+      <a href="../../PluginCodeGeneratorRequest.html">PluginCodeGeneratorRequest</a>
       
     </li>
   
-  <li class=" " data-id="grpc/ProtoEncode" data-name="protoencode">
-      <a href="../../ProtoEncode.html">ProtoEncode</a>
+  <li class=" " data-id="grpc/ProtobufWireDecoder" data-name="protobufwiredecoder">
+      <a href="../../ProtobufWireDecoder.html">ProtobufWireDecoder</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/ProtobufWireEncoder" data-name="protobufwireencoder">
+      <a href="../../ProtobufWireEncoder.html">ProtobufWireEncoder</a>
       
     </li>
   
@@ -402,8 +432,13 @@
       
     </li>
   
-  <li class=" " data-id="grpc/ServiceDesc" data-name="servicedesc">
-      <a href="../../ServiceDesc.html">ServiceDesc</a>
+  <li class=" " data-id="grpc/ProtoFileDescriptor" data-name="protofiledescriptor">
+      <a href="../../ProtoFileDescriptor.html">ProtoFileDescriptor</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/ServiceDescriptor" data-name="servicedescriptor">
+      <a href="../../ServiceDescriptor.html">ServiceDescriptor</a>
       
     </li>
   
@@ -464,7 +499,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/grpc/transport/http2_connection.cr#L8" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_connection.cr#L8" target="_blank">
         grpc/transport/http2_connection.cr
       </a>
     
@@ -599,7 +634,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/grpc/transport/http2_connection.cr#L13" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_connection.cr#L13" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -631,7 +666,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/grpc/transport/http2_connection.cr#L10" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_connection.cr#L10" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -647,7 +682,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/grpc/transport/http2_connection.cr#L10" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_connection.cr#L10" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -663,7 +698,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/grpc/transport/http2_connection.cr#L19" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_connection.cr#L19" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -679,7 +714,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/grpc/transport/http2_connection.cr#L11" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_connection.cr#L11" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -695,7 +730,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/grpc/transport/http2_connection.cr#L11" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_connection.cr#L11" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -711,7 +746,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/grpc/transport/http2_connection.cr#L9" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_connection.cr#L9" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -727,7 +762,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/grpc/transport/http2_connection.cr#L9" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_connection.cr#L9" target="_blank">View source</a>]
         
       </div>
     </div>

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Crystal Docs 1.18.2">
+<meta name="generator" content="Crystal Docs 1.19.1">
 <meta name="crystal_docs.project_version" content="main">
 <meta name="crystal_docs.project_name" content="grpc">
 
@@ -14,7 +14,7 @@
 <script type="text/javascript" src="js/doc.js"></script>
 
   <meta name="repository-name" content="grpc">
-  <title>ServiceDesc - grpc main</title>
+  <title>ProtoFileDescriptor - grpc main</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "";
   </script>
@@ -57,18 +57,8 @@
   <div class="types-list">
     <ul>
   
-  <li class=" " data-id="grpc/CrystalGRPCGenerator" data-name="crystalgrpcgenerator">
-      <a href="CrystalGRPCGenerator.html">CrystalGRPCGenerator</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/FileDesc" data-name="filedesc">
-      <a href="FileDesc.html">FileDesc</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GeneratorRequest" data-name="generatorrequest">
-      <a href="GeneratorRequest.html">GeneratorRequest</a>
+  <li class=" " data-id="grpc/CrystalGrpcCodeGenerator" data-name="crystalgrpccodegenerator">
+      <a href="CrystalGrpcCodeGenerator.html">CrystalGrpcCodeGenerator</a>
       
     </li>
   
@@ -152,6 +142,31 @@
       
     </li>
   
+  <li class="parent " data-id="grpc/GRPC/Generator" data-name="grpc::generator">
+      <a href="GRPC/Generator.html">Generator</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Generator/CanonicalTypeNameResolver" data-name="grpc::generator::canonicaltypenameresolver">
+      <a href="GRPC/Generator/CanonicalTypeNameResolver.html">CanonicalTypeNameResolver</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Generator/TypeMapNameResolver" data-name="grpc::generator::typemapnameresolver">
+      <a href="GRPC/Generator/TypeMapNameResolver.html">TypeMapNameResolver</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Generator/TypeNameResolver" data-name="grpc::generator::typenameresolver">
+      <a href="GRPC/Generator/TypeNameResolver.html">TypeNameResolver</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Interceptors" data-name="grpc::interceptors">
       <a href="GRPC/Interceptors.html">Interceptors</a>
       
@@ -172,8 +187,18 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Marshaller" data-name="grpc::marshaller(t)">
+      <a href="GRPC/Marshaller.html">Marshaller</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
       <a href="GRPC/Metadata.html">Metadata</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/ProtoMarshaller" data-name="grpc::protomarshaller(t)">
+      <a href="GRPC/ProtoMarshaller.html">ProtoMarshaller</a>
       
     </li>
   
@@ -382,18 +407,23 @@
       
     </li>
   
-  <li class=" " data-id="grpc/MethodDesc" data-name="methoddesc">
-      <a href="MethodDesc.html">MethodDesc</a>
+  <li class=" " data-id="grpc/MethodDescriptor" data-name="methoddescriptor">
+      <a href="MethodDescriptor.html">MethodDescriptor</a>
       
     </li>
   
-  <li class=" " data-id="grpc/ProtoDecode" data-name="protodecode">
-      <a href="ProtoDecode.html">ProtoDecode</a>
+  <li class=" " data-id="grpc/PluginCodeGeneratorRequest" data-name="plugincodegeneratorrequest">
+      <a href="PluginCodeGeneratorRequest.html">PluginCodeGeneratorRequest</a>
       
     </li>
   
-  <li class=" " data-id="grpc/ProtoEncode" data-name="protoencode">
-      <a href="ProtoEncode.html">ProtoEncode</a>
+  <li class=" " data-id="grpc/ProtobufWireDecoder" data-name="protobufwiredecoder">
+      <a href="ProtobufWireDecoder.html">ProtobufWireDecoder</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/ProtobufWireEncoder" data-name="protobufwireencoder">
+      <a href="ProtobufWireEncoder.html">ProtobufWireEncoder</a>
       
     </li>
   
@@ -402,8 +432,13 @@
       
     </li>
   
-  <li class=" current" data-id="grpc/ServiceDesc" data-name="servicedesc">
-      <a href="ServiceDesc.html">ServiceDesc</a>
+  <li class=" current" data-id="grpc/ProtoFileDescriptor" data-name="protofiledescriptor">
+      <a href="ProtoFileDescriptor.html">ProtoFileDescriptor</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/ServiceDescriptor" data-name="servicedescriptor">
+      <a href="ServiceDescriptor.html">ServiceDescriptor</a>
       
     </li>
   
@@ -418,12 +453,12 @@
 
   <span class="kind">
     struct
-  </span> ServiceDesc
+  </span> ProtoFileDescriptor
 
 </h1>
 
 
-  <ul class="superclass-hierarchy"><li class="superclass"><a href="ServiceDesc.html">ServiceDesc</a></li><li class="superclass">Struct</li><li class="superclass">Value</li><li class="superclass">Object</li></ul>
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="ProtoFileDescriptor.html">ProtoFileDescriptor</a></li><li class="superclass">Struct</li><li class="superclass">Value</li><li class="superclass">Object</li></ul>
 
 
 
@@ -437,7 +472,7 @@
     Overview
   </h2>
 
-  <p>ServiceDesc mirrors google.protobuf.ServiceDescriptorProto</p>
+  <p>ProtoFileDescriptor mirrors google.protobuf.FileDescriptorProto (only the fields we need)</p>
 
 
 
@@ -464,7 +499,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/protoc-gen-crystal-grpc.cr#L198" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/protoc-gen-crystal-grpc.cr#L217" target="_blank">
         protoc-gen-crystal-grpc.cr
       </a>
     
@@ -487,12 +522,12 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28name%3AString%2Cmethods%3AArray%28MethodDesc%29%29-class-method" class="signature"><strong>.new</strong>(name : String, methods : Array(MethodDesc))</a>
+        <a href="#new%28name%3AString%2Cpackage%3AString%2Cservices%3AArray%28ServiceDescriptor%29%29-class-method" class="signature"><strong>.new</strong>(name : String, package : String, services : Array(ServiceDescriptor))</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#parse%28data%3ABytes%29%3AServiceDesc-class-method" class="signature"><strong>.parse</strong>(data : Bytes) : ServiceDesc</a>
+        <a href="#parse%28data%3ABytes%29%3AProtoFileDescriptor-class-method" class="signature"><strong>.parse</strong>(data : Bytes) : ProtoFileDescriptor</a>
         
       </li>
     
@@ -515,12 +550,17 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#methods%3AArray%28MethodDesc%29-instance-method" class="signature"><strong>#methods</strong> : Array(MethodDesc)</a>
+        <a href="#name%3AString-instance-method" class="signature"><strong>#name</strong> : String</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#name%3AString-instance-method" class="signature"><strong>#name</strong> : String</a>
+        <a href="#package%3AString-instance-method" class="signature"><strong>#package</strong> : String</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#services%3AArray%28ServiceDescriptor%29-instance-method" class="signature"><strong>#services</strong> : Array(ServiceDescriptor)</a>
         
       </li>
     
@@ -581,34 +621,34 @@
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(name:String,methods:Array(MethodDesc))-class-method">
+    <div class="entry-detail" id="new(name:String,package:String,services:Array(ServiceDescriptor))-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(name : String, methods : Array(<a href="MethodDesc.html">MethodDesc</a>))
+        def self.<strong>new</strong>(name : String, package : String, services : Array(<a href="ServiceDescriptor.html">ServiceDescriptor</a>))
 
-        <a class="method-permalink" href="#new%28name%3AString%2Cmethods%3AArray%28MethodDesc%29%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28name%3AString%2Cpackage%3AString%2Cservices%3AArray%28ServiceDescriptor%29%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/protoc-gen-crystal-grpc.cr#L202" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/protoc-gen-crystal-grpc.cr#L222" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="parse(data:Bytes):ServiceDesc-class-method">
+    <div class="entry-detail" id="parse(data:Bytes):ProtoFileDescriptor-class-method">
       <div class="signature">
         
-        def self.<strong>parse</strong>(data : Bytes) : <a href="ServiceDesc.html">ServiceDesc</a>
+        def self.<strong>parse</strong>(data : Bytes) : <a href="ProtoFileDescriptor.html">ProtoFileDescriptor</a>
 
-        <a class="method-permalink" href="#parse%28data%3ABytes%29%3AServiceDesc-class-method">#</a>
+        <a class="method-permalink" href="#parse%28data%3ABytes%29%3AProtoFileDescriptor-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/protoc-gen-crystal-grpc.cr#L205" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/protoc-gen-crystal-grpc.cr#L225" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -629,22 +669,6 @@
     Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="methods:Array(MethodDesc)-instance-method">
-      <div class="signature">
-        
-        def <strong>methods</strong> : Array(<a href="MethodDesc.html">MethodDesc</a>)
-
-        <a class="method-permalink" href="#methods%3AArray%28MethodDesc%29-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/protoc-gen-crystal-grpc.cr#L200" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
     <div class="entry-detail" id="name:String-instance-method">
       <div class="signature">
         
@@ -656,7 +680,39 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/protoc-gen-crystal-grpc.cr#L199" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/protoc-gen-crystal-grpc.cr#L218" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="package:String-instance-method">
+      <div class="signature">
+        
+        def <strong>package</strong> : String
+
+        <a class="method-permalink" href="#package%3AString-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/protoc-gen-crystal-grpc.cr#L219" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="services:Array(ServiceDescriptor)-instance-method">
+      <div class="signature">
+        
+        def <strong>services</strong> : Array(<a href="ServiceDescriptor.html">ServiceDescriptor</a>)
+
+        <a class="method-permalink" href="#services%3AArray%28ServiceDescriptor%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/protoc-gen-crystal-grpc.cr#L220" target="_blank">View source</a>]
         
       </div>
     </div>

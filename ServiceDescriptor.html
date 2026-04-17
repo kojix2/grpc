@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Crystal Docs 1.18.2">
+<meta name="generator" content="Crystal Docs 1.19.1">
 <meta name="crystal_docs.project_version" content="main">
 <meta name="crystal_docs.project_name" content="grpc">
 
@@ -14,7 +14,7 @@
 <script type="text/javascript" src="js/doc.js"></script>
 
   <meta name="repository-name" content="grpc">
-  <title>ProtoEncode - grpc main</title>
+  <title>ServiceDescriptor - grpc main</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "";
   </script>
@@ -57,18 +57,8 @@
   <div class="types-list">
     <ul>
   
-  <li class=" " data-id="grpc/CrystalGRPCGenerator" data-name="crystalgrpcgenerator">
-      <a href="CrystalGRPCGenerator.html">CrystalGRPCGenerator</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/FileDesc" data-name="filedesc">
-      <a href="FileDesc.html">FileDesc</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GeneratorRequest" data-name="generatorrequest">
-      <a href="GeneratorRequest.html">GeneratorRequest</a>
+  <li class=" " data-id="grpc/CrystalGrpcCodeGenerator" data-name="crystalgrpccodegenerator">
+      <a href="CrystalGrpcCodeGenerator.html">CrystalGrpcCodeGenerator</a>
       
     </li>
   
@@ -152,6 +142,31 @@
       
     </li>
   
+  <li class="parent " data-id="grpc/GRPC/Generator" data-name="grpc::generator">
+      <a href="GRPC/Generator.html">Generator</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Generator/CanonicalTypeNameResolver" data-name="grpc::generator::canonicaltypenameresolver">
+      <a href="GRPC/Generator/CanonicalTypeNameResolver.html">CanonicalTypeNameResolver</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Generator/TypeMapNameResolver" data-name="grpc::generator::typemapnameresolver">
+      <a href="GRPC/Generator/TypeMapNameResolver.html">TypeMapNameResolver</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Generator/TypeNameResolver" data-name="grpc::generator::typenameresolver">
+      <a href="GRPC/Generator/TypeNameResolver.html">TypeNameResolver</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Interceptors" data-name="grpc::interceptors">
       <a href="GRPC/Interceptors.html">Interceptors</a>
       
@@ -172,8 +187,18 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Marshaller" data-name="grpc::marshaller(t)">
+      <a href="GRPC/Marshaller.html">Marshaller</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
       <a href="GRPC/Metadata.html">Metadata</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/ProtoMarshaller" data-name="grpc::protomarshaller(t)">
+      <a href="GRPC/ProtoMarshaller.html">ProtoMarshaller</a>
       
     </li>
   
@@ -382,18 +407,23 @@
       
     </li>
   
-  <li class=" " data-id="grpc/MethodDesc" data-name="methoddesc">
-      <a href="MethodDesc.html">MethodDesc</a>
+  <li class=" " data-id="grpc/MethodDescriptor" data-name="methoddescriptor">
+      <a href="MethodDescriptor.html">MethodDescriptor</a>
       
     </li>
   
-  <li class=" " data-id="grpc/ProtoDecode" data-name="protodecode">
-      <a href="ProtoDecode.html">ProtoDecode</a>
+  <li class=" " data-id="grpc/PluginCodeGeneratorRequest" data-name="plugincodegeneratorrequest">
+      <a href="PluginCodeGeneratorRequest.html">PluginCodeGeneratorRequest</a>
       
     </li>
   
-  <li class=" current" data-id="grpc/ProtoEncode" data-name="protoencode">
-      <a href="ProtoEncode.html">ProtoEncode</a>
+  <li class=" " data-id="grpc/ProtobufWireDecoder" data-name="protobufwiredecoder">
+      <a href="ProtobufWireDecoder.html">ProtobufWireDecoder</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/ProtobufWireEncoder" data-name="protobufwireencoder">
+      <a href="ProtobufWireEncoder.html">ProtobufWireEncoder</a>
       
     </li>
   
@@ -402,8 +432,13 @@
       
     </li>
   
-  <li class=" " data-id="grpc/ServiceDesc" data-name="servicedesc">
-      <a href="ServiceDesc.html">ServiceDesc</a>
+  <li class=" " data-id="grpc/ProtoFileDescriptor" data-name="protofiledescriptor">
+      <a href="ProtoFileDescriptor.html">ProtoFileDescriptor</a>
+      
+    </li>
+  
+  <li class=" current" data-id="grpc/ServiceDescriptor" data-name="servicedescriptor">
+      <a href="ServiceDescriptor.html">ServiceDescriptor</a>
       
     </li>
   
@@ -417,14 +452,27 @@
 <h1 class="type-name">
 
   <span class="kind">
-    module
-  </span> ProtoEncode
+    struct
+  </span> ServiceDescriptor
 
 </h1>
 
 
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="ServiceDescriptor.html">ServiceDescriptor</a></li><li class="superclass">Struct</li><li class="superclass">Value</li><li class="superclass">Object</li></ul>
 
 
+
+
+  <h2>
+    <a id="overview" class="anchor" href="#overview">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Overview
+  </h2>
+
+  <p>ServiceDescriptor mirrors google.protobuf.ServiceDescriptorProto</p>
 
 
 
@@ -451,7 +499,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/protoc-gen-crystal-grpc.cr#L131" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/protoc-gen-crystal-grpc.cr#L200" target="_blank">
         protoc-gen-crystal-grpc.cr
       </a>
     
@@ -463,30 +511,23 @@
 
 
   
-
-  
   <h2>
-    <a id="class-method-summary" class="anchor" href="#class-method-summary">
+    <a id="constructors" class="anchor" href="#constructors">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>
-    Class Method Summary
+    Constructors
   </h2>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#message%28io%3AIO%2Cfield_num%3AInt32%2C%26%3AIO-%3E%29%3ANil-class-method" class="signature"><strong>.message</strong>(io : IO, field_num : Int32, & : IO -> ) : Nil</a>
+        <a href="#new%28name%3AString%2Cmethods%3AArray%28MethodDescriptor%29%29-class-method" class="signature"><strong>.new</strong>(name : String, methods : Array(MethodDescriptor))</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#string%28io%3AIO%2Cfield_num%3AInt32%2Cvalue%3AString%29%3ANil-class-method" class="signature"><strong>.string</strong>(io : IO, field_num : Int32, value : String) : Nil</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#varint%28io%3AIO%2Cvalue%3AUInt64%29%3ANil-class-method" class="signature"><strong>.varint</strong>(io : IO, value : UInt64) : Nil</a>
+        <a href="#parse%28data%3ABytes%29%3AServiceDescriptor-class-method" class="signature"><strong>.parse</strong>(data : Bytes) : ServiceDescriptor</a>
         
       </li>
     
@@ -497,76 +538,165 @@
 
   
 
+  
+  <h2>
+    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#methods%3AArray%28MethodDescriptor%29-instance-method" class="signature"><strong>#methods</strong> : Array(MethodDescriptor)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#name%3AString-instance-method" class="signature"><strong>#name</strong> : String</a>
+        
+      </li>
+    
+  </ul>
+
+
 
   <div class="methods-inherited">
     
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
   </div>
+
+  
+  <h2>
+    <a id="constructor-detail" class="anchor" href="#constructor-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructor Detail
+  </h2>
+  
+    <div class="entry-detail" id="new(name:String,methods:Array(MethodDescriptor))-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(name : String, methods : Array(<a href="MethodDescriptor.html">MethodDescriptor</a>))
+
+        <a class="method-permalink" href="#new%28name%3AString%2Cmethods%3AArray%28MethodDescriptor%29%29-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/protoc-gen-crystal-grpc.cr#L204" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="parse(data:Bytes):ServiceDescriptor-class-method">
+      <div class="signature">
+        
+        def self.<strong>parse</strong>(data : Bytes) : <a href="ServiceDescriptor.html">ServiceDescriptor</a>
+
+        <a class="method-permalink" href="#parse%28data%3ABytes%29%3AServiceDescriptor-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/protoc-gen-crystal-grpc.cr#L207" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
+
+  
 
   
 
   
   <h2>
-    <a id="class-method-detail" class="anchor" href="#class-method-detail">
+    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>
-    Class Method Detail
+    Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="message(io:IO,field_num:Int32,&amp;:IO-&gt;):Nil-class-method">
+    <div class="entry-detail" id="methods:Array(MethodDescriptor)-instance-method">
       <div class="signature">
         
-        def self.<strong>message</strong>(io : IO, field_num : Int32, & : IO -> ) : Nil
+        def <strong>methods</strong> : Array(<a href="MethodDescriptor.html">MethodDescriptor</a>)
 
-        <a class="method-permalink" href="#message%28io%3AIO%2Cfield_num%3AInt32%2C%26%3AIO-%3E%29%3ANil-class-method">#</a>
+        <a class="method-permalink" href="#methods%3AArray%28MethodDescriptor%29-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/protoc-gen-crystal-grpc.cr#L149" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/protoc-gen-crystal-grpc.cr#L202" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="string(io:IO,field_num:Int32,value:String):Nil-class-method">
+    <div class="entry-detail" id="name:String-instance-method">
       <div class="signature">
         
-        def self.<strong>string</strong>(io : IO, field_num : Int32, value : String) : Nil
+        def <strong>name</strong> : String
 
-        <a class="method-permalink" href="#string%28io%3AIO%2Cfield_num%3AInt32%2Cvalue%3AString%29%3ANil-class-method">#</a>
+        <a class="method-permalink" href="#name%3AString-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/protoc-gen-crystal-grpc.cr#L141" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="varint(io:IO,value:UInt64):Nil-class-method">
-      <div class="signature">
-        
-        def self.<strong>varint</strong>(io : IO, value : UInt64) : Nil
-
-        <a class="method-permalink" href="#varint%28io%3AIO%2Cvalue%3AUInt64%29%3ANil-class-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc.cr/blob/9daadfbf1c58b3de56a91ed26f49136c71ac6290/src/protoc-gen-crystal-grpc.cr#L132" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/protoc-gen-crystal-grpc.cr#L201" target="_blank">View source</a>]
         
       </div>
     </div>
   
 
-
-  
-
-  
 
 
 </div>
