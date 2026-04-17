@@ -93,7 +93,7 @@ class StreamingEchoService < GRPC::Service
   end
 
   def server_streaming?(method : String) : Bool
-    method == "ServerStream" || method == "ErrorStream"
+    method == "ServerStream" || method == "ErrorStream" || method == "PartialErrorStream"
   end
 
   def dispatch_server_stream(method : String, request_body : Bytes,
@@ -107,6 +107,12 @@ class StreamingEchoService < GRPC::Service
       GRPC::Status.ok
     when "ErrorStream"
       GRPC::Status.new(GRPC::StatusCode::INTERNAL, "forced stream error")
+    when "PartialErrorStream"
+      input = TestProto.decode_string(request_body)
+      3.times do |i|
+        writer.send_raw(TestProto.encode_string("partial#{i}:#{input}"))
+      end
+      GRPC::Status.new(GRPC::StatusCode::INTERNAL, "forced partial stream error")
     else
       GRPC::Status.unimplemented("unknown method")
     end
@@ -1097,6 +1103,30 @@ describe "GRPC error propagation" do
       server.stop
     end
   end
+
+  it "preserves streamed messages emitted before a server-side stream error" do
+    port = find_free_port
+    server = GRPC::Server.new
+    server.handle StreamingEchoService.new
+    server.bind("127.0.0.1:#{port}")
+    server.start
+    channel = GRPC::Channel.new("127.0.0.1:#{port}")
+
+    begin
+      req = TestProto.encode_string("batch")
+      stream = channel.open_server_stream("test.StreamingEcho", "PartialErrorStream", req)
+      messages = [] of String
+      stream.each { |bytes| messages << TestProto.decode_string(bytes) }
+
+      messages.should eq(["partial0:batch", "partial1:batch", "partial2:batch"])
+      stream.status.ok?.should be_false
+      stream.status.code.should eq(GRPC::StatusCode::INTERNAL)
+      stream.status.message.should eq("forced partial stream error")
+    ensure
+      channel.close
+      server.stop
+    end
+  end
 end
 
 describe "GRPC deadline" do
@@ -1256,6 +1286,39 @@ describe "GRPC full-duplex bidi streaming" do
       received = [] of Bytes
       raw.each { |bytes| received << bytes }
       received.should be_empty
+      raw.status.ok?.should be_true
+    ensure
+      channel.close
+      server.stop
+    end
+  end
+
+  it "continues delivering messages after an idle gap before close_send" do
+    port = find_free_port
+    server = GRPC::Server.new
+    server.handle FullDuplexEchoService.new
+    server.bind("127.0.0.1:#{port}")
+    server.start
+    channel = GRPC::Channel.new("127.0.0.1:#{port}")
+
+    begin
+      raw = channel.open_bidi_stream_live("test.FullDuplexEcho", "EchoStream")
+      received = [] of String
+      done = ::Channel(Nil).new(1)
+
+      spawn do
+        raw.each { |bytes| received << TestProto.decode_string(bytes) }
+        done.send(nil)
+      end
+
+      raw.send_raw(TestProto.encode_string("alpha"))
+      sleep 200.milliseconds
+      raw.send_raw(TestProto.encode_string("beta"))
+      raw.send_raw(TestProto.encode_string("gamma"))
+      raw.close_send
+
+      done.receive
+      received.should eq(["alpha", "beta", "gamma"])
       raw.status.ok?.should be_true
     ensure
       channel.close

@@ -199,8 +199,57 @@ describe "gripmock client e2e" do
       _body, status = channel.unary_call("e2e.Probe", "UnaryFail", E2EProto.encode_string("lost"))
       status.ok?.should be_false
       status.code.should eq(GRPC::StatusCode::NOT_FOUND)
+      status.message.should eq("missing:lost")
     ensure
       channel.close
+      gripmock_clear_stubs
+    end
+  end
+
+  it "handles parallel unary calls with distinct metadata tokens" do
+    tokens = ["tok-1", "tok-2", "tok-3"]
+
+    tokens.each do |token|
+      payload = build_stub(
+        service: "Probe",
+        method: "UnaryEcho",
+        input_message: token,
+        metadata: {"x-e2e-token" => token},
+        output_message: "echo:#{token};token:#{token}",
+      )
+      require_stub_added!(payload)
+    end
+
+    results = ::Channel({String, Bool, String}).new(tokens.size)
+
+    begin
+      tokens.each do |token|
+        spawn do
+          channel = GRPC::Channel.new(gripmock_target)
+          begin
+            ctx = GRPC::ClientContext.new(metadata: {"x-e2e-token" => token})
+            body, status = channel.unary_call("e2e.Probe", "UnaryEcho", E2EProto.encode_string(token), ctx)
+            results.send({token, status.ok?, E2EProto.decode_string(body)})
+          rescue ex
+            results.send({token, false, ex.message || "exception"})
+          ensure
+            channel.close
+          end
+        end
+      end
+
+      seen = {} of String => {Bool, String}
+      tokens.size.times do
+        token, ok, value = results.receive
+        seen[token] = {ok, value}
+      end
+
+      tokens.each do |token|
+        ok, value = seen[token]
+        ok.should be_true
+        value.should eq("echo:#{token};token:#{token}")
+      end
+    ensure
       gripmock_clear_stubs
     end
   end
@@ -279,6 +328,30 @@ describe "gripmock client e2e" do
       body, status = channel.unary_call("e2e.Probe", "SlowUnary", E2EProto.encode_string("sleep"), ctx)
       status.ok?.should be_true
       E2EProto.decode_string(body).should eq("deadline:ok")
+    ensure
+      channel.close
+      gripmock_clear_stubs
+    end
+  end
+
+  it "propagates delayed grpc error status and message" do
+    payload = build_stub(
+      service: "Probe",
+      method: "UnaryFail",
+      input_message: "wait-and-fail",
+      output_message: "",
+      code: 14,
+      error_message: "temporarily unavailable",
+      delay_ms: 100,
+    )
+    require_stub_added!(payload)
+
+    channel = GRPC::Channel.new(gripmock_target)
+    begin
+      _body, status = channel.unary_call("e2e.Probe", "UnaryFail", E2EProto.encode_string("wait-and-fail"))
+      status.ok?.should be_false
+      status.code.should eq(GRPC::StatusCode::UNAVAILABLE)
+      status.message.should eq("temporarily unavailable")
     ensure
       channel.close
       gripmock_clear_stubs
