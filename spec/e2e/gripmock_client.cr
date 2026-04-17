@@ -67,11 +67,17 @@ def gripmock_admin_available? : Bool
 end
 
 def require_gripmock! : Nil
-  raise MISSING_GRIPMOCK_MSG unless gripmock_available?
+  return if gripmock_available?
+
+  grpc_open = tcp_port_open?(GRIPMOCK_HOST, GRIPMOCK_GRPC_PORT)
+  admin_open = tcp_port_open?(GRIPMOCK_HOST, GRIPMOCK_ADMIN_PORT)
+  raise "#{MISSING_GRIPMOCK_MSG} (host=#{GRIPMOCK_HOST}, grpc=#{GRIPMOCK_GRPC_PORT}:#{grpc_open}, admin=#{GRIPMOCK_ADMIN_PORT}:#{admin_open})"
 end
 
 def require_gripmock_admin! : Nil
-  raise GRIPMOCK_ADMIN_MSG unless gripmock_admin_available?
+  return if gripmock_admin_available?
+
+  raise "#{GRIPMOCK_ADMIN_MSG} (admin_base=#{gripmock_admin_base})"
 end
 
 def require_stub_added!(payload : String) : Nil
@@ -136,10 +142,28 @@ def build_stub(service : String, method : String, output_message : String,
 end
 
 describe "gripmock client e2e" do
-  it "performs unary success against gripmock" do
+  before_each do
     require_gripmock!
     require_gripmock_admin!
+    gripmock_clear_stubs.should be_true
+  end
 
+  after_each do
+    # Best-effort cleanup to keep examples independent without masking main failures.
+    gripmock_clear_stubs if gripmock_available?
+  end
+
+  it "returns non-OK status when no stub is configured" do
+    channel = GRPC::Channel.new(gripmock_target)
+    begin
+      _body, status = channel.unary_call("e2e.Probe", "UnaryEcho", E2EProto.encode_string("no-stub"))
+      status.ok?.should be_false
+    ensure
+      channel.close
+    end
+  end
+
+  it "performs unary success against gripmock" do
     payload = build_stub(
       service: "Probe",
       method: "UnaryEcho",
@@ -160,9 +184,6 @@ describe "gripmock client e2e" do
   end
 
   it "maps grpc error status from gripmock" do
-    require_gripmock!
-    require_gripmock_admin!
-
     payload = build_stub(
       service: "Probe",
       method: "UnaryFail",
@@ -185,9 +206,6 @@ describe "gripmock client e2e" do
   end
 
   it "sends metadata for unary calls" do
-    require_gripmock!
-    require_gripmock_admin!
-
     # GripMock DOES support custom header matching in stubs
     payload = build_stub(
       service: "Probe",
@@ -210,21 +228,54 @@ describe "gripmock client e2e" do
     end
   end
 
-  it "applies deadline on unary calls" do
-    require_gripmock!
-    require_gripmock_admin!
+  it "applies updated metadata values across sequential unary calls" do
+    first_payload = build_stub(
+      service: "Probe",
+      method: "UnaryEcho",
+      input_message: "token-a",
+      metadata: {"x-e2e-token" => "token-a"},
+      output_message: "echo:token-a;token:token-a",
+    )
+    second_payload = build_stub(
+      service: "Probe",
+      method: "UnaryEcho",
+      input_message: "token-b",
+      metadata: {"x-e2e-token" => "token-b"},
+      output_message: "echo:token-b;token:token-b",
+    )
+    require_stub_added!(first_payload)
+    require_stub_added!(second_payload)
 
+    channel = GRPC::Channel.new(gripmock_target)
+    begin
+      ctx_a = GRPC::ClientContext.new(metadata: {"x-e2e-token" => "token-a"})
+      first_body, first_status = channel.unary_call("e2e.Probe", "UnaryEcho", E2EProto.encode_string("token-a"), ctx_a)
+      first_status.ok?.should be_true
+      E2EProto.decode_string(first_body).should eq("echo:token-a;token:token-a")
+
+      ctx_b = GRPC::ClientContext.new(metadata: {"x-e2e-token" => "token-b"})
+      second_body, second_status = channel.unary_call("e2e.Probe", "UnaryEcho", E2EProto.encode_string("token-b"), ctx_b)
+      second_status.ok?.should be_true
+      E2EProto.decode_string(second_body).should eq("echo:token-b;token:token-b")
+    ensure
+      channel.close
+      gripmock_clear_stubs
+    end
+  end
+
+  it "keeps unary call healthy with deadline on a delayed stub" do
     payload = build_stub(
       service: "Probe",
       method: "SlowUnary",
       input_message: "sleep",
       output_message: "deadline:ok",
+      delay_ms: 120,
     )
     require_stub_added!(payload)
 
     channel = GRPC::Channel.new(gripmock_target)
     begin
-      ctx = GRPC::ClientContext.new(deadline: 50.milliseconds)
+      ctx = GRPC::ClientContext.new(deadline: 3.seconds)
       body, status = channel.unary_call("e2e.Probe", "SlowUnary", E2EProto.encode_string("sleep"), ctx)
       status.ok?.should be_true
       E2EProto.decode_string(body).should eq("deadline:ok")
