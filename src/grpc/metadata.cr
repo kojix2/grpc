@@ -6,29 +6,35 @@ module GRPC
   class Metadata
     alias Value = String | Bytes
 
+    @data : Hash(String, Array(Value))
+
     def initialize
-      @data = Hash(String, Array(Value)).new { |hash, key| hash[key] = [] of Value }
+      @data = Hash(String, Array(Value)).new
     end
 
     def initialize(hash : Hash(String, String))
-      @data = Hash(String, Array(Value)).new { |store, key| store[key] = [] of Value }
+      @data = Hash(String, Array(Value)).new
       hash.each { |k, v| set(k, v) }
     end
 
     def set(key : String, value : String) : Nil
-      @data[normalize_key(key)] = [value]
+      values = values_for(normalize_key(key))
+      values.clear
+      values << value
     end
 
     def add(key : String, value : String) : Nil
-      @data[normalize_key(key)] << value
+      values_for(normalize_key(key)) << value
     end
 
     def set_bin(key : String, value : Bytes) : Nil
-      @data[normalize_key(key)] = [value.dup]
+      values = values_for(normalize_key(key))
+      values.clear
+      values << value.dup
     end
 
     def add_bin(key : String, value : Bytes) : Nil
-      @data[normalize_key(key)] << value.dup
+      values_for(normalize_key(key)) << value.dup
     end
 
     def add_wire(key : String, value : String) : Nil
@@ -140,6 +146,16 @@ module GRPC
 
     private def normalize_key(key : String) : String
       key.downcase
+    end
+
+    private def values_for(key : String) : Array(Value)
+      if values = @data[key]?
+        values
+      else
+        values = Array(Value).new
+        @data[key] = values
+        values
+      end
     end
 
     private def binary_key?(key : String) : Bool
