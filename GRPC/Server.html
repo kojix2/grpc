@@ -142,31 +142,6 @@
       
     </li>
   
-  <li class="parent " data-id="grpc/GRPC/Generator" data-name="grpc::generator">
-      <a href="../GRPC/Generator.html">Generator</a>
-      
-        <ul>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/CanonicalTypeNameResolver" data-name="grpc::generator::canonicaltypenameresolver">
-      <a href="../GRPC/Generator/CanonicalTypeNameResolver.html">CanonicalTypeNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeMapNameResolver" data-name="grpc::generator::typemapnameresolver">
-      <a href="../GRPC/Generator/TypeMapNameResolver.html">TypeMapNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeNameResolver" data-name="grpc::generator::typenameresolver">
-      <a href="../GRPC/Generator/TypeNameResolver.html">TypeNameResolver</a>
-      
-    </li>
-  
-</ul>
-
-      
-    </li>
-  
   <li class=" " data-id="grpc/GRPC/Interceptors" data-name="grpc::interceptors">
       <a href="../GRPC/Interceptors.html">Interceptors</a>
       
@@ -192,8 +167,18 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
+  <li class="parent " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
       <a href="../GRPC/Metadata.html">Metadata</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Metadata/Value" data-name="grpc::metadata::value">
+      <a href="../GRPC/Metadata/Value.html">Value</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -387,6 +372,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/TrailerCodec" data-name="grpc::transport::trailercodec">
+      <a href="../GRPC/Transport/TrailerCodec.html">TrailerCodec</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -394,6 +384,11 @@
   
   <li class=" " data-id="grpc/GRPC/UnaryClientCall" data-name="grpc::unaryclientcall">
       <a href="../GRPC/UnaryClientCall.html">UnaryClientCall</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/UnaryResponse" data-name="grpc::unaryresponse(t)">
+      <a href="../GRPC/UnaryResponse.html">UnaryResponse</a>
       
     </li>
   
@@ -414,21 +409,6 @@
   
   <li class=" " data-id="grpc/PluginCodeGeneratorRequest" data-name="plugincodegeneratorrequest">
       <a href="../PluginCodeGeneratorRequest.html">PluginCodeGeneratorRequest</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireDecoder" data-name="protobufwiredecoder">
-      <a href="../ProtobufWireDecoder.html">ProtobufWireDecoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireEncoder" data-name="protobufwireencoder">
-      <a href="../ProtobufWireEncoder.html">ProtobufWireEncoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtoField" data-name="protofield">
-      <a href="../ProtoField.html">ProtoField</a>
       
     </li>
   
@@ -508,7 +488,7 @@ server.listen &quot;0.0.0.0&quot;, 50051</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L16" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L18" target="_blank">
         grpc/server.cr
       </a>
     
@@ -516,6 +496,25 @@ server.listen &quot;0.0.0.0&quot;, 50051</p>
   
 
 
+
+  
+    <h2>
+      <a id="constant-summary" class="anchor" href="#constant-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+      Constant Summary
+    </h2>
+  
+  <dl>
+    
+      <dt class="entry-const" id="LOGGER">
+        <strong>LOGGER</strong> = <code><span class="t">::</span><span class="t">Log</span>.<span class="k">for</span>(<span class="k">self</span>)</code>
+      </dt>
+      
+    
+  </dl>
 
 
 
@@ -690,7 +689,7 @@ server.listen &quot;0.0.0.0&quot;, 50051</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L25" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L29" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -727,7 +726,7 @@ server.listen &quot;0.0.0.0&quot;, 50051</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L119" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L123" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -749,7 +748,7 @@ Call serve (or start for non-blocking) afterward.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L87" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L91" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -770,7 +769,7 @@ Call serve (or start for non-blocking) afterward.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L36" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L40" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -793,7 +792,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L63" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L67" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -814,7 +813,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L69" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L73" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -835,7 +834,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L75" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L79" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -856,7 +855,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L80" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L84" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -877,7 +876,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L94" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L98" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -899,7 +898,7 @@ Useful for tests and embedded servers.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L109" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L113" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -915,7 +914,7 @@ Useful for tests and embedded servers.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L114" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L118" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -939,7 +938,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L45" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L49" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -960,7 +959,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/server.cr#L55" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/server.cr#L59" target="_blank">View source</a>]
         
       </div>
     </div>

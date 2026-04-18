@@ -142,31 +142,6 @@
       
     </li>
   
-  <li class="parent " data-id="grpc/GRPC/Generator" data-name="grpc::generator">
-      <a href="../GRPC/Generator.html">Generator</a>
-      
-        <ul>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/CanonicalTypeNameResolver" data-name="grpc::generator::canonicaltypenameresolver">
-      <a href="../GRPC/Generator/CanonicalTypeNameResolver.html">CanonicalTypeNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeMapNameResolver" data-name="grpc::generator::typemapnameresolver">
-      <a href="../GRPC/Generator/TypeMapNameResolver.html">TypeMapNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeNameResolver" data-name="grpc::generator::typenameresolver">
-      <a href="../GRPC/Generator/TypeNameResolver.html">TypeNameResolver</a>
-      
-    </li>
-  
-</ul>
-
-      
-    </li>
-  
   <li class=" " data-id="grpc/GRPC/Interceptors" data-name="grpc::interceptors">
       <a href="../GRPC/Interceptors.html">Interceptors</a>
       
@@ -192,8 +167,18 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
+  <li class="parent " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
       <a href="../GRPC/Metadata.html">Metadata</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Metadata/Value" data-name="grpc::metadata::value">
+      <a href="../GRPC/Metadata/Value.html">Value</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -387,6 +372,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/TrailerCodec" data-name="grpc::transport::trailercodec">
+      <a href="../GRPC/Transport/TrailerCodec.html">TrailerCodec</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -394,6 +384,11 @@
   
   <li class=" " data-id="grpc/GRPC/UnaryClientCall" data-name="grpc::unaryclientcall">
       <a href="../GRPC/UnaryClientCall.html">UnaryClientCall</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/UnaryResponse" data-name="grpc::unaryresponse(t)">
+      <a href="../GRPC/UnaryResponse.html">UnaryResponse</a>
       
     </li>
   
@@ -414,21 +409,6 @@
   
   <li class=" " data-id="grpc/PluginCodeGeneratorRequest" data-name="plugincodegeneratorrequest">
       <a href="../PluginCodeGeneratorRequest.html">PluginCodeGeneratorRequest</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireDecoder" data-name="protobufwiredecoder">
-      <a href="../ProtobufWireDecoder.html">ProtobufWireDecoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireEncoder" data-name="protobufwireencoder">
-      <a href="../ProtobufWireEncoder.html">ProtobufWireEncoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtoField" data-name="protofield">
-      <a href="../ProtoField.html">ProtoField</a>
       
     </li>
   
@@ -521,7 +501,7 @@ call.each { |reply| pp reply }</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L188" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L222" target="_blank">
         grpc/stream.cr
       </a>
     
@@ -544,7 +524,9 @@ call.each { |reply| pp reply }</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28send_proc%3AReq-%3E_%2Cclose_proc%3A-%3E_%2Crecv_chan%3A%3A%3AChannel%28Exception%7CRes%29%2Cstatus_proc%3A-%3EStatus%3D-%3Edo%0AStatus.ok%0Aend%2Ctrailers_proc%3A-%3EMetadata%3D-%3Edo%0AMetadata.new%0Aend%2Ccancel_proc%3A-%3ENil%3D-%3Edo%0Aend%29-class-method" class="signature"><strong>.new</strong>(send_proc : Req -> _, close_proc :  -> _, recv_chan : ::Channel(Exception | Res), status_proc :  -> Status = <span class="o">-&gt;</span> <span class="k">do</span>
+        <a href="#new%28send_proc%3AReq-%3E_%2Cclose_proc%3A-%3E_%2Crecv_chan%3A%3A%3AChannel%28Exception%7CRes%29%2Cheaders_proc%3A-%3EMetadata%3D-%3Edo%0AMetadata.new%0Aend%2Cstatus_proc%3A-%3EStatus%3D-%3Edo%0AStatus.ok%0Aend%2Ctrailers_proc%3A-%3EMetadata%3D-%3Edo%0AMetadata.new%0Aend%2Ccancel_proc%3A-%3ENil%3D-%3Edo%0Aend%29-class-method" class="signature"><strong>.new</strong>(send_proc : Req -> _, close_proc :  -> _, recv_chan : ::Channel(Exception | Res), headers_proc :  -> Metadata = <span class="o">-&gt;</span> <span class="k">do</span>
+  <span class="t">Metadata</span>.new
+<span class="k">end</span>, status_proc :  -> Status = <span class="o">-&gt;</span> <span class="k">do</span>
   <span class="t">Status</span>.ok
 <span class="k">end</span>, trailers_proc :  -> Metadata = <span class="o">-&gt;</span> <span class="k">do</span>
   <span class="t">Metadata</span>.new
@@ -587,6 +569,11 @@ call.each { |reply| pp reply }</p>
         <a href="#each%28%26%3ARes-%3E%29%3ANil-instance-method" class="signature"><strong>#each</strong>(& : Res -> ) : Nil</a>
         
           <div class="summary"><p>Must yield this collection's elements to the block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#headers%3AMetadata-instance-method" class="signature"><strong>#headers</strong> : Metadata</a>
         
       </li>
     
@@ -664,7 +651,9 @@ call.each { |reply| pp reply }</p>
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(send_proc:Req-&gt;_,close_proc:-&gt;_,recv_chan:::Channel(Exception|Res),status_proc:-&gt;Status=-&gt;do
+    <div class="entry-detail" id="new(send_proc:Req-&gt;_,close_proc:-&gt;_,recv_chan:::Channel(Exception|Res),headers_proc:-&gt;Metadata=-&gt;do
+Metadata.new
+end,status_proc:-&gt;Status=-&gt;do
 Status.ok
 end,trailers_proc:-&gt;Metadata=-&gt;do
 Metadata.new
@@ -672,20 +661,22 @@ end,cancel_proc:-&gt;Nil=-&gt;do
 end)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(send_proc : Req -> _, close_proc :  -> _, recv_chan : ::Channel(Exception | Res), status_proc :  -> <a href="../GRPC/Status.html">Status</a> = <span class="o">-&gt;</span> <span class="k">do</span>
+        def self.<strong>new</strong>(send_proc : Req -> _, close_proc :  -> _, recv_chan : ::Channel(Exception | Res), headers_proc :  -> <a href="../GRPC/Metadata.html">Metadata</a> = <span class="o">-&gt;</span> <span class="k">do</span>
+  <span class="t">Metadata</span>.new
+<span class="k">end</span>, status_proc :  -> <a href="../GRPC/Status.html">Status</a> = <span class="o">-&gt;</span> <span class="k">do</span>
   <span class="t">Status</span>.ok
 <span class="k">end</span>, trailers_proc :  -> <a href="../GRPC/Metadata.html">Metadata</a> = <span class="o">-&gt;</span> <span class="k">do</span>
   <span class="t">Metadata</span>.new
 <span class="k">end</span>, cancel_proc :  -> Nil = <span class="o">-&gt;</span> <span class="k">do</span>
 <span class="k">end</span>)
 
-        <a class="method-permalink" href="#new%28send_proc%3AReq-%3E_%2Cclose_proc%3A-%3E_%2Crecv_chan%3A%3A%3AChannel%28Exception%7CRes%29%2Cstatus_proc%3A-%3EStatus%3D-%3Edo%0AStatus.ok%0Aend%2Ctrailers_proc%3A-%3EMetadata%3D-%3Edo%0AMetadata.new%0Aend%2Ccancel_proc%3A-%3ENil%3D-%3Edo%0Aend%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28send_proc%3AReq-%3E_%2Cclose_proc%3A-%3E_%2Crecv_chan%3A%3A%3AChannel%28Exception%7CRes%29%2Cheaders_proc%3A-%3EMetadata%3D-%3Edo%0AMetadata.new%0Aend%2Cstatus_proc%3A-%3EStatus%3D-%3Edo%0AStatus.ok%0Aend%2Ctrailers_proc%3A-%3EMetadata%3D-%3Edo%0AMetadata.new%0Aend%2Ccancel_proc%3A-%3ENil%3D-%3Edo%0Aend%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L199" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L234" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -717,7 +708,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L228" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L264" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -738,7 +729,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L212" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L248" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -763,7 +754,23 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L218" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L254" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="headers:Metadata-instance-method">
+      <div class="signature">
+        
+        def <strong>headers</strong> : <a href="../GRPC/Metadata.html">Metadata</a>
+
+        <a class="method-permalink" href="#headers%3AMetadata-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L268" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -784,7 +791,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L207" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L243" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -800,7 +807,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L232" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L272" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -816,7 +823,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L236" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L276" target="_blank">View source</a>]
         
       </div>
     </div>

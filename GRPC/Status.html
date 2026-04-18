@@ -142,31 +142,6 @@
       
     </li>
   
-  <li class="parent " data-id="grpc/GRPC/Generator" data-name="grpc::generator">
-      <a href="../GRPC/Generator.html">Generator</a>
-      
-        <ul>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/CanonicalTypeNameResolver" data-name="grpc::generator::canonicaltypenameresolver">
-      <a href="../GRPC/Generator/CanonicalTypeNameResolver.html">CanonicalTypeNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeMapNameResolver" data-name="grpc::generator::typemapnameresolver">
-      <a href="../GRPC/Generator/TypeMapNameResolver.html">TypeMapNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeNameResolver" data-name="grpc::generator::typenameresolver">
-      <a href="../GRPC/Generator/TypeNameResolver.html">TypeNameResolver</a>
-      
-    </li>
-  
-</ul>
-
-      
-    </li>
-  
   <li class=" " data-id="grpc/GRPC/Interceptors" data-name="grpc::interceptors">
       <a href="../GRPC/Interceptors.html">Interceptors</a>
       
@@ -192,8 +167,18 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
+  <li class="parent " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
       <a href="../GRPC/Metadata.html">Metadata</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Metadata/Value" data-name="grpc::metadata::value">
+      <a href="../GRPC/Metadata/Value.html">Value</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -387,6 +372,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/TrailerCodec" data-name="grpc::transport::trailercodec">
+      <a href="../GRPC/Transport/TrailerCodec.html">TrailerCodec</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -394,6 +384,11 @@
   
   <li class=" " data-id="grpc/GRPC/UnaryClientCall" data-name="grpc::unaryclientcall">
       <a href="../GRPC/UnaryClientCall.html">UnaryClientCall</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/UnaryResponse" data-name="grpc::unaryresponse(t)">
+      <a href="../GRPC/UnaryResponse.html">UnaryResponse</a>
       
     </li>
   
@@ -414,21 +409,6 @@
   
   <li class=" " data-id="grpc/PluginCodeGeneratorRequest" data-name="plugincodegeneratorrequest">
       <a href="../PluginCodeGeneratorRequest.html">PluginCodeGeneratorRequest</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireDecoder" data-name="protobufwiredecoder">
-      <a href="../ProtobufWireDecoder.html">ProtobufWireDecoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireEncoder" data-name="protobufwireencoder">
-      <a href="../ProtobufWireEncoder.html">ProtobufWireEncoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtoField" data-name="protofield">
-      <a href="../ProtoField.html">ProtoField</a>
       
     </li>
   
@@ -488,7 +468,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L23" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L23" target="_blank">
         grpc/status.cr
       </a>
     
@@ -526,7 +506,7 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#new%28code%3AStatusCode%2Cmessage%3AString%3D%22%22%29-class-method" class="signature"><strong>.new</strong>(code : StatusCode, message : String = <span class="s">&quot;&quot;</span>)</a>
+        <a href="#new%28code%3AStatusCode%2Cmessage%3AString%3D%22%22%2Cdetails%3ABytes%7CNil%3Dnil%29-class-method" class="signature"><strong>.new</strong>(code : StatusCode, message : String = <span class="s">&quot;&quot;</span>, details : Bytes | Nil = <span class="n">nil</span>)</a>
         
       </li>
     
@@ -575,6 +555,11 @@
     
       <li class="entry-summary">
         <a href="#code%3AStatusCode-instance-method" class="signature"><strong>#code</strong> : StatusCode</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#details%3ABytes%7CNil-instance-method" class="signature"><strong>#details</strong> : Bytes | Nil</a>
         
       </li>
     
@@ -650,7 +635,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L38" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L39" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -666,7 +651,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L58" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L59" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -682,23 +667,23 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L46" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L47" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="new(code:StatusCode,message:String=&quot;&quot;)-class-method">
+    <div class="entry-detail" id="new(code:StatusCode,message:String=&quot;&quot;,details:Bytes|Nil=nil)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(code : <a href="../GRPC/StatusCode.html">StatusCode</a>, message : String = <span class="s">&quot;&quot;</span>)
+        def self.<strong>new</strong>(code : <a href="../GRPC/StatusCode.html">StatusCode</a>, message : String = <span class="s">&quot;&quot;</span>, details : Bytes | Nil = <span class="n">nil</span>)
 
-        <a class="method-permalink" href="#new%28code%3AStatusCode%2Cmessage%3AString%3D%22%22%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28code%3AStatusCode%2Cmessage%3AString%3D%22%22%2Cdetails%3ABytes%7CNil%3Dnil%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L27" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L28" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -714,7 +699,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L50" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L51" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -730,7 +715,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L34" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L35" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -746,7 +731,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L62" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L63" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -762,7 +747,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L54" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L55" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -778,7 +763,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L42" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L43" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -810,7 +795,23 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L24" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L24" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="details:Bytes|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>details</strong> : Bytes | Nil
+
+        <a class="method-permalink" href="#details%3ABytes%7CNil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L26" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -826,7 +827,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L25" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L25" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -842,7 +843,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L30" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L31" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -874,7 +875,7 @@ which includes its class name and its object address.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/status.cr#L66" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/status.cr#L67" target="_blank">View source</a>]
         
       </div>
     </div>

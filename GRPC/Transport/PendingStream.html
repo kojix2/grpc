@@ -142,31 +142,6 @@
       
     </li>
   
-  <li class="parent " data-id="grpc/GRPC/Generator" data-name="grpc::generator">
-      <a href="../../GRPC/Generator.html">Generator</a>
-      
-        <ul>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/CanonicalTypeNameResolver" data-name="grpc::generator::canonicaltypenameresolver">
-      <a href="../../GRPC/Generator/CanonicalTypeNameResolver.html">CanonicalTypeNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeMapNameResolver" data-name="grpc::generator::typemapnameresolver">
-      <a href="../../GRPC/Generator/TypeMapNameResolver.html">TypeMapNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeNameResolver" data-name="grpc::generator::typenameresolver">
-      <a href="../../GRPC/Generator/TypeNameResolver.html">TypeNameResolver</a>
-      
-    </li>
-  
-</ul>
-
-      
-    </li>
-  
   <li class=" " data-id="grpc/GRPC/Interceptors" data-name="grpc::interceptors">
       <a href="../../GRPC/Interceptors.html">Interceptors</a>
       
@@ -192,8 +167,18 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
+  <li class="parent " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
       <a href="../../GRPC/Metadata.html">Metadata</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Metadata/Value" data-name="grpc::metadata::value">
+      <a href="../../GRPC/Metadata/Value.html">Value</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -387,6 +372,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/TrailerCodec" data-name="grpc::transport::trailercodec">
+      <a href="../../GRPC/Transport/TrailerCodec.html">TrailerCodec</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -394,6 +384,11 @@
   
   <li class=" " data-id="grpc/GRPC/UnaryClientCall" data-name="grpc::unaryclientcall">
       <a href="../../GRPC/UnaryClientCall.html">UnaryClientCall</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/UnaryResponse" data-name="grpc::unaryresponse(t)">
+      <a href="../../GRPC/UnaryResponse.html">UnaryResponse</a>
       
     </li>
   
@@ -414,21 +409,6 @@
   
   <li class=" " data-id="grpc/PluginCodeGeneratorRequest" data-name="plugincodegeneratorrequest">
       <a href="../../PluginCodeGeneratorRequest.html">PluginCodeGeneratorRequest</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireDecoder" data-name="protobufwiredecoder">
-      <a href="../../ProtobufWireDecoder.html">ProtobufWireDecoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireEncoder" data-name="protobufwireencoder">
-      <a href="../../ProtobufWireEncoder.html">ProtobufWireEncoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtoField" data-name="protofield">
-      <a href="../../ProtoField.html">ProtoField</a>
       
     </li>
   
@@ -499,7 +479,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L8" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L8" target="_blank">
         grpc/transport/http2_client_connection.cr
       </a>
     
@@ -545,6 +525,16 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
+        <a href="#add_header%28key%3AString%2Cvalue%3AString%29%3ANil-instance-method" class="signature"><strong>#add_header</strong>(key : String, value : String) : Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#begin_header_block%3ANil-instance-method" class="signature"><strong>#begin_header_block</strong> : Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#cancel%3ANil-instance-method" class="signature"><strong>#cancel</strong> : Nil</a>
         
           <div class="summary"><p>cancel sends an HTTP/2 RST_STREAM with error code CANCEL and closes the message channel so waiting iterators unblock.</p></div>
@@ -586,6 +576,11 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#grpc_headers%3AMetadata-instance-method" class="signature"><strong>#grpc_headers</strong> : Metadata</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#grpc_status%3AStatus-instance-method" class="signature"><strong>#grpc_status</strong> : Status</a>
         
       </li>
@@ -594,6 +589,16 @@
         <a href="#grpc_trailers%3AMetadata-instance-method" class="signature"><strong>#grpc_trailers</strong> : Metadata</a>
         
           <div class="summary"><p>grpc_trailers returns the raw trailer hash received from the server.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#headers%3AMetadata-instance-method" class="signature"><strong>#headers</strong> : Metadata</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#headers%3D%28headers%3AMetadata%29-instance-method" class="signature"><strong>#headers=</strong>(headers : Metadata)</a>
         
       </li>
     
@@ -655,12 +660,12 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#trailers%3AHash%28String%2CString%29-instance-method" class="signature"><strong>#trailers</strong> : Hash(String, String)</a>
+        <a href="#trailers%3AMetadata-instance-method" class="signature"><strong>#trailers</strong> : Metadata</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#trailers%3D%28trailers%3AHash%28String%2CString%29%29-instance-method" class="signature"><strong>#trailers=</strong>(trailers : Hash(String, String))</a>
+        <a href="#trailers%3D%28trailers%3AMetadata%29-instance-method" class="signature"><strong>#trailers=</strong>(trailers : Metadata)</a>
         
       </li>
     
@@ -719,7 +724,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L18" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L20" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -740,6 +745,38 @@
     Instance Method Detail
   </h2>
   
+    <div class="entry-detail" id="add_header(key:String,value:String):Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>add_header</strong>(key : String, value : String) : Nil
+
+        <a class="method-permalink" href="#add_header%28key%3AString%2Cvalue%3AString%29%3ANil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L37" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="begin_header_block:Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>begin_header_block</strong> : Nil
+
+        <a class="method-permalink" href="#begin_header_block%3ANil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L33" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="cancel:Nil-instance-method">
       <div class="signature">
         
@@ -757,7 +794,7 @@ message channel so waiting iterators unblock.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L68" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L81" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -773,7 +810,7 @@ message channel so waiting iterators unblock.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L15" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L16" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -789,7 +826,7 @@ message channel so waiting iterators unblock.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L15" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L16" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -805,7 +842,7 @@ message channel so waiting iterators unblock.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L75" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L88" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -826,7 +863,7 @@ message channel so waiting iterators unblock.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L61" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L74" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -849,7 +886,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L32" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L45" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -865,7 +902,23 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L49" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L62" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="grpc_headers:Metadata-instance-method">
+      <div class="signature">
+        
+        def <strong>grpc_headers</strong> : <a href="../../GRPC/Metadata.html">Metadata</a>
+
+        <a class="method-permalink" href="#grpc_headers%3AMetadata-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L92" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -881,7 +934,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L89" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L109" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -902,7 +955,39 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L80" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L97" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="headers:Metadata-instance-method">
+      <div class="signature">
+        
+        def <strong>headers</strong> : <a href="../../GRPC/Metadata.html">Metadata</a>
+
+        <a class="method-permalink" href="#headers%3AMetadata-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L9" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="headers=(headers:Metadata)-instance-method">
+      <div class="signature">
+        
+        def <strong>headers=</strong>(headers : <a href="../../GRPC/Metadata.html">Metadata</a>)
+
+        <a class="method-permalink" href="#headers%3D%28headers%3AMetadata%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L9" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -918,7 +1003,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L13" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L14" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -934,7 +1019,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L13" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L14" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -950,7 +1035,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L10" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L11" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -966,7 +1051,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L10" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L11" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -982,7 +1067,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L11" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L12" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -998,7 +1083,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L11" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L12" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1014,7 +1099,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L12" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L13" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1030,7 +1115,7 @@ preserved in recv_buf for the next call.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L12" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L13" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1052,7 +1137,7 @@ and signals nghttp2 to resume data transmission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L55" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L68" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1068,7 +1153,7 @@ and signals nghttp2 to resume data transmission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L14" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L15" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1084,39 +1169,39 @@ and signals nghttp2 to resume data transmission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L14" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L15" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="trailers:Hash(String,String)-instance-method">
+    <div class="entry-detail" id="trailers:Metadata-instance-method">
       <div class="signature">
         
-        def <strong>trailers</strong> : Hash(String, String)
+        def <strong>trailers</strong> : <a href="../../GRPC/Metadata.html">Metadata</a>
 
-        <a class="method-permalink" href="#trailers%3AHash%28String%2CString%29-instance-method">#</a>
+        <a class="method-permalink" href="#trailers%3AMetadata-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L9" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L10" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="trailers=(trailers:Hash(String,String))-instance-method">
+    <div class="entry-detail" id="trailers=(trailers:Metadata)-instance-method">
       <div class="signature">
         
-        def <strong>trailers=</strong>(trailers : Hash(String, String))
+        def <strong>trailers=</strong>(trailers : <a href="../../GRPC/Metadata.html">Metadata</a>)
 
-        <a class="method-permalink" href="#trailers%3D%28trailers%3AHash%28String%2CString%29%29-instance-method">#</a>
+        <a class="method-permalink" href="#trailers%3D%28trailers%3AMetadata%29-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/http2_client_connection.cr#L9" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/http2_client_connection.cr#L10" target="_blank">View source</a>]
         
       </div>
     </div>

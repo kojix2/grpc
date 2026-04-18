@@ -142,31 +142,6 @@
       
     </li>
   
-  <li class="parent " data-id="grpc/GRPC/Generator" data-name="grpc::generator">
-      <a href="../GRPC/Generator.html">Generator</a>
-      
-        <ul>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/CanonicalTypeNameResolver" data-name="grpc::generator::canonicaltypenameresolver">
-      <a href="../GRPC/Generator/CanonicalTypeNameResolver.html">CanonicalTypeNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeMapNameResolver" data-name="grpc::generator::typemapnameresolver">
-      <a href="../GRPC/Generator/TypeMapNameResolver.html">TypeMapNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeNameResolver" data-name="grpc::generator::typenameresolver">
-      <a href="../GRPC/Generator/TypeNameResolver.html">TypeNameResolver</a>
-      
-    </li>
-  
-</ul>
-
-      
-    </li>
-  
   <li class=" " data-id="grpc/GRPC/Interceptors" data-name="grpc::interceptors">
       <a href="../GRPC/Interceptors.html">Interceptors</a>
       
@@ -192,8 +167,18 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
+  <li class="parent " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
       <a href="../GRPC/Metadata.html">Metadata</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Metadata/Value" data-name="grpc::metadata::value">
+      <a href="../GRPC/Metadata/Value.html">Value</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -387,6 +372,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/TrailerCodec" data-name="grpc::transport::trailercodec">
+      <a href="../GRPC/Transport/TrailerCodec.html">TrailerCodec</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -394,6 +384,11 @@
   
   <li class=" " data-id="grpc/GRPC/UnaryClientCall" data-name="grpc::unaryclientcall">
       <a href="../GRPC/UnaryClientCall.html">UnaryClientCall</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/UnaryResponse" data-name="grpc::unaryresponse(t)">
+      <a href="../GRPC/UnaryResponse.html">UnaryResponse</a>
       
     </li>
   
@@ -414,21 +409,6 @@
   
   <li class=" " data-id="grpc/PluginCodeGeneratorRequest" data-name="plugincodegeneratorrequest">
       <a href="../PluginCodeGeneratorRequest.html">PluginCodeGeneratorRequest</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireDecoder" data-name="protobufwiredecoder">
-      <a href="../ProtobufWireDecoder.html">ProtobufWireDecoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireEncoder" data-name="protobufwireencoder">
-      <a href="../ProtobufWireEncoder.html">ProtobufWireEncoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtoField" data-name="protofield">
-      <a href="../ProtoField.html">ProtoField</a>
       
     </li>
   
@@ -508,7 +488,7 @@ channel = GRPC::Channel.new(&quot;https://localhost:50051&quot;, tls_context: ct
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/channel.cr#L17" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/channel.cr#L17" target="_blank">
         grpc/channel.cr
       </a>
     
@@ -599,14 +579,14 @@ channel = GRPC::Channel.new(&quot;https://localhost:50051&quot;, tls_context: ct
       </li>
     
       <li class="entry-summary">
-        <a href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_bytes%3ABytes%2Cctx%3AClientContext%3DClientContext.new%29%3ATuple%28Bytes%2CStatus%29-instance-method" class="signature"><strong>#unary_call</strong>(service : String, method : String, request_bytes : Bytes, ctx : ClientContext = <span class="t">ClientContext</span>.new) : Tuple(Bytes, Status)</a>
+        <a href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_bytes%3ABytes%2Cctx%3AClientContext%3DClientContext.new%29%3AResponseEnvelope-instance-method" class="signature"><strong>#unary_call</strong>(service : String, method : String, request_bytes : Bytes, ctx : ClientContext = <span class="t">ClientContext</span>.new) : ResponseEnvelope</a>
         
           <div class="summary"><p>unary_call performs a single gRPC unary RPC.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_bytes%3ABytes%2Cmetadata%3AMetadata%29%3ATuple%28Bytes%2CStatus%29-instance-method" class="signature"><strong>#unary_call</strong>(service : String, method : String, request_bytes : Bytes, metadata : Metadata) : Tuple(Bytes, Status)</a>
+        <a href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_bytes%3ABytes%2Cmetadata%3AMetadata%29%3AResponseEnvelope-instance-method" class="signature"><strong>#unary_call</strong>(service : String, method : String, request_bytes : Bytes, metadata : Metadata) : ResponseEnvelope</a>
         
           <div class="summary"><p>unary_call with a plain Metadata object — convenience overload for generated code.</p></div>
         
@@ -675,7 +655,7 @@ HTTPS triggers TLS; use <em>tls_context</em> to supply a custom OpenSSL context
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/channel.cr#L39" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/channel.cr#L39" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -696,7 +676,7 @@ HTTPS triggers TLS; use <em>tls_context</em> to supply a custom OpenSSL context
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/channel.cr#L54" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/channel.cr#L54" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -728,7 +708,7 @@ HTTPS triggers TLS; use <em>tls_context</em> to supply a custom OpenSSL context
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/channel.cr#L242" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/channel.cr#L249" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -744,7 +724,7 @@ HTTPS triggers TLS; use <em>tls_context</em> to supply a custom OpenSSL context
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/channel.cr#L31" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/channel.cr#L31" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -760,7 +740,7 @@ HTTPS triggers TLS; use <em>tls_context</em> to supply a custom OpenSSL context
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/channel.cr#L32" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/channel.cr#L32" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -785,7 +765,7 @@ send_raw blocks the calling fiber (0 = unbounded).</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/channel.cr#L171" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/channel.cr#L178" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -810,7 +790,7 @@ send_raw blocks the calling fiber (0 = unbounded).</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/channel.cr#L209" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/channel.cr#L216" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -833,41 +813,41 @@ This is the internal API used by generated client stubs.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/channel.cr#L131" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/channel.cr#L138" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="unary_call(service:String,method:String,request_bytes:Bytes,ctx:ClientContext=ClientContext.new):Tuple(Bytes,Status)-instance-method">
+    <div class="entry-detail" id="unary_call(service:String,method:String,request_bytes:Bytes,ctx:ClientContext=ClientContext.new):ResponseEnvelope-instance-method">
       <div class="signature">
         
-        def <strong>unary_call</strong>(service : String, method : String, request_bytes : Bytes, ctx : <a href="../GRPC/ClientContext.html">ClientContext</a> = <span class="t">ClientContext</span>.new) : Tuple(Bytes, <a href="../GRPC/Status.html">Status</a>)
+        def <strong>unary_call</strong>(service : String, method : String, request_bytes : Bytes, ctx : <a href="../GRPC/ClientContext.html">ClientContext</a> = <span class="t">ClientContext</span>.new) : <a href="../GRPC/ResponseEnvelope.html">ResponseEnvelope</a>
 
-        <a class="method-permalink" href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_bytes%3ABytes%2Cctx%3AClientContext%3DClientContext.new%29%3ATuple%28Bytes%2CStatus%29-instance-method">#</a>
+        <a class="method-permalink" href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_bytes%3ABytes%2Cctx%3AClientContext%3DClientContext.new%29%3AResponseEnvelope-instance-method">#</a>
       </div>
       
         <div class="doc">
           
           <p>unary_call performs a single gRPC unary RPC.
 This is the internal API used by generated client stubs.
-Returns {response_body_bytes, status}.
+Returns the raw unary response envelope with metadata and status.
 If client interceptors are registered they wrap this call outermost-first.</p>
         </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/channel.cr#L78" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/channel.cr#L78" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="unary_call(service:String,method:String,request_bytes:Bytes,metadata:Metadata):Tuple(Bytes,Status)-instance-method">
+    <div class="entry-detail" id="unary_call(service:String,method:String,request_bytes:Bytes,metadata:Metadata):ResponseEnvelope-instance-method">
       <div class="signature">
         
-        def <strong>unary_call</strong>(service : String, method : String, request_bytes : Bytes, metadata : <a href="../GRPC/Metadata.html">Metadata</a>) : Tuple(Bytes, <a href="../GRPC/Status.html">Status</a>)
+        def <strong>unary_call</strong>(service : String, method : String, request_bytes : Bytes, metadata : <a href="../GRPC/Metadata.html">Metadata</a>) : <a href="../GRPC/ResponseEnvelope.html">ResponseEnvelope</a>
 
-        <a class="method-permalink" href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_bytes%3ABytes%2Cmetadata%3AMetadata%29%3ATuple%28Bytes%2CStatus%29-instance-method">#</a>
+        <a class="method-permalink" href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_bytes%3ABytes%2Cmetadata%3AMetadata%29%3AResponseEnvelope-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -879,7 +859,7 @@ Interceptors are NOT applied on this low-level overload.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/channel.cr#L113" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/channel.cr#L120" target="_blank">View source</a>]
         
       </div>
     </div>

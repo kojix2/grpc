@@ -142,31 +142,6 @@
       
     </li>
   
-  <li class="parent " data-id="grpc/GRPC/Generator" data-name="grpc::generator">
-      <a href="../GRPC/Generator.html">Generator</a>
-      
-        <ul>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/CanonicalTypeNameResolver" data-name="grpc::generator::canonicaltypenameresolver">
-      <a href="../GRPC/Generator/CanonicalTypeNameResolver.html">CanonicalTypeNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeMapNameResolver" data-name="grpc::generator::typemapnameresolver">
-      <a href="../GRPC/Generator/TypeMapNameResolver.html">TypeMapNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeNameResolver" data-name="grpc::generator::typenameresolver">
-      <a href="../GRPC/Generator/TypeNameResolver.html">TypeNameResolver</a>
-      
-    </li>
-  
-</ul>
-
-      
-    </li>
-  
   <li class=" " data-id="grpc/GRPC/Interceptors" data-name="grpc::interceptors">
       <a href="../GRPC/Interceptors.html">Interceptors</a>
       
@@ -192,8 +167,18 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
+  <li class="parent " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
       <a href="../GRPC/Metadata.html">Metadata</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Metadata/Value" data-name="grpc::metadata::value">
+      <a href="../GRPC/Metadata/Value.html">Value</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -387,6 +372,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/TrailerCodec" data-name="grpc::transport::trailercodec">
+      <a href="../GRPC/Transport/TrailerCodec.html">TrailerCodec</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -394,6 +384,11 @@
   
   <li class=" " data-id="grpc/GRPC/UnaryClientCall" data-name="grpc::unaryclientcall">
       <a href="../GRPC/UnaryClientCall.html">UnaryClientCall</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/UnaryResponse" data-name="grpc::unaryresponse(t)">
+      <a href="../GRPC/UnaryResponse.html">UnaryResponse</a>
       
     </li>
   
@@ -414,21 +409,6 @@
   
   <li class=" " data-id="grpc/PluginCodeGeneratorRequest" data-name="plugincodegeneratorrequest">
       <a href="../PluginCodeGeneratorRequest.html">PluginCodeGeneratorRequest</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireDecoder" data-name="protobufwiredecoder">
-      <a href="../ProtobufWireDecoder.html">ProtobufWireDecoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireEncoder" data-name="protobufwireencoder">
-      <a href="../ProtobufWireEncoder.html">ProtobufWireEncoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtoField" data-name="protofield">
-      <a href="../ProtoField.html">ProtoField</a>
       
     </li>
   
@@ -516,7 +496,7 @@ Generated client stubs wrap this in a typed BidiCall(Req, Res).</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L344" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L389" target="_blank">
         grpc/stream.cr
       </a>
     
@@ -539,7 +519,7 @@ Generated client stubs wrap this in a typed BidiCall(Req, Res).</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28send_proc%3ABytes-%3ENil%2Cclose_proc%3A-%3ENil%2Cmessages%3A%3A%3AChannel%28Bytes%7CNil%29%2Cstatus_proc%3A-%3EStatus%2Ctrailers_proc%3A-%3EMetadata%2Ccancel_proc%3A-%3ENil%2Con_finish%3A-%3ENil%3D-%3Edo%0Aend%29-class-method" class="signature"><strong>.new</strong>(send_proc : Bytes -> Nil, close_proc :  -> Nil, messages : ::Channel(Bytes | Nil), status_proc :  -> Status, trailers_proc :  -> Metadata, cancel_proc :  -> Nil, on_finish :  -> Nil = <span class="o">-&gt;</span> <span class="k">do</span>
+        <a href="#new%28send_proc%3ABytes-%3ENil%2Cclose_proc%3A-%3ENil%2Cmessages%3A%3A%3AChannel%28Bytes%7CNil%29%2Cheaders_proc%3A-%3EMetadata%2Cstatus_proc%3A-%3EStatus%2Ctrailers_proc%3A-%3EMetadata%2Ccancel_proc%3A-%3ENil%2Con_finish%3A-%3ENil%3D-%3Edo%0Aend%29-class-method" class="signature"><strong>.new</strong>(send_proc : Bytes -> Nil, close_proc :  -> Nil, messages : ::Channel(Bytes | Nil), headers_proc :  -> Metadata, status_proc :  -> Status, trailers_proc :  -> Metadata, cancel_proc :  -> Nil, on_finish :  -> Nil = <span class="o">-&gt;</span> <span class="k">do</span>
 <span class="k">end</span>)</a>
         
       </li>
@@ -578,6 +558,11 @@ Generated client stubs wrap this in a typed BidiCall(Req, Res).</p>
         <a href="#each%28%26%3ABytes-%3E%29%3ANil-instance-method" class="signature"><strong>#each</strong>(& : Bytes -> ) : Nil</a>
         
           <div class="summary"><p>Must yield this collection's elements to the block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#headers%3AMetadata-instance-method" class="signature"><strong>#headers</strong> : Metadata</a>
         
       </li>
     
@@ -662,20 +647,20 @@ Generated client stubs wrap this in a typed BidiCall(Req, Res).</p>
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(send_proc:Bytes-&gt;Nil,close_proc:-&gt;Nil,messages:::Channel(Bytes|Nil),status_proc:-&gt;Status,trailers_proc:-&gt;Metadata,cancel_proc:-&gt;Nil,on_finish:-&gt;Nil=-&gt;do
+    <div class="entry-detail" id="new(send_proc:Bytes-&gt;Nil,close_proc:-&gt;Nil,messages:::Channel(Bytes|Nil),headers_proc:-&gt;Metadata,status_proc:-&gt;Status,trailers_proc:-&gt;Metadata,cancel_proc:-&gt;Nil,on_finish:-&gt;Nil=-&gt;do
 end)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(send_proc : Bytes -> Nil, close_proc :  -> Nil, messages : ::Channel(Bytes | Nil), status_proc :  -> <a href="../GRPC/Status.html">Status</a>, trailers_proc :  -> <a href="../GRPC/Metadata.html">Metadata</a>, cancel_proc :  -> Nil, on_finish :  -> Nil = <span class="o">-&gt;</span> <span class="k">do</span>
+        def self.<strong>new</strong>(send_proc : Bytes -> Nil, close_proc :  -> Nil, messages : ::Channel(Bytes | Nil), headers_proc :  -> <a href="../GRPC/Metadata.html">Metadata</a>, status_proc :  -> <a href="../GRPC/Status.html">Status</a>, trailers_proc :  -> <a href="../GRPC/Metadata.html">Metadata</a>, cancel_proc :  -> Nil, on_finish :  -> Nil = <span class="o">-&gt;</span> <span class="k">do</span>
 <span class="k">end</span>)
 
-        <a class="method-permalink" href="#new%28send_proc%3ABytes-%3ENil%2Cclose_proc%3A-%3ENil%2Cmessages%3A%3A%3AChannel%28Bytes%7CNil%29%2Cstatus_proc%3A-%3EStatus%2Ctrailers_proc%3A-%3EMetadata%2Ccancel_proc%3A-%3ENil%2Con_finish%3A-%3ENil%3D-%3Edo%0Aend%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28send_proc%3ABytes-%3ENil%2Cclose_proc%3A-%3ENil%2Cmessages%3A%3A%3AChannel%28Bytes%7CNil%29%2Cheaders_proc%3A-%3EMetadata%2Cstatus_proc%3A-%3EStatus%2Ctrailers_proc%3A-%3EMetadata%2Ccancel_proc%3A-%3ENil%2Con_finish%3A-%3ENil%3D-%3Edo%0Aend%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L347" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L392" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -707,7 +692,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L382" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L428" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -728,7 +713,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L366" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L412" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -753,7 +738,23 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L370" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L416" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="headers:Metadata-instance-method">
+      <div class="signature">
+        
+        def <strong>headers</strong> : <a href="../GRPC/Metadata.html">Metadata</a>
+
+        <a class="method-permalink" href="#headers%3AMetadata-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L433" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -774,7 +775,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L361" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L407" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -790,7 +791,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L387" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L437" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -806,7 +807,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L391" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L441" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -828,7 +829,7 @@ The callback is invoked once when iteration ends or cancel is called.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/stream.cr#L397" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/stream.cr#L447" target="_blank">View source</a>]
         
       </div>
     </div>

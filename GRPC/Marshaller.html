@@ -142,31 +142,6 @@
       
     </li>
   
-  <li class="parent " data-id="grpc/GRPC/Generator" data-name="grpc::generator">
-      <a href="../GRPC/Generator.html">Generator</a>
-      
-        <ul>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/CanonicalTypeNameResolver" data-name="grpc::generator::canonicaltypenameresolver">
-      <a href="../GRPC/Generator/CanonicalTypeNameResolver.html">CanonicalTypeNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeMapNameResolver" data-name="grpc::generator::typemapnameresolver">
-      <a href="../GRPC/Generator/TypeMapNameResolver.html">TypeMapNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeNameResolver" data-name="grpc::generator::typenameresolver">
-      <a href="../GRPC/Generator/TypeNameResolver.html">TypeNameResolver</a>
-      
-    </li>
-  
-</ul>
-
-      
-    </li>
-  
   <li class=" " data-id="grpc/GRPC/Interceptors" data-name="grpc::interceptors">
       <a href="../GRPC/Interceptors.html">Interceptors</a>
       
@@ -192,8 +167,18 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
+  <li class="parent " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
       <a href="../GRPC/Metadata.html">Metadata</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Metadata/Value" data-name="grpc::metadata::value">
+      <a href="../GRPC/Metadata/Value.html">Value</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -387,6 +372,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/TrailerCodec" data-name="grpc::transport::trailercodec">
+      <a href="../GRPC/Transport/TrailerCodec.html">TrailerCodec</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -394,6 +384,11 @@
   
   <li class=" " data-id="grpc/GRPC/UnaryClientCall" data-name="grpc::unaryclientcall">
       <a href="../GRPC/UnaryClientCall.html">UnaryClientCall</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/UnaryResponse" data-name="grpc::unaryresponse(t)">
+      <a href="../GRPC/UnaryResponse.html">UnaryResponse</a>
       
     </li>
   
@@ -414,21 +409,6 @@
   
   <li class=" " data-id="grpc/PluginCodeGeneratorRequest" data-name="plugincodegeneratorrequest">
       <a href="../PluginCodeGeneratorRequest.html">PluginCodeGeneratorRequest</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireDecoder" data-name="protobufwiredecoder">
-      <a href="../ProtobufWireDecoder.html">ProtobufWireDecoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireEncoder" data-name="protobufwireencoder">
-      <a href="../ProtobufWireEncoder.html">ProtobufWireEncoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtoField" data-name="protofield">
-      <a href="../ProtoField.html">ProtoField</a>
       
     </li>
   
@@ -515,7 +495,7 @@ on a marshaller.</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/marshaller.cr#L6" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/marshaller.cr#L6" target="_blank">
         grpc/marshaller.cr
       </a>
     
@@ -544,12 +524,12 @@ on a marshaller.</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#dump%28value%3AT%29%3ABytes-instance-method" class="signature"><strong>#dump</strong>(value : T) : Bytes</a>
+        <a href="#decode%28bytes%3ABytes%29%3AT-instance-method" class="signature"><strong>#decode</strong>(bytes : Bytes) : T</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#load%28bytes%3ABytes%29%3AT-instance-method" class="signature"><strong>#load</strong>(bytes : Bytes) : T</a>
+        <a href="#encode%28value%3AT%29%3ABytes-instance-method" class="signature"><strong>#encode</strong>(value : T) : Bytes</a>
         
       </li>
     
@@ -603,34 +583,34 @@ on a marshaller.</p>
     Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="dump(value:T):Bytes-instance-method">
+    <div class="entry-detail" id="decode(bytes:Bytes):T-instance-method">
       <div class="signature">
         abstract 
-        def <strong>dump</strong>(value : T) : Bytes
+        def <strong>decode</strong>(bytes : Bytes) : T
 
-        <a class="method-permalink" href="#dump%28value%3AT%29%3ABytes-instance-method">#</a>
+        <a class="method-permalink" href="#decode%28bytes%3ABytes%29%3AT-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/marshaller.cr#L7" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/marshaller.cr#L8" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="load(bytes:Bytes):T-instance-method">
+    <div class="entry-detail" id="encode(value:T):Bytes-instance-method">
       <div class="signature">
         abstract 
-        def <strong>load</strong>(bytes : Bytes) : T
+        def <strong>encode</strong>(value : T) : Bytes
 
-        <a class="method-permalink" href="#load%28bytes%3ABytes%29%3AT-instance-method">#</a>
+        <a class="method-permalink" href="#encode%28value%3AT%29%3ABytes-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/marshaller.cr#L8" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/marshaller.cr#L7" target="_blank">View source</a>]
         
       </div>
     </div>

@@ -142,31 +142,6 @@
       
     </li>
   
-  <li class="parent " data-id="grpc/GRPC/Generator" data-name="grpc::generator">
-      <a href="../../GRPC/Generator.html">Generator</a>
-      
-        <ul>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/CanonicalTypeNameResolver" data-name="grpc::generator::canonicaltypenameresolver">
-      <a href="../../GRPC/Generator/CanonicalTypeNameResolver.html">CanonicalTypeNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeMapNameResolver" data-name="grpc::generator::typemapnameresolver">
-      <a href="../../GRPC/Generator/TypeMapNameResolver.html">TypeMapNameResolver</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/GRPC/Generator/TypeNameResolver" data-name="grpc::generator::typenameresolver">
-      <a href="../../GRPC/Generator/TypeNameResolver.html">TypeNameResolver</a>
-      
-    </li>
-  
-</ul>
-
-      
-    </li>
-  
   <li class=" " data-id="grpc/GRPC/Interceptors" data-name="grpc::interceptors">
       <a href="../../GRPC/Interceptors.html">Interceptors</a>
       
@@ -192,8 +167,18 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
+  <li class="parent " data-id="grpc/GRPC/Metadata" data-name="grpc::metadata">
       <a href="../../GRPC/Metadata.html">Metadata</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Metadata/Value" data-name="grpc::metadata::value">
+      <a href="../../GRPC/Metadata/Value.html">Value</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -387,6 +372,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/TrailerCodec" data-name="grpc::transport::trailercodec">
+      <a href="../../GRPC/Transport/TrailerCodec.html">TrailerCodec</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -394,6 +384,11 @@
   
   <li class=" " data-id="grpc/GRPC/UnaryClientCall" data-name="grpc::unaryclientcall">
       <a href="../../GRPC/UnaryClientCall.html">UnaryClientCall</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/UnaryResponse" data-name="grpc::unaryresponse(t)">
+      <a href="../../GRPC/UnaryResponse.html">UnaryResponse</a>
       
     </li>
   
@@ -414,21 +409,6 @@
   
   <li class=" " data-id="grpc/PluginCodeGeneratorRequest" data-name="plugincodegeneratorrequest">
       <a href="../../PluginCodeGeneratorRequest.html">PluginCodeGeneratorRequest</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireDecoder" data-name="protobufwiredecoder">
-      <a href="../../ProtobufWireDecoder.html">ProtobufWireDecoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtobufWireEncoder" data-name="protobufwireencoder">
-      <a href="../../ProtobufWireEncoder.html">ProtobufWireEncoder</a>
-      
-    </li>
-  
-  <li class=" " data-id="grpc/ProtoField" data-name="protofield">
-      <a href="../../ProtoField.html">ProtoField</a>
       
     </li>
   
@@ -513,7 +493,7 @@ All methods return public stream types; PendingStream stays internal.</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/interface.cr#L6" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/interface.cr#L6" target="_blank">
         grpc/transport/interface.cr
       </a>
     
@@ -567,7 +547,7 @@ All methods return public stream types; PendingStream stays internal.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_body%3ABytes%2Cmetadata%3AMetadata%29%3ATuple%28Bytes%2CStatus%29-instance-method" class="signature"><strong>#unary_call</strong>(service : String, method : String, request_body : Bytes, metadata : Metadata) : Tuple(Bytes, Status)</a>
+        <a href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_body%3ABytes%2Cmetadata%3AMetadata%29%3AResponseEnvelope-instance-method" class="signature"><strong>#unary_call</strong>(service : String, method : String, request_body : Bytes, metadata : Metadata) : ResponseEnvelope</a>
         
       </li>
     
@@ -606,7 +586,7 @@ All methods return public stream types; PendingStream stays internal.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/interface.cr#L23" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/interface.cr#L23" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -622,7 +602,7 @@ All methods return public stream types; PendingStream stays internal.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/interface.cr#L22" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/interface.cr#L22" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -638,7 +618,7 @@ All methods return public stream types; PendingStream stays internal.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/interface.cr#L14" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/interface.cr#L14" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -654,7 +634,7 @@ All methods return public stream types; PendingStream stays internal.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/interface.cr#L18" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/interface.cr#L18" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -670,23 +650,23 @@ All methods return public stream types; PendingStream stays internal.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/interface.cr#L10" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/interface.cr#L10" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="unary_call(service:String,method:String,request_body:Bytes,metadata:Metadata):Tuple(Bytes,Status)-instance-method">
+    <div class="entry-detail" id="unary_call(service:String,method:String,request_body:Bytes,metadata:Metadata):ResponseEnvelope-instance-method">
       <div class="signature">
         abstract 
-        def <strong>unary_call</strong>(service : String, method : String, request_body : Bytes, metadata : <a href="../../GRPC/Metadata.html">Metadata</a>) : Tuple(Bytes, <a href="../../GRPC/Status.html">Status</a>)
+        def <strong>unary_call</strong>(service : String, method : String, request_body : Bytes, metadata : <a href="../../GRPC/Metadata.html">Metadata</a>) : <a href="../../GRPC/ResponseEnvelope.html">ResponseEnvelope</a>
 
-        <a class="method-permalink" href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_body%3ABytes%2Cmetadata%3AMetadata%29%3ATuple%28Bytes%2CStatus%29-instance-method">#</a>
+        <a class="method-permalink" href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_body%3ABytes%2Cmetadata%3AMetadata%29%3AResponseEnvelope-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/b6faebb85454f52741c000df582d726882f97191/src/grpc/transport/interface.cr#L7" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/354f76717a56da9615d95736668beb8aef52fd85/src/grpc/transport/interface.cr#L7" target="_blank">View source</a>]
         
       </div>
     </div>
