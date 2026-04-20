@@ -49,6 +49,7 @@ lib LibNghttp2
   # Error codes
   ERR_CALLBACK_FAILURE          = -902
   ERR_TEMPORAL_CALLBACK_FAILURE = -521
+  ERR_INVALID_ARGUMENT          = -501
   ERR_WOULDBLOCK                = -504
   ERR_DEFERRED                  = -508
 

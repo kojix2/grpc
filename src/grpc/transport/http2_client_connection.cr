@@ -190,6 +190,7 @@ module GRPC
       @deque : Deque(Bytes)
       @current : IO::Memory?
       @closed : Bool
+      @resume_requested : Bool
       @lsb_mutex : Mutex
       # Counting semaphore for bounded mode.  Pre-filled with *capacity* permits;
       # push consumes one permit (blocks when 0), read_into returns one on shift.
@@ -199,6 +200,7 @@ module GRPC
         @deque = Deque(Bytes).new
         @current = nil
         @closed = false
+        @resume_requested = false
         @lsb_mutex = Mutex.new
         if capacity > 0
           permits = ::Channel(Nil).new(capacity)
@@ -212,15 +214,29 @@ module GRPC
       def push(bytes : Bytes) : Nil
         # Block until a slot is available (no-op when unbounded).
         @permits.try &.receive
-        @lsb_mutex.synchronize { @deque.push(bytes) }
+        @lsb_mutex.synchronize do
+          @deque.push(bytes)
+          @resume_requested = true
+        end
       end
 
       def close : Nil
-        @lsb_mutex.synchronize { @closed = true }
+        @lsb_mutex.synchronize do
+          @closed = true
+          @resume_requested = true
+        end
       end
 
       def closed? : Bool
         @lsb_mutex.synchronize { @closed }
+      end
+
+      def take_resume_request : Bool
+        @lsb_mutex.synchronize do
+          requested = @resume_requested
+          @resume_requested = false if requested
+          requested
+        end
       end
 
       # read_into fills *buf* with up to *length* bytes from the queue.
@@ -612,7 +628,14 @@ module GRPC
 
           ps.send_resume_proc = -> {
             @mutex.synchronize do
-              LibNghttp2.session_resume_data(@session, stream_id)
+              ps.live_send_buf.try do |lsb|
+                if lsb.take_resume_request
+                  rc = LibNghttp2.session_resume_data(@session, stream_id)
+                  if rc < 0 && rc != LibNghttp2::ERR_INVALID_ARGUMENT
+                    raise ConnectionError.new("session_resume_data failed: #{String.new(LibNghttp2.strerror(rc))} (#{rc})")
+                  end
+                end
+              end
               flush_send rescue nil
             end
           }
