@@ -342,8 +342,18 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Transport/GrpcDeframer" data-name="grpc::transport::grpcdeframer">
+  <li class="parent " data-id="grpc/GRPC/Transport/GrpcDeframer" data-name="grpc::transport::grpcdeframer">
       <a href="../GRPC/Transport/GrpcDeframer.html">GrpcDeframer</a>
+      
+        <ul>
+  
+  <li class=" " data-id="grpc/GRPC/Transport/GrpcDeframer/FrameHeader" data-name="grpc::transport::grpcdeframer::frameheader">
+      <a href="../GRPC/Transport/GrpcDeframer/FrameHeader.html">FrameHeader</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -530,7 +540,7 @@ Bytes 1-4: Message-Length (big-endian uint32) — length of the (possibly compre
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/87dcd328a7e23a396f219d795e5ca650527dfe4b/src/grpc/codec.cr#L9" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/21d0de659e0095adc876a7362c81e2dceb17579e/src/grpc/codec.cr#L9" target="_blank">
         grpc/codec.cr
       </a>
     
@@ -588,6 +598,11 @@ Bytes 1-4: Message-Length (big-endian uint32) — length of the (possibly compre
       </li>
     
       <li class="entry-summary">
+        <a href="#decode_payload%28compressed%3AUInt8%2Cbody%3ABytes%29%3ABytes-class-method" class="signature"><strong>.decode_payload</strong>(compressed : UInt8, body : Bytes) : Bytes</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#encode%28message_bytes%3ABytes%2Ccompress%3ABool%3Dfalse%29%3ABytes-class-method" class="signature"><strong>.encode</strong>(message_bytes : Bytes, compress : Bool = <span class="n">false</span>) : Bytes</a>
         
           <div class="summary"><p>Encode a protobuf-serialized message into a gRPC DATA frame payload.</p></div>
@@ -637,7 +652,7 @@ Raises StatusError on incomplete or malformed frames.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/87dcd328a7e23a396f219d795e5ca650527dfe4b/src/grpc/codec.cr#L34" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/21d0de659e0095adc876a7362c81e2dceb17579e/src/grpc/codec.cr#L34" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -658,7 +673,23 @@ Raises StatusError on incomplete or malformed frames.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/87dcd328a7e23a396f219d795e5ca650527dfe4b/src/grpc/codec.cr#L54" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/21d0de659e0095adc876a7362c81e2dceb17579e/src/grpc/codec.cr#L60" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="decode_payload(compressed:UInt8,body:Bytes):Bytes-class-method">
+      <div class="signature">
+        
+        def self.<strong>decode_payload</strong>(compressed : UInt8, body : Bytes) : Bytes
+
+        <a class="method-permalink" href="#decode_payload%28compressed%3AUInt8%2Cbody%3ABytes%29%3ABytes-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/21d0de659e0095adc876a7362c81e2dceb17579e/src/grpc/codec.cr#L47" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -680,7 +711,7 @@ Pass <code>compress: true</code> to gzip-compress the payload.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/87dcd328a7e23a396f219d795e5ca650527dfe4b/src/grpc/codec.cr#L14" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/21d0de659e0095adc876a7362c81e2dceb17579e/src/grpc/codec.cr#L14" target="_blank">View source</a>]
         
       </div>
     </div>
