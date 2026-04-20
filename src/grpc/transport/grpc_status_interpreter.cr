@@ -4,6 +4,8 @@ module GRPC
       extend self
 
       def grpc_status(headers : Metadata, trailers : Metadata, override : Status?) : Status
+        return override if override
+
         code_str = trailers.get("grpc-status") || headers.get("grpc-status")
         unless code_str
           return override || Status.unknown("missing grpc-status trailer")

@@ -63,6 +63,7 @@ module GRPC
       end
 
       def transport_error=(status : Status) : Nil
+        return if @terminal_state.finished?
         @status_override ||= status
       end
 
@@ -151,6 +152,7 @@ module GRPC
       end
 
       def transport_error=(status : Status) : Nil
+        return if @terminal_state.finished?
         @status_override ||= status
       end
 

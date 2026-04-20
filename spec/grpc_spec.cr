@@ -416,6 +416,16 @@ describe GRPC do
       status = GRPC::Transport::GrpcStatusInterpreter.grpc_status(headers, trailers, override)
       status.should eq(override)
     end
+
+    it "prefers override over grpc-status when transport failed" do
+      headers = GRPC::Metadata.new
+      trailers = GRPC::Metadata.new
+      trailers.add("grpc-status", "0")
+      override = GRPC::Status.internal("transport failure")
+
+      status = GRPC::Transport::GrpcStatusInterpreter.grpc_status(headers, trailers, override)
+      status.should eq(override)
+    end
   end
 
   describe GRPC::Transport::StreamHeaderState do
@@ -694,10 +704,33 @@ describe GRPC do
       status.message.should contain("missing grpc-status")
     end
 
-    it "prefers grpc-status over transport error override when trailers are present" do
+    it "prefers transport error override over grpc-status when trailers are present" do
       call = GRPC::Transport::PendingCall.new
       call.trailers.add("grpc-status", "0")
       call.transport_error = GRPC::Status.unknown("transport close")
+
+      call.grpc_status.code.should eq(GRPC::StatusCode::UNKNOWN)
+      call.grpc_status.message.should eq("transport close")
+    end
+
+    it "keeps invalid response metadata as the final status even with grpc-status" do
+      call = GRPC::Transport::PendingCall.new
+      call.begin_header_block
+      call.add_header("trace-bin", "!!!")
+      call.begin_header_block
+      call.add_header("grpc-status", "0")
+
+      status = call.grpc_status
+      status.code.should eq(GRPC::StatusCode::INTERNAL)
+      status.message.should contain("invalid wire metadata")
+    end
+
+    it "ignores transport errors reported after completion" do
+      call = GRPC::Transport::PendingCall.new
+      call.trailers.add("grpc-status", "0")
+
+      call.complete
+      call.transport_error = GRPC::Status.unknown("late close")
 
       call.grpc_status.code.should eq(GRPC::StatusCode::OK)
     end
@@ -761,10 +794,30 @@ describe GRPC do
       status.message.should contain("missing grpc-status")
     end
 
-    it "prefers grpc-status over transport error override when trailers are present" do
+    it "prefers transport error override over grpc-status when trailers are present" do
       stream = GRPC::Transport::PendingStream.new
       stream.trailers.add("grpc-status", "0")
       stream.transport_error = GRPC::Status.unknown("transport close")
+
+      stream.grpc_status.code.should eq(GRPC::StatusCode::UNKNOWN)
+      stream.grpc_status.message.should eq("transport close")
+    end
+
+    it "keeps deframe errors as the final status even with grpc-status" do
+      stream = GRPC::Transport::PendingStream.new
+      stream.trailers.add("grpc-status", "0")
+
+      stream.receive_data(Bytes[2_u8, 0_u8, 0_u8, 0_u8, 0_u8])
+
+      stream.grpc_status.code.should eq(GRPC::StatusCode::UNIMPLEMENTED)
+    end
+
+    it "ignores transport errors reported after finish" do
+      stream = GRPC::Transport::PendingStream.new
+      stream.trailers.add("grpc-status", "0")
+
+      stream.finish
+      stream.transport_error = GRPC::Status.unknown("late close")
 
       stream.grpc_status.code.should eq(GRPC::StatusCode::OK)
     end
