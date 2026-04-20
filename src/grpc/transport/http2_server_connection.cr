@@ -67,7 +67,7 @@ module GRPC
         def close : Nil
           # compare_and_set returns {old_value, success?}; only the winner executes.
           return unless @closed.compare_and_set(false, true)[1]
-          @channel.close
+          @channel.send(nil)
         rescue
           # no-op
         end
@@ -265,17 +265,22 @@ module GRPC
         @stream_pending_chunks.delete(stream_id)
         @stream_pending_trailers.delete(stream_id)
         @stream_data_in_flight.delete(stream_id)
-        if state = @live_request_states.delete(stream_id)
-          state.close
-        end
-        if ctx = @stream_contexts.delete(stream_id)
-          ctx.cancel
+        live_state = @live_request_states[stream_id]?
+        if error_code != 0
+          if state = @live_request_states.delete(stream_id)
+            state.close
+          end
+          if ctx = @stream_contexts.delete(stream_id)
+            ctx.cancel
+          end
+        elsif live_state.nil?
+          if ctx = @stream_contexts.delete(stream_id)
+            ctx.cancel
+          end
         end
         if stop = @deadline_watch_stops.delete(stream_id)
           stop.send(nil) rescue nil
         end
-        @stream_headers_sent.delete(stream_id)
-        @stream_terminated.delete(stream_id)
       end
 
       def on_frame_send_cb(frame : Void*) : Nil

@@ -190,6 +190,7 @@ module GRPC
       @deque : Deque(Bytes)
       @current : IO::Memory?
       @closed : Bool
+      @deferred : Bool
       @resume_requested : Bool
       @lsb_mutex : Mutex
       # Counting semaphore for bounded mode.  Pre-filled with *capacity* permits;
@@ -200,6 +201,7 @@ module GRPC
         @deque = Deque(Bytes).new
         @current = nil
         @closed = false
+        @deferred = false
         @resume_requested = false
         @lsb_mutex = Mutex.new
         if capacity > 0
@@ -233,9 +235,9 @@ module GRPC
 
       def take_resume_request : Bool
         @lsb_mutex.synchronize do
-          requested = @resume_requested
-          @resume_requested = false if requested
-          requested
+          should_resume = @resume_requested && @deferred
+          @resume_requested = false
+          should_resume
         end
       end
 
@@ -255,6 +257,7 @@ module GRPC
           if cur = @current
             copy_from_current(cur, buf, length, data_flags)
           else
+            @deferred = true
             LibNghttp2::ERR_DEFERRED.to_i64
           end
         end
@@ -265,11 +268,14 @@ module GRPC
       private def load_next_chunk(data_flags : UInt32*) : LibC::SSizeT?
         if @deque.empty?
           if @closed
+            @deferred = false
             data_flags.value |= LibNghttp2::DATA_FLAG_EOF
             return 0_i64
           end
+          @deferred = true
           return LibNghttp2::ERR_DEFERRED.to_i64
         end
+        @deferred = false
         @current = IO::Memory.new(@deque.shift)
         # Return one permit now that a slot has been freed.
         @permits.try { |permits_ch| permits_ch.send(nil) rescue nil }
@@ -285,6 +291,9 @@ module GRPC
       private def copy_from_current(cur : IO::Memory, buf : UInt8*, length : LibC::SizeT,
                                     data_flags : UInt32*) : LibC::SSizeT
         to_copy = Math.min(length.to_i, (cur.size - cur.pos).to_i).to_i
+        # nghttp2 data callbacks must not return 0 unless signaling EOF.
+        # Returning 0 with no EOF can trigger PROTOCOL_ERROR on the peer.
+        return LibNghttp2::ERR_DEFERRED.to_i64 if to_copy == 0
         buf.copy_from(cur.to_slice.to_unsafe + cur.pos, to_copy)
         cur.pos += to_copy
         data_flags.value |= LibNghttp2::DATA_FLAG_EOF if cur.pos == cur.size && @deque.empty? && @closed
@@ -308,9 +317,9 @@ module GRPC
         to_copy.to_i64
       end
 
-      DATA_READ_CB_LIVE = LibNghttp2::DataSourceReadCallback.new do |_session, _stream_id, buf, length, data_flags, source, _user_data|
-        lsb = Box(LiveSendBuffer).unbox(source.value.ptr)
-        lsb.read_into(buf, length, data_flags)
+      DATA_READ_CB_LIVE = LibNghttp2::DataSourceReadCallback.new do |_session, stream_id, buf, length, data_flags, _source, user_data|
+        conn = Box(Http2ClientConnection).unbox(user_data)
+        conn.read_live_send_data(stream_id, buf, length, data_flags)
       end
 
       # stream_id => PendingCall (unary)
@@ -614,8 +623,7 @@ module GRPC
           nvlen = nva_list.size
 
           src = LibNghttp2::DataSource.new
-          boxed_src = Box.box(lsb)
-          src.ptr = boxed_src
+          src.ptr = Pointer(Void).null
           dp = LibNghttp2::DataProvider.new(source: src, read_callback: DATA_READ_CB_LIVE)
 
           boxed_ps = Box.box(ps)
@@ -624,19 +632,18 @@ module GRPC
 
           @pending_streams[stream_id] = ps
           @stream_boxes[stream_id] = boxed_ps
-          @data_source_boxes[stream_id] = boxed_src
 
           ps.send_resume_proc = -> {
             @mutex.synchronize do
-              ps.live_send_buf.try do |lsb|
-                if lsb.take_resume_request
+              ps.live_send_buf.try do |live_send_buf|
+                if live_send_buf.take_resume_request
                   rc = LibNghttp2.session_resume_data(@session, stream_id)
                   if rc < 0 && rc != LibNghttp2::ERR_INVALID_ARGUMENT
                     raise ConnectionError.new("session_resume_data failed: #{String.new(LibNghttp2.strerror(rc))} (#{rc})")
                   end
                 end
               end
-              flush_send rescue nil
+              flush_send
             end
           }
 
@@ -738,6 +745,16 @@ module GRPC
         else
           Status.unknown("stream closed without valid grpc-status (http2 error code #{error_code})")
         end
+      end
+
+      protected def read_live_send_data(stream_id : Int32, buf : UInt8*,
+                                        length : LibC::SizeT,
+                                        data_flags : UInt32*) : LibC::SSizeT
+        ps = @pending_streams[stream_id]?
+        lsb = ps.try &.live_send_buf
+        return LibNghttp2::ERR_CALLBACK_FAILURE.to_i64 unless lsb
+
+        lsb.read_into(buf, length, data_flags)
       end
     end
   end
