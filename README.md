@@ -3,7 +3,7 @@
 [![Test](https://github.com/kojix2/grpc.cr/actions/workflows/test.yml/badge.svg)](https://github.com/kojix2/grpc.cr/actions/workflows/test.yml)
 [![Lines of Code](https://img.shields.io/endpoint?url=https%3A%2F%2Ftokei.kojix2.net%2Fbadge%2Fgithub%2Fkojix2%2Fgrpc.cr%2Flines)](https://tokei.kojix2.net/github/kojix2/grpc.cr)
 
-A native Crystal [gRPC](https://grpc.io/) library built on [libnghttp2](https://nghttp2.org/).
+📡 [gRPC](https://grpc.io/) for [Crystal](https://crystal-lang.org/) built on [libnghttp2](https://nghttp2.org/).
 
 This project depends on the published [proto](https://github.com/kojix2/proto) shard for:
 - protobuf runtime support
@@ -57,8 +57,8 @@ crystal spec spec/gripmock.cr
 ## Code Generation
 
 grpc.cr uses two protoc plugins:
-- protoc-gen-crystal from the proto shard
-- protoc-gen-crystal-grpc from this repository
+- `protoc-gen-crystal` from the proto shard
+- `protoc-gen-crystal-grpc` from this repository
 
 ### 1) Build both plugins
 
