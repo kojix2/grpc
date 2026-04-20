@@ -41,10 +41,16 @@ module GRPC
       raise StatusError.new(StatusCode::INTERNAL, "incomplete gRPC frame body") if data.size < total
 
       body = data[HEADER_SIZE, length]
+      {decode_payload(compressed, body), total}
+    end
+
+    def self.decode_payload(compressed : UInt8, body : Bytes) : Bytes
+      # Keep the uncompressed path as a borrowed slice; only gzip requires a
+      # fresh allocation for the decompressed payload.
       if compressed == 1
-        {decompress_gzip(body), total}
+        decompress_gzip(body)
       elsif compressed == 0
-        {body, total}
+        body
       else
         raise StatusError.new(StatusCode::UNIMPLEMENTED, "unsupported gRPC compression flag: #{compressed}")
       end

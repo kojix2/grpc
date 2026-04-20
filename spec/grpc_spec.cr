@@ -352,6 +352,22 @@ describe GRPC do
       buffer.remainder_size.should eq(0)
     end
 
+    it "parses a frame header split across multiple chunks" do
+      buffer = GRPC::Transport::GrpcDeframer.new
+      frame = GRPC::Codec.encode("header-boundary".to_slice)
+
+      buffer.append(frame[0, 2])
+      buffer.drain_messages.should be_empty
+      buffer.append(frame[2, 2])
+      buffer.drain_messages.should be_empty
+      buffer.append(frame[4, frame.size - 4])
+
+      drained = buffer.drain_messages
+      drained.size.should eq(1)
+      String.new(drained[0]).should eq("header-boundary")
+      buffer.remainder_size.should eq(0)
+    end
+
     it "handles one-byte fragmented delivery without losing message boundaries" do
       buffer = GRPC::Transport::GrpcDeframer.new
       payload = "x" * 16_384
@@ -392,6 +408,22 @@ describe GRPC do
       end
 
       drained.map { |bytes| String.new(bytes) }.should eq(["alpha", "beta", "gamma"])
+      buffer.remainder_size.should eq(0)
+    end
+
+    it "decodes compressed frames split across uneven chunks" do
+      buffer = GRPC::Transport::GrpcDeframer.new
+      frame = GRPC::Codec.encode("compressed payload".to_slice, compress: true)
+
+      buffer.append(frame[0, 3])
+      buffer.drain_messages.should be_empty
+      buffer.append(frame[3, 4])
+      buffer.drain_messages.should be_empty
+      buffer.append(frame[7, frame.size - 7])
+
+      drained = buffer.drain_messages
+      drained.size.should eq(1)
+      String.new(drained[0]).should eq("compressed payload")
       buffer.remainder_size.should eq(0)
     end
   end

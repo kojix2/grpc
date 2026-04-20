@@ -3,6 +3,8 @@ module GRPC
     # GrpcDeframer incrementally accumulates DATA chunks and extracts complete
     # gRPC messages while preserving any trailing partial frame bytes.
     class GrpcDeframer
+      record FrameHeader, compressed : UInt8, length : Int32
+
       @segments : Deque(Bytes)
       @head_offset : Int32
       @remainder_size : Int32
@@ -30,13 +32,14 @@ module GRPC
         loop do
           break if @remainder_size < Codec::HEADER_SIZE
 
-          header = peek_exact(Codec::HEADER_SIZE)
-          length = IO::ByteFormat::BigEndian.decode(UInt32, header[1, 4]).to_i
-          total = Codec::HEADER_SIZE + length
+          # Parse the fixed 5-byte header in place so we do not materialize a
+          # temporary frame unless the payload itself must be copied out.
+          header = read_header
+          total = Codec::HEADER_SIZE + header.length
           break if @remainder_size < total
 
-          frame = consume_exact(total)
-          message, _ = Codec.decode(frame)
+          skip_exact(Codec::HEADER_SIZE)
+          message = consume_message_payload(header)
           messages << message
         end
 
@@ -47,25 +50,54 @@ module GRPC
         @remainder_size
       end
 
-      private def peek_exact(n : Int32) : Bytes
-        return Bytes.empty if n <= 0
+      private def read_header : FrameHeader
+        compressed = read_byte_at(0)
+        length = 0
 
-        if first = @segments.first?
-          available = first.size - @head_offset
-          if available >= n
-            return first[@head_offset, n]
+        4.times do |index|
+          length = (length << 8) | read_byte_at(index + 1)
+        end
+
+        FrameHeader.new(compressed.to_u8, length)
+      end
+
+      private def consume_message_payload(header : FrameHeader) : Bytes
+        payload = consume_payload_exact(header.length)
+        Codec.decode_payload(header.compressed, payload)
+      end
+
+      private def skip_exact(n : Int32) : Nil
+        return if n <= 0
+        raise "internal deframer error: consume beyond remainder" if n > @remainder_size
+
+        # Header bytes are no longer needed after length validation, so drop
+        # them by advancing segment cursors instead of copying them anywhere.
+        remaining = n
+
+        while remaining > 0
+          seg = @segments.first?
+          raise "internal deframer error: missing segment" unless seg
+
+          seg_available = seg.size - @head_offset
+          take = Math.min(seg_available, remaining)
+          remaining -= take
+          @head_offset += take
+
+          if @head_offset == seg.size
+            @segments.shift
+            @head_offset = 0
           end
         end
 
-        header_bytes = Bytes.new(n)
-        copy_from_segments(header_bytes.to_unsafe, n)
-        header_bytes
+        @remainder_size -= n
       end
 
-      private def consume_exact(n : Int32) : Bytes
+      private def consume_payload_exact(n : Int32) : Bytes
         return Bytes.empty if n <= 0
         raise "internal deframer error: consume beyond remainder" if n > @remainder_size
 
+        # Public stream APIs still hand out owned Bytes, so payload extraction
+        # remains the only unavoidable copy on the non-compressed path.
         result = Bytes.new(n)
         out_offset = 0
         remaining = n
@@ -93,9 +125,12 @@ module GRPC
         result
       end
 
-      private def copy_from_segments(dst : UInt8*, n : Int32) : Nil
-        remaining = n
-        dst_offset = 0
+      private def read_byte_at(index : Int32) : Int32
+        raise "internal deframer error: insufficient bytes while peeking" if index < 0 || index >= @remainder_size
+
+        # This is intentionally scalar and allocation-free because it is only
+        # used for the 5-byte header fast path.
+        remaining = index
         first_segment = true
 
         @segments.each do |seg|
@@ -105,14 +140,14 @@ module GRPC
           seg_available = seg.size - seg_offset
           next if seg_available <= 0
 
-          take = Math.min(seg_available, remaining)
-          (dst + dst_offset).copy_from(seg.to_unsafe + seg_offset, take)
-          dst_offset += take
-          remaining -= take
-          break if remaining == 0
+          if remaining < seg_available
+            return seg[seg_offset + remaining].to_i
+          end
+
+          remaining -= seg_available
         end
 
-        raise "internal deframer error: insufficient bytes while peeking" unless remaining == 0
+        raise "internal deframer error: insufficient bytes while peeking"
       end
     end
   end
