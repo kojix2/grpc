@@ -306,6 +306,78 @@ describe GRPC do
     end
   end
 
+  describe GRPC::Transport::GrpcDeframer do
+    it "drains only complete frames and preserves remainder" do
+      buffer = GRPC::Transport::GrpcDeframer.new
+      msg1 = GRPC::Codec.encode("hello".to_slice)
+      msg2 = GRPC::Codec.encode("world".to_slice)
+
+      partial = msg2[0, 3]
+      rest = msg2[3, msg2.size - 3]
+
+      buffer.append(msg1 + partial)
+      drained = buffer.drain_messages
+      drained.size.should eq(1)
+      String.new(drained[0]).should eq("hello")
+      buffer.remainder_size.should eq(3)
+
+      buffer.append(rest)
+      drained2 = buffer.drain_messages
+      drained2.size.should eq(1)
+      String.new(drained2[0]).should eq("world")
+      buffer.remainder_size.should eq(0)
+    end
+  end
+
+  describe GRPC::Transport::GrpcStatusInterpreter do
+    it "prefers trailers and decodes grpc-message" do
+      headers = GRPC::Metadata.new
+      trailers = GRPC::Metadata.new
+      trailers.add("grpc-status", "3")
+      trailers.add("grpc-message", "invalid%20input")
+
+      status = GRPC::Transport::GrpcStatusInterpreter.grpc_status(headers, trailers, nil)
+      status.code.should eq(GRPC::StatusCode::INVALID_ARGUMENT)
+      status.message.should eq("invalid input")
+    end
+
+    it "uses override when grpc-status is missing" do
+      headers = GRPC::Metadata.new
+      trailers = GRPC::Metadata.new
+      override = GRPC::Status.internal("transport failure")
+
+      status = GRPC::Transport::GrpcStatusInterpreter.grpc_status(headers, trailers, override)
+      status.should eq(override)
+    end
+  end
+
+  describe GRPC::Transport::StreamHeaderState do
+    it "routes first headers block to headers and next block to trailers" do
+      state = GRPC::Transport::StreamHeaderState.new
+
+      state.begin_header_block
+      state.add_header(":status", "200")
+      state.add_header("content-type", "application/grpc")
+
+      state.begin_header_block
+      state.add_header("grpc-status", "0")
+
+      state.headers.get(":status").should eq("200")
+      state.trailers.get("grpc-status").should eq("0")
+    end
+  end
+
+  describe GRPC::Transport::StreamTerminalState do
+    it "allows finish/cancel transitions only once" do
+      lifecycle = GRPC::Transport::StreamTerminalState.new
+
+      lifecycle.mark_finished.should be_true
+      lifecycle.mark_finished.should be_false
+      lifecycle.mark_cancelled.should be_true
+      lifecycle.mark_cancelled.should be_false
+    end
+  end
+
   describe GRPC::RawServerStream do
     it "runs finish hooks once after iteration completes" do
       ch = ::Channel(Bytes?).new(2)
@@ -642,9 +714,7 @@ describe GRPC do
     it "uses Codec.decode for streamed frames" do
       stream = GRPC::Transport::PendingStream.new
       # Unsupported compression flag (=2) should become an UNIMPLEMENTED transport error.
-      stream.recv_buf.write(Bytes[2_u8, 0_u8, 0_u8, 0_u8, 0_u8])
-
-      stream.drain_grpc_frames
+      stream.receive_data(Bytes[2_u8, 0_u8, 0_u8, 0_u8, 0_u8])
 
       stream.messages.receive?.should be_nil
       stream.grpc_status.code.should eq(GRPC::StatusCode::UNIMPLEMENTED)

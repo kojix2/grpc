@@ -1,74 +1,62 @@
 require "./http2_connection"
+require "./grpc_deframer"
+require "./grpc_status_interpreter"
 require "./interface"
+require "./stream_state"
 require "../endpoint"
 
 module GRPC
   module Transport
     # PendingStream holds state for an in-flight client server-streaming RPC.
     class PendingStream
-      property headers : Metadata
-      property trailers : Metadata
       property messages : ::Channel(Bytes?)
-      property recv_buf : IO::Memory
       property send_buf : SendBuffer?          # GC anchor for request body (batch bidi)
       property live_send_buf : LiveSendBuffer? # GC anchor for live bidi
       property send_resume_proc : (-> Nil)?    # wakes up deferred DATA for live bidi
       property cancel_proc : (-> Nil)?
-      @cancelled : Bool
-      @receiving_trailers : Bool
-      @finished : Bool
       @status_override : Status?
+      @header_state : StreamHeaderState
+      @terminal_state : StreamTerminalState
+      @deframer : GrpcDeframer
 
       def initialize
-        @headers = Metadata.new
-        @trailers = Metadata.new
         @messages = ::Channel(Bytes?).new(128)
-        @recv_buf = IO::Memory.new
         @send_buf = nil
         @live_send_buf = nil
         @send_resume_proc = nil
         @cancel_proc = nil
-        @cancelled = false
-        @receiving_trailers = false
-        @finished = false
         @status_override = nil
+        @header_state = StreamHeaderState.new
+        @terminal_state = StreamTerminalState.new
+        @deframer = GrpcDeframer.new
+      end
+
+      def headers : Metadata
+        @header_state.headers
+      end
+
+      def trailers : Metadata
+        @header_state.trailers
       end
 
       def begin_header_block : Nil
-        @receiving_trailers = !@headers.empty?
+        @header_state.begin_header_block
       end
 
       def add_header(key : String, value : String) : Nil
-        target = @receiving_trailers ? @trailers : @headers
-        target.add_wire(key, value)
+        @header_state.add_header(key, value)
       end
 
-      # drain_grpc_frames parses all complete gRPC frames from recv_buf and delivers
-      # the message payloads to the messages channel.  Any trailing partial frame is
-      # preserved in recv_buf for the next call.
-      def drain_grpc_frames : Nil
-        data = @recv_buf.to_slice
-        offset = 0
-        while offset + Codec::HEADER_SIZE <= data.size
-          length = IO::ByteFormat::BigEndian.decode(UInt32, data[offset + 1, 4]).to_i
-          total = Codec::HEADER_SIZE + length
-          break if offset + total > data.size
-          msg_bytes, _ = Codec.decode(data[offset, total])
-          @messages.send(msg_bytes)
-          offset += total
-        end
-        remaining = data[offset, data.size - offset]
-        new_buf = IO::Memory.new
-        new_buf.write(remaining) unless remaining.empty?
-        @recv_buf = new_buf
+      def receive_data(chunk : Bytes) : Nil
+        @deframer.append(chunk)
+        @deframer.drain_messages.each { |msg| @messages.send(msg) }
       rescue ex : StatusError
         self.transport_error = ex.status
         finish
       end
 
       def finish : Nil
-        return if @finished
-        @finished = true
+        return unless @terminal_state.mark_finished
         @messages.send(nil) rescue nil
       end
 
@@ -92,86 +80,61 @@ module GRPC
       # cancel sends an HTTP/2 RST_STREAM with error code CANCEL and closes the
       # message channel so waiting iterators unblock.
       def cancel : Nil
-        return if @cancelled
-        @cancelled = true
+        return unless @terminal_state.mark_cancelled
         @cancel_proc.try &.call
         @messages.close rescue nil
       end
 
       def cancelled? : Bool
-        @cancelled
+        @terminal_state.cancelled?
       end
 
       def grpc_headers : Metadata
-        @headers
+        GrpcStatusInterpreter.application_headers(@header_state.headers)
       end
 
       # grpc_trailers returns the raw trailer hash received from the server.
       def grpc_trailers : Metadata
-        meta = Metadata.new
-        @trailers.each_value do |k, v|
-          next if k == "grpc-status" || k == "grpc-message" || k == "grpc-status-details-bin"
-          case v
-          when String then meta.add(k, v)
-          when Bytes  then meta.add_bin(k, v)
-          end
-        end
-        meta
+        GrpcStatusInterpreter.application_trailers(@header_state.trailers)
       end
 
       def grpc_status : Status
-        code_str = @trailers.get("grpc-status") || @headers.get("grpc-status")
-        unless code_str
-          if status = @status_override
-            return status
-          end
-          return Status.unknown("missing grpc-status trailer")
-        end
-
-        code_int = code_str.to_i?
-        return Status.unknown("invalid grpc-status: #{code_str}") unless code_int
-
-        message = TrailerCodec.percent_decode(@trailers.get("grpc-message") || @headers.get("grpc-message") || "")
-        details = @trailers.get_bin("grpc-status-details-bin") ||
-                  TrailerCodec.decode_bin(@trailers.get("grpc-status-details-bin")) ||
-                  @headers.get_bin("grpc-status-details-bin") ||
-                  TrailerCodec.decode_bin(@headers.get("grpc-status-details-bin"))
-        code = StatusCode.from_value?(code_int)
-        return Status.unknown("invalid grpc-status: #{code_str}") unless code
-
-        Status.new(code, message, details)
+        GrpcStatusInterpreter.grpc_status(@header_state.headers, @header_state.trailers, @status_override)
       end
     end
 
     # PendingCall holds state for an in-flight client RPC.
     class PendingCall
-      property response_headers : Metadata
       property response_body : IO::Memory
-      property trailers : Metadata
       property done : ::Channel(Nil)
       property send_buf : SendBuffer? # GC anchor
-      @receiving_trailers : Bool
-      @completed : Bool
       @status_override : Status?
+      @header_state : StreamHeaderState
+      @terminal_state : StreamTerminalState
 
       def initialize
-        @response_headers = Metadata.new
         @response_body = IO::Memory.new
-        @trailers = Metadata.new
         @done = ::Channel(Nil).new(1)
         @send_buf = nil
-        @receiving_trailers = false
-        @completed = false
         @status_override = nil
+        @header_state = StreamHeaderState.new
+        @terminal_state = StreamTerminalState.new
+      end
+
+      def response_headers : Metadata
+        @header_state.headers
+      end
+
+      def trailers : Metadata
+        @header_state.trailers
       end
 
       def begin_header_block : Nil
-        @receiving_trailers = !@response_headers.empty?
+        @header_state.begin_header_block
       end
 
       def add_header(key : String, value : String) : Nil
-        target = @receiving_trailers ? @trailers : @response_headers
-        target.add_wire(key, value)
+        @header_state.add_header(key, value)
       end
 
       def wait : Nil
@@ -179,8 +142,7 @@ module GRPC
       end
 
       def complete : Nil
-        return if @completed
-        @completed = true
+        return unless @terminal_state.mark_finished
         @done.send(nil) rescue nil
       end
 
@@ -189,26 +151,7 @@ module GRPC
       end
 
       def grpc_status : Status
-        code_str = @trailers.get("grpc-status") || @response_headers.get("grpc-status")
-        unless code_str
-          if status = @status_override
-            return status
-          end
-          return Status.unknown("missing grpc-status trailer")
-        end
-
-        code_int = code_str.to_i?
-        return Status.unknown("invalid grpc-status: #{code_str}") unless code_int
-
-        message = TrailerCodec.percent_decode(@trailers.get("grpc-message") || @response_headers.get("grpc-message") || "")
-        details = @trailers.get_bin("grpc-status-details-bin") ||
-                  TrailerCodec.decode_bin(@trailers.get("grpc-status-details-bin")) ||
-                  @response_headers.get_bin("grpc-status-details-bin") ||
-                  TrailerCodec.decode_bin(@response_headers.get("grpc-status-details-bin"))
-        code = StatusCode.from_value?(code_int)
-        return Status.unknown("invalid grpc-status: #{code_str}") unless code
-
-        Status.new(code, message, details)
+        GrpcStatusInterpreter.grpc_status(@header_state.headers, @header_state.trailers, @status_override)
       end
 
       def response_bytes : Bytes
@@ -216,28 +159,11 @@ module GRPC
       end
 
       def grpc_headers : Metadata
-        meta = Metadata.new
-        @response_headers.each_value do |k, v|
-          next if k.starts_with?(":")
-          next if k == "content-type"
-          case v
-          when String then meta.add(k, v)
-          when Bytes  then meta.add_bin(k, v)
-          end
-        end
-        meta
+        GrpcStatusInterpreter.application_headers(@header_state.headers)
       end
 
       def grpc_trailers : Metadata
-        meta = Metadata.new
-        @trailers.each_value do |k, v|
-          next if k == "grpc-status" || k == "grpc-message" || k == "grpc-status-details-bin"
-          case v
-          when String then meta.add(k, v)
-          when Bytes  then meta.add_bin(k, v)
-          end
-        end
-        meta
+        GrpcStatusInterpreter.application_trailers(@header_state.trailers)
       end
     end
 
@@ -736,8 +662,7 @@ module GRPC
         if call = @pending[stream_id]?
           call.response_body.write(Slice.new(data, len))
         elsif ps = @pending_streams[stream_id]?
-          ps.recv_buf.write(Slice.new(data, len))
-          ps.drain_grpc_frames
+          ps.receive_data(Slice.new(data, len))
         end
       end
 

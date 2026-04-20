@@ -1,6 +1,7 @@
 require "log"
 
 require "./http2_connection"
+require "./grpc_deframer"
 require "./interface"
 
 module GRPC
@@ -47,13 +48,13 @@ module GRPC
       class LiveRequestState
         getter requests : RawRequestStream
         getter kind : Symbol
-        property buffer : Bytes
+        getter deframer : GrpcDeframer
         property error_status : Status?
 
         def initialize(@kind : Symbol)
           @channel = ::Channel(Bytes?).new(256)
           @requests = RawRequestStream.new(@channel)
-          @buffer = Bytes.empty
+          @deframer = GrpcDeframer.new
           @error_status = nil
           @closed = Atomic(Bool).new(false)
         end
@@ -501,28 +502,8 @@ module GRPC
       private def append_live_request_chunk(state : LiveRequestState, chunk : Bytes) : Nil
         return if state.error_status
 
-        io = IO::Memory.new(state.buffer.size + chunk.size)
-        io.write(state.buffer)
-        io.write(chunk)
-        data = io.to_slice
-
-        offset = 0
-        while offset + Codec::HEADER_SIZE <= data.size
-          length = IO::ByteFormat::BigEndian.decode(UInt32, data[offset + 1, 4]).to_i
-          if length < 0
-            state.error_status = Status.internal("malformed gRPC frame length")
-            state.close
-            return
-          end
-          total = Codec::HEADER_SIZE + length
-          break if offset + total > data.size
-
-          message, _ = Codec.decode(data[offset, total])
-          state.push(message)
-          offset += total
-        end
-
-        state.buffer = offset < data.size ? data[offset, data.size - offset] : Bytes.empty
+        state.deframer.append(chunk)
+        state.deframer.drain_messages.each { |message| state.push(message) }
       rescue ex : StatusError
         state.error_status = ex.status
         state.close
@@ -532,7 +513,7 @@ module GRPC
       end
 
       private def finish_live_request_stream(stream_id : Int32, state : LiveRequestState) : Nil
-        if state.buffer.size > 0 && state.error_status.nil?
+        if state.deframer.remainder_size > 0 && state.error_status.nil?
           state.error_status = Status.internal("incomplete gRPC frame body")
         end
         state.close
