@@ -29,7 +29,7 @@ module GRPC
 
     def timed_out? : Bool
       if dl = @deadline
-        Time.utc > dl
+        Time.utc >= dl
       else
         false
       end

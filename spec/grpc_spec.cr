@@ -546,6 +546,23 @@ describe GRPC do
       call.grpc_headers.get("x-trailer").should be_nil
       call.grpc_trailers.get("x-trailer").should eq("done")
     end
+
+    it "treats missing grpc-status as UNKNOWN" do
+      call = GRPC::Transport::PendingCall.new
+
+      status = call.grpc_status
+      status.code.should eq(GRPC::StatusCode::UNKNOWN)
+      status.message.should contain("missing grpc-status")
+    end
+
+    it "complete is idempotent" do
+      call = GRPC::Transport::PendingCall.new
+
+      call.complete
+      call.complete
+
+      call.wait
+    end
   end
 
   describe GRPC::UnaryResponse do
@@ -587,6 +604,34 @@ describe GRPC do
       stream.grpc_headers.get("x-initial").should eq("one")
       stream.grpc_headers.get("x-trailer").should be_nil
       stream.grpc_trailers.get("x-trailer").should eq("done")
+    end
+
+    it "treats missing grpc-status as UNKNOWN" do
+      stream = GRPC::Transport::PendingStream.new
+
+      status = stream.grpc_status
+      status.code.should eq(GRPC::StatusCode::UNKNOWN)
+      status.message.should contain("missing grpc-status")
+    end
+
+    it "finish is idempotent" do
+      stream = GRPC::Transport::PendingStream.new
+
+      stream.finish
+      stream.finish
+
+      stream.messages.receive?.should be_nil
+    end
+
+    it "uses Codec.decode for streamed frames" do
+      stream = GRPC::Transport::PendingStream.new
+      # Unsupported compression flag (=2) should become an UNIMPLEMENTED transport error.
+      stream.recv_buf.write(Bytes[2_u8, 0_u8, 0_u8, 0_u8, 0_u8])
+
+      stream.drain_grpc_frames
+
+      stream.messages.receive?.should be_nil
+      stream.grpc_status.code.should eq(GRPC::StatusCode::UNIMPLEMENTED)
     end
   end
 

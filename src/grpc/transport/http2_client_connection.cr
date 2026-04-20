@@ -16,6 +16,8 @@ module GRPC
       property cancel_proc : (-> Nil)?
       @cancelled : Bool
       @receiving_trailers : Bool
+      @finished : Bool
+      @status_override : Status?
 
       def initialize
         @headers = Metadata.new
@@ -28,6 +30,8 @@ module GRPC
         @cancel_proc = nil
         @cancelled = false
         @receiving_trailers = false
+        @finished = false
+        @status_override = nil
       end
 
       def begin_header_block : Nil
@@ -49,7 +53,7 @@ module GRPC
           length = IO::ByteFormat::BigEndian.decode(UInt32, data[offset + 1, 4]).to_i
           total = Codec::HEADER_SIZE + length
           break if offset + total > data.size
-          msg_bytes = data[offset + Codec::HEADER_SIZE, length].dup
+          msg_bytes, _ = Codec.decode(data[offset, total])
           @messages.send(msg_bytes)
           offset += total
         end
@@ -57,10 +61,19 @@ module GRPC
         new_buf = IO::Memory.new
         new_buf.write(remaining) unless remaining.empty?
         @recv_buf = new_buf
+      rescue ex : StatusError
+        self.transport_error = ex.status
+        finish
       end
 
       def finish : Nil
+        return if @finished
+        @finished = true
         @messages.send(nil) rescue nil
+      end
+
+      def transport_error=(status : Status) : Nil
+        @status_override ||= status
       end
 
       # send_outgoing enqueues a pre-framed gRPC message for live bidi streaming
@@ -107,14 +120,25 @@ module GRPC
       end
 
       def grpc_status : Status
-        code_str = @trailers.get("grpc-status") || @headers.get("grpc-status") || "0"
-        code_int = code_str.to_i? || 0
+        if status = @status_override
+          return status
+        end
+
+        code_str = @trailers.get("grpc-status") || @headers.get("grpc-status")
+        return Status.unknown("missing grpc-status trailer") unless code_str
+
+        code_int = code_str.to_i?
+        return Status.unknown("invalid grpc-status: #{code_str}") unless code_int
+
         message = TrailerCodec.percent_decode(@trailers.get("grpc-message") || @headers.get("grpc-message") || "")
         details = @trailers.get_bin("grpc-status-details-bin") ||
                   TrailerCodec.decode_bin(@trailers.get("grpc-status-details-bin")) ||
                   @headers.get_bin("grpc-status-details-bin") ||
                   TrailerCodec.decode_bin(@headers.get("grpc-status-details-bin"))
-        Status.new(StatusCode.from_value?(code_int) || StatusCode::UNKNOWN, message, details)
+        code = StatusCode.from_value?(code_int)
+        return Status.unknown("invalid grpc-status: #{code_str}") unless code
+
+        Status.new(code, message, details)
       end
     end
 
@@ -126,6 +150,8 @@ module GRPC
       property done : ::Channel(Nil)
       property send_buf : SendBuffer? # GC anchor
       @receiving_trailers : Bool
+      @completed : Bool
+      @status_override : Status?
 
       def initialize
         @response_headers = Metadata.new
@@ -134,6 +160,8 @@ module GRPC
         @done = ::Channel(Nil).new(1)
         @send_buf = nil
         @receiving_trailers = false
+        @completed = false
+        @status_override = nil
       end
 
       def begin_header_block : Nil
@@ -150,18 +178,35 @@ module GRPC
       end
 
       def complete : Nil
+        return if @completed
+        @completed = true
         @done.send(nil) rescue nil
       end
 
+      def transport_error=(status : Status) : Nil
+        @status_override ||= status
+      end
+
       def grpc_status : Status
-        code_str = @trailers.get("grpc-status") || @response_headers.get("grpc-status") || "0"
-        code_int = code_str.to_i? || 0
+        if status = @status_override
+          return status
+        end
+
+        code_str = @trailers.get("grpc-status") || @response_headers.get("grpc-status")
+        return Status.unknown("missing grpc-status trailer") unless code_str
+
+        code_int = code_str.to_i?
+        return Status.unknown("invalid grpc-status: #{code_str}") unless code_int
+
         message = TrailerCodec.percent_decode(@trailers.get("grpc-message") || @response_headers.get("grpc-message") || "")
         details = @trailers.get_bin("grpc-status-details-bin") ||
                   TrailerCodec.decode_bin(@trailers.get("grpc-status-details-bin")) ||
                   @response_headers.get_bin("grpc-status-details-bin") ||
                   TrailerCodec.decode_bin(@response_headers.get("grpc-status-details-bin"))
-        Status.new(StatusCode.from_value?(code_int) || StatusCode::UNKNOWN, message, details)
+        code = StatusCode.from_value?(code_int)
+        return Status.unknown("invalid grpc-status: #{code_str}") unless code
+
+        Status.new(code, message, details)
       end
 
       def response_bytes : Bytes
@@ -535,11 +580,19 @@ module GRPC
             call.grpc_headers,
             call.grpc_trailers
           )
+        rescue ex : StatusError
+          ResponseEnvelope.new(
+            CallInfo.new("/#{service}/#{method}", RPCKind::Unary),
+            Bytes.empty,
+            Status.internal("failed to decode unary response: #{ex.message}"),
+            call.grpc_headers,
+            call.grpc_trailers
+          )
         rescue
           ResponseEnvelope.new(
             CallInfo.new("/#{service}/#{method}", RPCKind::Unary),
             Bytes.empty,
-            status,
+            Status.internal("failed to decode unary response"),
             call.grpc_headers,
             call.grpc_trailers
           )
@@ -700,10 +753,25 @@ module GRPC
 
       def on_stream_close_cb(stream_id : Int32, error_code : UInt32) : Nil
         call = @pending.delete(stream_id)
+        if call && error_code != LibNghttp2::NO_ERROR
+          call.transport_error = stream_close_status(error_code)
+        end
         call.complete if call # wake up waiter on error close
         ps = @pending_streams.delete(stream_id)
+        if ps && error_code != LibNghttp2::NO_ERROR
+          ps.transport_error = stream_close_status(error_code)
+        end
         ps.finish if ps # wake up blocked reader on unexpected close
         @stream_boxes.delete(stream_id)
+      end
+
+      private def stream_close_status(error_code : UInt32) : Status
+        case error_code
+        when LibNghttp2::NGHTTP2_CANCEL
+          Status.cancelled("stream reset by peer")
+        else
+          Status.unknown("stream closed without valid grpc-status (http2 error code #{error_code})")
+        end
       end
     end
   end

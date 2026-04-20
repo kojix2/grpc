@@ -240,6 +240,11 @@ module GRPC
         meta = build_metadata(sd.headers)
         ctx = ServerContext.new(@peer_address, meta, parse_deadline(sd.headers))
 
+        if deadline_exceeded?(ctx)
+          send_error(stream_id, StatusCode::DEADLINE_EXCEEDED, "deadline exceeded")
+          return
+        end
+
         # path format: "/{PackageService}/{MethodName}"
         parts = path.split("/")
         service_full_name = parts[1]? || ""
@@ -263,6 +268,11 @@ module GRPC
                                                state : LiveRequestState) : Nil
         meta = build_metadata(sd.headers)
         ctx = ServerContext.new(@peer_address, meta, parse_deadline(sd.headers))
+
+        if deadline_exceeded?(ctx)
+          send_error(stream_id, StatusCode::DEADLINE_EXCEEDED, "deadline exceeded")
+          return
+        end
 
         case state.kind
         when :client
@@ -473,10 +483,7 @@ module GRPC
       # ---- Helpers ----
 
       private def decode_message(data : Bytes) : {Bytes, Int32}
-        return {data, data.size} if data.size < Codec::HEADER_SIZE
         Codec.decode(data)
-      rescue
-        {data, data.size}
       end
 
       private def request_stream_target(sd : StreamData) : {Service, String, Symbol}?
@@ -502,6 +509,11 @@ module GRPC
         offset = 0
         while offset + Codec::HEADER_SIZE <= data.size
           length = IO::ByteFormat::BigEndian.decode(UInt32, data[offset + 1, 4]).to_i
+          if length < 0
+            state.error_status = Status.internal("malformed gRPC frame length")
+            state.close
+            return
+          end
           total = Codec::HEADER_SIZE + length
           break if offset + total > data.size
 
@@ -524,6 +536,11 @@ module GRPC
           state.error_status = Status.internal("incomplete gRPC frame body")
         end
         state.close
+      end
+
+      private def deadline_exceeded?(ctx : ServerContext) : Bool
+        return false unless deadline = ctx.deadline
+        Time.utc >= deadline
       end
 
       private def build_metadata(headers : Metadata) : Metadata
