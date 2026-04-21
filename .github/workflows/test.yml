@@ -96,6 +96,8 @@ jobs:
 
       - name: Run grpcurl E2E tests
         run: crystal spec spec/grpcurl.cr
+        env: 
+          CRYSTAL_LOAD_DEBUG_INFO: "1"
 
   e2e-gripmock:
     runs-on: ubuntu-latest
