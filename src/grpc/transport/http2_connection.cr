@@ -198,6 +198,9 @@ module GRPC
       def on_stream_close_cb(stream_id : Int32, error_code : UInt32) : Nil
       end
 
+      protected def shutdown_local_state : Nil
+      end
+
       # --- I/O ---
 
       # flush_send writes all pending nghttp2 outbound data to the socket.
@@ -255,9 +258,10 @@ module GRPC
               flush_send rescue nil
             end
           ensure
+            @closed = true
+            shutdown_local_state
             LibNghttp2.session_del(@session)
             @session = Pointer(LibNghttp2::Session).null
-            @closed = true
           end
         end
 

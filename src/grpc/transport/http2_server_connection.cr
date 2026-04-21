@@ -610,6 +610,31 @@ module GRPC
         raise ConnectionError.new("#{operation} failed: #{String.new(LibNghttp2.strerror(rc))} (#{rc})")
       end
 
+      protected def shutdown_local_state : Nil
+        live_states = @live_request_states.values
+        contexts = @stream_contexts.values
+        stops = @deadline_watch_stops.values
+
+        @response_ctxs.clear
+        @stream_boxes.clear
+        @stream_send_bufs.clear
+        @stream_send_boxes.clear
+        @stream_pending_chunks.clear
+        @stream_pending_trailers.clear
+        @stream_data_in_flight.clear
+        @live_request_states = {} of Int32 => LiveRequestState
+        @stream_contexts = {} of Int32 => ServerContext
+        @stream_headers_sent.clear
+        @stream_terminated.clear
+        @deadline_watch_stops = {} of Int32 => ::Channel(Nil)
+
+        live_states.each(&.close)
+        contexts.each(&.cancel)
+        stops.each do |stop|
+          stop.send(nil) rescue nil
+        end
+      end
+
       private def decode_message(data : Bytes) : {Bytes, Int32}
         Codec.decode(data)
       end

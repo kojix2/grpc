@@ -763,6 +763,29 @@ module GRPC
 
         lsb.read_into(buf, length, data_flags)
       end
+
+      protected def shutdown_local_state : Nil
+        status = Status.unavailable("connection closed")
+
+        calls = @pending.values
+        streams = @pending_streams.values
+
+        @pending = {} of Int32 => PendingCall
+        @pending_streams = {} of Int32 => PendingStream
+        @stream_boxes.clear
+        @data_source_boxes.clear
+
+        calls.each do |call|
+          call.transport_error = status
+          call.complete
+        end
+
+        streams.each do |stream|
+          stream.transport_error = status
+          stream.live_send_buf.try &.close
+          stream.finish
+        end
+      end
     end
   end
 end
