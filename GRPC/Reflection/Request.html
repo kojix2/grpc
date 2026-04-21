@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../../js/doc.js"></script>
 
   <meta name="repository-name" content="grpc">
-  <title>GRPC::Transport::GrpcStatusInterpreter - grpc main</title>
+  <title>GRPC::Reflection::Request - grpc main</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../../";
   </script>
@@ -247,7 +247,7 @@
       
     </li>
   
-  <li class="parent " data-id="grpc/GRPC/Reflection" data-name="grpc::reflection">
+  <li class="parent open current" data-id="grpc/GRPC/Reflection" data-name="grpc::reflection">
       <a href="../../GRPC/Reflection.html">Reflection</a>
       
         <ul>
@@ -257,7 +257,7 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Reflection/Request" data-name="grpc::reflection::request">
+  <li class=" current" data-id="grpc/GRPC/Reflection/Request" data-name="grpc::reflection::request">
       <a href="../../GRPC/Reflection/Request.html">Request</a>
       
     </li>
@@ -362,7 +362,7 @@
       
     </li>
   
-  <li class="parent open current" data-id="grpc/GRPC/Transport" data-name="grpc::transport">
+  <li class="parent " data-id="grpc/GRPC/Transport" data-name="grpc::transport">
       <a href="../../GRPC/Transport.html">Transport</a>
       
         <ul>
@@ -387,7 +387,7 @@
       
     </li>
   
-  <li class=" current" data-id="grpc/GRPC/Transport/GrpcStatusInterpreter" data-name="grpc::transport::grpcstatusinterpreter">
+  <li class=" " data-id="grpc/GRPC/Transport/GrpcStatusInterpreter" data-name="grpc::transport::grpcstatusinterpreter">
       <a href="../../GRPC/Transport/GrpcStatusInterpreter.html">GrpcStatusInterpreter</a>
       
     </li>
@@ -522,12 +522,13 @@
 <h1 class="type-name">
 
   <span class="kind">
-    module
-  </span> GRPC::<wbr>Transport::<wbr>GrpcStatusInterpreter
+    struct
+  </span> GRPC::<wbr>Reflection::<wbr>Request
 
 </h1>
 
 
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../GRPC/Reflection/Request.html">GRPC::Reflection::Request</a></li><li class="superclass">Struct</li><li class="superclass">Value</li><li class="superclass">Object</li></ul>
 
 
 
@@ -539,19 +540,6 @@
 
 
 
-  <h2>
-    <a id="extended-modules" class="anchor" href="#extended-modules">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Extended Modules
-  </h2>
-  <ul class="other-types-list">
-    
-      <li class="other-type"><a href="../../GRPC/Transport/GrpcStatusInterpreter.html">GRPC::Transport::GrpcStatusInterpreter</a></li>
-    
-  </ul>
 
 
 
@@ -570,8 +558,8 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/transport/grpc_status_interpreter.cr#L3" target="_blank">
-        grpc/transport/grpc_status_interpreter.cr
+      <a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L3" target="_blank">
+        grpc/reflection.cr
       </a>
     
     <br/>
@@ -582,6 +570,28 @@
 
 
   
+  <h2>
+    <a id="constructors" class="anchor" href="#constructors">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructors
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#decode%28bytes%3ABytes%29%3Aself-class-method" class="signature"><strong>.decode</strong>(bytes : Bytes) : <span class="k">self</span></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#new%28host%3AString%2Ckind%3ASymbol%2Cvalue%3AString%29-class-method" class="signature"><strong>.new</strong>(host : String, kind : Symbol, value : String)</a>
+        
+      </li>
+    
+  </ul>
+
 
   
 
@@ -599,17 +609,17 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#application_headers%28headers%3AMetadata%29%3AMetadata-instance-method" class="signature"><strong>#application_headers</strong>(headers : Metadata) : Metadata</a>
+        <a href="#host%3AString-instance-method" class="signature"><strong>#host</strong> : String</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#application_trailers%28trailers%3AMetadata%29%3AMetadata-instance-method" class="signature"><strong>#application_trailers</strong>(trailers : Metadata) : Metadata</a>
+        <a href="#kind%3ASymbol-instance-method" class="signature"><strong>#kind</strong> : Symbol</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#grpc_status%28headers%3AMetadata%2Ctrailers%3AMetadata%2Coverride%3AStatus%7CNil%29%3AStatus-instance-method" class="signature"><strong>#grpc_status</strong>(headers : Metadata, trailers : Metadata, override : Status | Nil) : Status</a>
+        <a href="#value%3AString-instance-method" class="signature"><strong>#value</strong> : String</a>
         
       </li>
     
@@ -619,9 +629,90 @@
 
   <div class="methods-inherited">
     
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
   </div>
 
   
+  <h2>
+    <a id="constructor-detail" class="anchor" href="#constructor-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructor Detail
+  </h2>
+  
+    <div class="entry-detail" id="decode(bytes:Bytes):self-class-method">
+      <div class="signature">
+        
+        def self.<strong>decode</strong>(bytes : Bytes) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#decode%28bytes%3ABytes%29%3Aself-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L11" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="new(host:String,kind:Symbol,value:String)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(host : String, kind : Symbol, value : String)
+
+        <a class="method-permalink" href="#new%28host%3AString%2Ckind%3ASymbol%2Cvalue%3AString%29-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L8" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
 
   
 
@@ -637,50 +728,50 @@
     Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="application_headers(headers:Metadata):Metadata-instance-method">
+    <div class="entry-detail" id="host:String-instance-method">
       <div class="signature">
         
-        def <strong>application_headers</strong>(headers : <a href="../../GRPC/Metadata.html">Metadata</a>) : <a href="../../GRPC/Metadata.html">Metadata</a>
+        def <strong>host</strong> : String
 
-        <a class="method-permalink" href="#application_headers%28headers%3AMetadata%29%3AMetadata-instance-method">#</a>
+        <a class="method-permalink" href="#host%3AString-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/transport/grpc_status_interpreter.cr#L26" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L4" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="application_trailers(trailers:Metadata):Metadata-instance-method">
+    <div class="entry-detail" id="kind:Symbol-instance-method">
       <div class="signature">
         
-        def <strong>application_trailers</strong>(trailers : <a href="../../GRPC/Metadata.html">Metadata</a>) : <a href="../../GRPC/Metadata.html">Metadata</a>
+        def <strong>kind</strong> : Symbol
 
-        <a class="method-permalink" href="#application_trailers%28trailers%3AMetadata%29%3AMetadata-instance-method">#</a>
+        <a class="method-permalink" href="#kind%3ASymbol-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/transport/grpc_status_interpreter.cr#L39" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L5" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="grpc_status(headers:Metadata,trailers:Metadata,override:Status|Nil):Status-instance-method">
+    <div class="entry-detail" id="value:String-instance-method">
       <div class="signature">
         
-        def <strong>grpc_status</strong>(headers : <a href="../../GRPC/Metadata.html">Metadata</a>, trailers : <a href="../../GRPC/Metadata.html">Metadata</a>, override : <a href="../../GRPC/Status.html">Status</a> | Nil) : <a href="../../GRPC/Status.html">Status</a>
+        def <strong>value</strong> : String
 
-        <a class="method-permalink" href="#grpc_status%28headers%3AMetadata%2Ctrailers%3AMetadata%2Coverride%3AStatus%7CNil%29%3AStatus-instance-method">#</a>
+        <a class="method-permalink" href="#value%3AString-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/transport/grpc_status_interpreter.cr#L6" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L6" target="_blank">View source</a>]
         
       </div>
     </div>

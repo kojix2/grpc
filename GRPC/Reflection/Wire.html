@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../../js/doc.js"></script>
 
   <meta name="repository-name" content="grpc">
-  <title>GRPC::Transport::GrpcStatusInterpreter - grpc main</title>
+  <title>GRPC::Reflection::Wire - grpc main</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../../";
   </script>
@@ -247,7 +247,7 @@
       
     </li>
   
-  <li class="parent " data-id="grpc/GRPC/Reflection" data-name="grpc::reflection">
+  <li class="parent open current" data-id="grpc/GRPC/Reflection" data-name="grpc::reflection">
       <a href="../../GRPC/Reflection.html">Reflection</a>
       
         <ul>
@@ -267,7 +267,7 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Reflection/Wire" data-name="grpc::reflection::wire">
+  <li class=" current" data-id="grpc/GRPC/Reflection/Wire" data-name="grpc::reflection::wire">
       <a href="../../GRPC/Reflection/Wire.html">Wire</a>
       
     </li>
@@ -362,7 +362,7 @@
       
     </li>
   
-  <li class="parent open current" data-id="grpc/GRPC/Transport" data-name="grpc::transport">
+  <li class="parent " data-id="grpc/GRPC/Transport" data-name="grpc::transport">
       <a href="../../GRPC/Transport.html">Transport</a>
       
         <ul>
@@ -387,7 +387,7 @@
       
     </li>
   
-  <li class=" current" data-id="grpc/GRPC/Transport/GrpcStatusInterpreter" data-name="grpc::transport::grpcstatusinterpreter">
+  <li class=" " data-id="grpc/GRPC/Transport/GrpcStatusInterpreter" data-name="grpc::transport::grpcstatusinterpreter">
       <a href="../../GRPC/Transport/GrpcStatusInterpreter.html">GrpcStatusInterpreter</a>
       
     </li>
@@ -523,7 +523,7 @@
 
   <span class="kind">
     module
-  </span> GRPC::<wbr>Transport::<wbr>GrpcStatusInterpreter
+  </span> GRPC::<wbr>Reflection::<wbr>Wire
 
 </h1>
 
@@ -538,20 +538,6 @@
 
 
 
-
-  <h2>
-    <a id="extended-modules" class="anchor" href="#extended-modules">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Extended Modules
-  </h2>
-  <ul class="other-types-list">
-    
-      <li class="other-type"><a href="../../GRPC/Transport/GrpcStatusInterpreter.html">GRPC::Transport::GrpcStatusInterpreter</a></li>
-    
-  </ul>
 
 
 
@@ -570,8 +556,8 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/transport/grpc_status_interpreter.cr#L3" target="_blank">
-        grpc/transport/grpc_status_interpreter.cr
+      <a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L298" target="_blank">
+        grpc/reflection.cr
       </a>
     
     <br/>
@@ -584,37 +570,72 @@
   
 
   
-
-  
-
-  
   <h2>
-    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
+    <a id="class-method-summary" class="anchor" href="#class-method-summary">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>
-    Instance Method Summary
+    Class Method Summary
   </h2>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#application_headers%28headers%3AMetadata%29%3AMetadata-instance-method" class="signature"><strong>#application_headers</strong>(headers : Metadata) : Metadata</a>
+        <a href="#ensure_length%21%28bytes%3ABytes%2Cstart%3AInt32%2Clength%3AInt32%29%3ANil-class-method" class="signature"><strong>.ensure_length!</strong>(bytes : Bytes, start : Int32, length : Int32) : Nil</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#application_trailers%28trailers%3AMetadata%29%3AMetadata-instance-method" class="signature"><strong>#application_trailers</strong>(trailers : Metadata) : Metadata</a>
+        <a href="#read_bytes%28bytes%3ABytes%2Cstart%3AInt32%29%3ATuple%28Bytes%2CInt32%29-class-method" class="signature"><strong>.read_bytes</strong>(bytes : Bytes, start : Int32) : Tuple(Bytes, Int32)</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#grpc_status%28headers%3AMetadata%2Ctrailers%3AMetadata%2Coverride%3AStatus%7CNil%29%3AStatus-instance-method" class="signature"><strong>#grpc_status</strong>(headers : Metadata, trailers : Metadata, override : Status | Nil) : Status</a>
+        <a href="#read_string%28bytes%3ABytes%2Cstart%3AInt32%29%3ATuple%28String%2CInt32%29-class-method" class="signature"><strong>.read_string</strong>(bytes : Bytes, start : Int32) : Tuple(String, Int32)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#read_varint%28bytes%3ABytes%2Cstart%3AInt32%29%3ATuple%28UInt64%2CInt32%29-class-method" class="signature"><strong>.read_varint</strong>(bytes : Bytes, start : Int32) : Tuple(UInt64, Int32)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#skip_field%28bytes%3ABytes%2Cstart%3AInt32%2Cwire_type%3AInt32%29%3AInt32-class-method" class="signature"><strong>.skip_field</strong>(bytes : Bytes, start : Int32, wire_type : Int32) : Int32</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#write_bytes%28io%3AIO%2Cfield_number%3AInt32%2Cvalue%3ABytes%29%3ANil-class-method" class="signature"><strong>.write_bytes</strong>(io : IO, field_number : Int32, value : Bytes) : Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#write_key%28io%3AIO%2Cfield_number%3AInt32%2Cwire_type%3AInt32%29%3ANil-class-method" class="signature"><strong>.write_key</strong>(io : IO, field_number : Int32, wire_type : Int32) : Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#write_string%28io%3AIO%2Cfield_number%3AInt32%2Cvalue%3AString%29%3ANil-class-method" class="signature"><strong>.write_string</strong>(io : IO, field_number : Int32, value : String) : Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#write_varint%28io%3AIO%2Cvalue%3AUInt64%29%3ANil-class-method" class="signature"><strong>.write_varint</strong>(io : IO, value : UInt64) : Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#write_varint_field%28io%3AIO%2Cfield_number%3AInt32%2Cvalue%3AUInt64%29%3ANil-class-method" class="signature"><strong>.write_varint_field</strong>(io : IO, field_number : Int32, value : UInt64) : Nil</a>
         
       </li>
     
   </ul>
 
+
+  
+
+  
 
 
   <div class="methods-inherited">
@@ -624,68 +645,180 @@
   
 
   
-
-  
-
-  
   <h2>
-    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
+    <a id="class-method-detail" class="anchor" href="#class-method-detail">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>
-    Instance Method Detail
+    Class Method Detail
   </h2>
   
-    <div class="entry-detail" id="application_headers(headers:Metadata):Metadata-instance-method">
+    <div class="entry-detail" id="ensure_length!(bytes:Bytes,start:Int32,length:Int32):Nil-class-method">
       <div class="signature">
         
-        def <strong>application_headers</strong>(headers : <a href="../../GRPC/Metadata.html">Metadata</a>) : <a href="../../GRPC/Metadata.html">Metadata</a>
+        def self.<strong>ensure_length!</strong>(bytes : Bytes, start : Int32, length : Int32) : Nil
 
-        <a class="method-permalink" href="#application_headers%28headers%3AMetadata%29%3AMetadata-instance-method">#</a>
+        <a class="method-permalink" href="#ensure_length%21%28bytes%3ABytes%2Cstart%3AInt32%2Clength%3AInt32%29%3ANil-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/transport/grpc_status_interpreter.cr#L26" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L361" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="application_trailers(trailers:Metadata):Metadata-instance-method">
+    <div class="entry-detail" id="read_bytes(bytes:Bytes,start:Int32):Tuple(Bytes,Int32)-class-method">
       <div class="signature">
         
-        def <strong>application_trailers</strong>(trailers : <a href="../../GRPC/Metadata.html">Metadata</a>) : <a href="../../GRPC/Metadata.html">Metadata</a>
+        def self.<strong>read_bytes</strong>(bytes : Bytes, start : Int32) : Tuple(Bytes, Int32)
 
-        <a class="method-permalink" href="#application_trailers%28trailers%3AMetadata%29%3AMetadata-instance-method">#</a>
+        <a class="method-permalink" href="#read_bytes%28bytes%3ABytes%2Cstart%3AInt32%29%3ATuple%28Bytes%2CInt32%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/transport/grpc_status_interpreter.cr#L39" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L335" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="grpc_status(headers:Metadata,trailers:Metadata,override:Status|Nil):Status-instance-method">
+    <div class="entry-detail" id="read_string(bytes:Bytes,start:Int32):Tuple(String,Int32)-class-method">
       <div class="signature">
         
-        def <strong>grpc_status</strong>(headers : <a href="../../GRPC/Metadata.html">Metadata</a>, trailers : <a href="../../GRPC/Metadata.html">Metadata</a>, override : <a href="../../GRPC/Status.html">Status</a> | Nil) : <a href="../../GRPC/Status.html">Status</a>
+        def self.<strong>read_string</strong>(bytes : Bytes, start : Int32) : Tuple(String, Int32)
 
-        <a class="method-permalink" href="#grpc_status%28headers%3AMetadata%2Ctrailers%3AMetadata%2Coverride%3AStatus%7CNil%29%3AStatus-instance-method">#</a>
+        <a class="method-permalink" href="#read_string%28bytes%3ABytes%2Cstart%3AInt32%29%3ATuple%28String%2CInt32%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/transport/grpc_status_interpreter.cr#L6" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L330" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="read_varint(bytes:Bytes,start:Int32):Tuple(UInt64,Int32)-class-method">
+      <div class="signature">
+        
+        def self.<strong>read_varint</strong>(bytes : Bytes, start : Int32) : Tuple(UInt64, Int32)
+
+        <a class="method-permalink" href="#read_varint%28bytes%3ABytes%2Cstart%3AInt32%29%3ATuple%28UInt64%2CInt32%29-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L313" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="skip_field(bytes:Bytes,start:Int32,wire_type:Int32):Int32-class-method">
+      <div class="signature">
+        
+        def self.<strong>skip_field</strong>(bytes : Bytes, start : Int32, wire_type : Int32) : Int32
+
+        <a class="method-permalink" href="#skip_field%28bytes%3ABytes%2Cstart%3AInt32%2Cwire_type%3AInt32%29%3AInt32-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L342" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="write_bytes(io:IO,field_number:Int32,value:Bytes):Nil-class-method">
+      <div class="signature">
+        
+        def self.<strong>write_bytes</strong>(io : IO, field_number : Int32, value : Bytes) : Nil
+
+        <a class="method-permalink" href="#write_bytes%28io%3AIO%2Cfield_number%3AInt32%2Cvalue%3ABytes%29%3ANil-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L383" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="write_key(io:IO,field_number:Int32,wire_type:Int32):Nil-class-method">
+      <div class="signature">
+        
+        def self.<strong>write_key</strong>(io : IO, field_number : Int32, wire_type : Int32) : Nil
+
+        <a class="method-permalink" href="#write_key%28io%3AIO%2Cfield_number%3AInt32%2Cwire_type%3AInt32%29%3ANil-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L367" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="write_string(io:IO,field_number:Int32,value:String):Nil-class-method">
+      <div class="signature">
+        
+        def self.<strong>write_string</strong>(io : IO, field_number : Int32, value : String) : Nil
+
+        <a class="method-permalink" href="#write_string%28io%3AIO%2Cfield_number%3AInt32%2Cvalue%3AString%29%3ANil-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L376" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="write_varint(io:IO,value:UInt64):Nil-class-method">
+      <div class="signature">
+        
+        def self.<strong>write_varint</strong>(io : IO, value : UInt64) : Nil
+
+        <a class="method-permalink" href="#write_varint%28io%3AIO%2Cvalue%3AUInt64%29%3ANil-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L299" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="write_varint_field(io:IO,field_number:Int32,value:UInt64):Nil-class-method">
+      <div class="signature">
+        
+        def self.<strong>write_varint_field</strong>(io : IO, field_number : Int32, value : UInt64) : Nil
+
+        <a class="method-permalink" href="#write_varint_field%28io%3AIO%2Cfield_number%3AInt32%2Cvalue%3AUInt64%29%3ANil-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L371" target="_blank">View source</a>]
         
       </div>
     </div>
   
 
+
+  
+
+  
 
 
 </div>
