@@ -1362,6 +1362,38 @@ class FullDuplexEchoService < GRPC::Service
 end
 
 describe "GRPC full-duplex bidi streaming" do
+  it "fails unknown bidi streams without waiting for close_send" do
+    port = find_free_port
+    server = GRPC::Server.new
+    server.handle FullDuplexEchoService.new
+    server.bind("127.0.0.1:#{port}")
+    server.start
+    channel = GRPC::Channel.new("127.0.0.1:#{port}")
+
+    begin
+      raw = channel.open_bidi_stream_live("missing.Service", "MissingMethod")
+      done = ::Channel(Nil).new(1)
+
+      spawn do
+        raw.each { |_bytes| }
+        done.send(nil)
+      end
+
+      raw.send_raw(TestProto.encode_string("probe"))
+
+      select
+      when done.receive
+      when timeout(1.second)
+        fail "unknown bidi stream did not fail before close_send"
+      end
+
+      raw.status.code.should eq(GRPC::StatusCode::UNIMPLEMENTED)
+    ensure
+      channel.close
+      server.stop
+    end
+  end
+
   it "interleaves sends and receives in the same stream" do
     port = find_free_port
     server = GRPC::Server.new

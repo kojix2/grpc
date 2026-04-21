@@ -215,6 +215,11 @@ module GRPC
         sd = stream_data_for(stream_id)
         return unless sd
 
+        if status = immediate_stream_rejection(sd)
+          send_error(stream_id, status.code, status.message)
+          return
+        end
+
         chunk = Slice.new(data, len)
         if target = request_stream_target(sd)
           service, method_name, kind = target
@@ -239,6 +244,11 @@ module GRPC
         return if stream_id <= 0
         sd = stream_data_for(stream_id)
         return unless sd
+
+        if status = immediate_stream_rejection(sd)
+          send_error(stream_id, status.code, status.message)
+          return
+        end
 
         if state = @live_request_states[stream_id]?
           finish_live_request_stream(stream_id, state)
@@ -649,6 +659,15 @@ module GRPC
         return {service, method_name, :client} if service.client_streaming?(method_name)
         return {service, method_name, :bidi} if service.bidi_streaming?(method_name)
         nil
+      end
+
+      private def immediate_stream_rejection(sd : StreamData) : Status?
+        path = sd.headers.get(":path") || ""
+        parts = path.split("/")
+        service_full_name = parts[1]? || ""
+        return if service_full_name.empty?
+        return if @services.has_key?(service_full_name)
+        Status.unimplemented("service #{service_full_name} not found")
       end
 
       private def append_live_request_chunk(state : LiveRequestState, chunk : Bytes) : Nil
