@@ -325,40 +325,6 @@ module E2EReflectionWire
   end
 end
 
-class E2EReflectionService < GRPC::Service
-  SERVICE_FULL_NAME = "grpc.reflection.v1alpha.ServerReflection"
-
-  def service_full_name : String
-    SERVICE_FULL_NAME
-  end
-
-  def dispatch(
-    method : String,
-    request_body : Bytes,
-    ctx : GRPC::ServerContext,
-  ) : {Bytes, GRPC::Status}
-    {Bytes.empty, GRPC::Status.unimplemented("unknown method")}
-  end
-
-  def bidi_streaming?(method : String) : Bool
-    method == "ServerReflectionInfo"
-  end
-
-  def dispatch_bidi_stream(
-    method : String,
-    requests : GRPC::RawRequestStream,
-    ctx : GRPC::ServerContext,
-    writer : GRPC::RawResponseStream,
-  ) : GRPC::Status
-    return GRPC::Status.unimplemented("unknown method") unless method == "ServerReflectionInfo"
-
-    requests.each do |request|
-      writer.send_raw(E2EReflectionWire.handle_request(request))
-    end
-    GRPC::Status.ok
-  end
-end
-
 def find_free_port : Int32
   server = TCPServer.new("127.0.0.1", 0)
   port = server.local_address.port
@@ -378,6 +344,10 @@ def wait_for_server(port : Int32, timeout : Time::Span = 2.seconds) : Nil
       sleep 50.milliseconds
     end
   end
+end
+
+def enable_e2e_reflection(server : GRPC::Server) : Nil
+  server.enable_reflection.add_file_descriptor(E2EReflectionWire.build_e2e_file_descriptor_proto)
 end
 
 def run_grpcurl(
@@ -416,8 +386,13 @@ def grpcurl_call_args(
   flags : Array(String) = [] of String,
   include_proto : Bool = true,
 ) : Array(String)
-  args = [] of String
-  args.concat(grpcurl_base_flags) if include_proto
+  args = ["-plaintext"]
+  if include_proto
+    args << "-import-path"
+    args << File.expand_path("../fixtures/grpcurl", __DIR__)
+    args << "-proto"
+    args << "e2e.proto"
+  end
   args.concat(with_default_grpcurl_timeout(flags))
   args << "127.0.0.1:#{port}"
   args << method
@@ -686,7 +661,7 @@ describe "grpcurl e2e baseline" do
     port = find_free_port
     server = GRPC::Server.new
     server.handle E2EProbeService.new
-    server.handle E2EReflectionService.new
+    enable_e2e_reflection(server)
     server.bind("127.0.0.1:#{port}")
     server.start
 
@@ -707,7 +682,7 @@ describe "grpcurl e2e baseline" do
     port = find_free_port
     server = GRPC::Server.new
     server.handle E2EProbeService.new
-    server.handle E2EReflectionService.new
+    enable_e2e_reflection(server)
     server.bind("127.0.0.1:#{port}")
     server.start
 
@@ -729,7 +704,7 @@ describe "grpcurl e2e baseline" do
     port = find_free_port
     server = GRPC::Server.new
     server.handle E2EProbeService.new
-    server.handle E2EReflectionService.new
+    enable_e2e_reflection(server)
     server.bind("127.0.0.1:#{port}")
     server.start
 
@@ -751,7 +726,7 @@ describe "grpcurl e2e baseline" do
     port = find_free_port
     server = GRPC::Server.new
     server.handle E2EProbeService.new
-    server.handle E2EReflectionService.new
+    enable_e2e_reflection(server)
     server.bind("127.0.0.1:#{port}")
     server.start
 
@@ -773,7 +748,7 @@ describe "grpcurl e2e baseline" do
     port = find_free_port
     server = GRPC::Server.new
     server.handle E2EProbeService.new
-    server.handle E2EReflectionService.new
+    enable_e2e_reflection(server)
     server.bind("127.0.0.1:#{port}")
     server.start
 
@@ -799,7 +774,7 @@ describe "grpcurl e2e baseline" do
     port = find_free_port
     server = GRPC::Server.new
     server.handle E2EProbeService.new
-    server.handle E2EReflectionService.new
+    enable_e2e_reflection(server)
     server.bind("127.0.0.1:#{port}")
     server.start
 

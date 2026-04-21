@@ -26,6 +26,7 @@ module GRPC
     @tls_context : OpenSSL::SSL::Context::Server?
     @transport_factory : ServerTransportFactory
     @health_service : Health::Service?
+    @reflection_service : Reflection::Service?
     @active_transports : Hash(UInt64, Transport::ServerTransport)
     @transport_mutex : Mutex
 
@@ -35,6 +36,7 @@ module GRPC
       @interceptors = [] of ServerInterceptor
       @tls_context = nil
       @health_service = nil
+      @reflection_service = nil
       @active_transports = {} of UInt64 => Transport::ServerTransport
       @transport_mutex = Mutex.new
       @transport_factory = transport_factory || ->(io : IO, services : Hash(String, Service), interceptors : Array(ServerInterceptor), peer : String, tls_sock : OpenSSL::SSL::Socket::Server?) {
@@ -150,6 +152,24 @@ module GRPC
     # Returns the registered health service if enabled.
     def health_service? : Health::Service?
       @health_service
+    end
+
+    # enable_reflection registers the built-in reflection service and returns it.
+    # Register FileDescriptorProto bytes on the returned service via add_file_descriptor.
+    def enable_reflection : Reflection::Service
+      if service = @reflection_service
+        return service
+      end
+
+      service = Reflection::Service.new(-> { @services.keys.to_a.sort })
+      handle(service)
+      @reflection_service = service
+      service
+    end
+
+    # Returns the registered reflection service if enabled.
+    def reflection_service? : Reflection::Service?
+      @reflection_service
     end
 
     private def handle_connection(socket : TCPSocket, services : Hash(String, Service),
