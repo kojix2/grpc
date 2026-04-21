@@ -371,15 +371,6 @@ def with_default_grpcurl_timeout(
   args
 end
 
-def grpcurl_base_flags : Array(String)
-  proto_dir = File.expand_path("../fixtures/grpcurl", __DIR__)
-  [
-    "-plaintext",
-    "-import-path", proto_dir,
-    "-proto", "e2e.proto",
-  ]
-end
-
 def grpcurl_call_args(
   port : Int32,
   method : String,
