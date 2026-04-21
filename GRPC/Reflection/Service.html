@@ -558,7 +558,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L390" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/a7bde38103e92ba20e60e9ca0484e450eef121ff/src/grpc/reflection.cr#L390" target="_blank">
         grpc/reflection.cr
       </a>
     
@@ -600,9 +600,7 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28service_names%3AProc%28Array%28String%29%29%3D-%3Edo%0A%5BSERVICE_FULL_NAME%5D%0Aend%29-class-method" class="signature"><strong>.new</strong>(service_names : Proc(Array(String)) = <span class="o">-&gt;</span> <span class="k">do</span>
-  [<span class="t">SERVICE_FULL_NAME</span>]
-<span class="k">end</span>)</a>
+        <a href="#new-class-method" class="signature"><strong>.new</strong></a>
         
       </li>
     
@@ -647,6 +645,11 @@
         <a href="#dispatch_bidi_stream%28method%3AString%2Crequests%3AGRPC%3A%3ARawRequestStream%2Cctx%3AGRPC%3A%3AServerContext%2Cwriter%3AGRPC%3A%3ARawResponseStream%29%3AGRPC%3A%3AStatus-instance-method" class="signature"><strong>#dispatch_bidi_stream</strong>(method : String, requests : GRPC::RawRequestStream, ctx : GRPC::ServerContext, writer : GRPC::RawResponseStream) : GRPC::Status</a>
         
           <div class="summary"><p>dispatch_bidi_stream dispatches a bidirectional streaming RPC.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#register_service%28service_name%3AString%29%3Aself-instance-method" class="signature"><strong>#register_service</strong>(service_name : String) : <span class="k">self</span></a>
         
       </li>
     
@@ -758,22 +761,18 @@
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(service_names:Proc(Array(String))=-&gt;do
-[SERVICE_FULL_NAME]
-end)-class-method">
+    <div class="entry-detail" id="new-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(service_names : Proc(Array(String)) = <span class="o">-&gt;</span> <span class="k">do</span>
-  [<span class="t">SERVICE_FULL_NAME</span>]
-<span class="k">end</span>)
+        def self.<strong>new</strong>
 
-        <a class="method-permalink" href="#new%28service_names%3AProc%28Array%28String%29%29%3D-%3Edo%0A%5BSERVICE_FULL_NAME%5D%0Aend%29-class-method">#</a>
+        <a class="method-permalink" href="#new-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L398" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/a7bde38103e92ba20e60e9ca0484e450eef121ff/src/grpc/reflection.cr#L398" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -805,7 +804,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L408" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/a7bde38103e92ba20e60e9ca0484e450eef121ff/src/grpc/reflection.cr#L414" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -831,7 +830,7 @@ Generated service base classes override this; the default is false (unary).</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L426" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/a7bde38103e92ba20e60e9ca0484e450eef121ff/src/grpc/reflection.cr#L432" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -857,7 +856,7 @@ Returns {response_body : Bytes, status : Status}.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L419" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/a7bde38103e92ba20e60e9ca0484e450eef121ff/src/grpc/reflection.cr#L425" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -885,7 +884,23 @@ typed ResponseStream(T) before handing off to the user implementation.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L430" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/a7bde38103e92ba20e60e9ca0484e450eef121ff/src/grpc/reflection.cr#L436" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="register_service(service_name:String):self-instance-method">
+      <div class="signature">
+        
+        def <strong>register_service</strong>(service_name : String) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#register_service%28service_name%3AString%29%3Aself-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/a7bde38103e92ba20e60e9ca0484e450eef121ff/src/grpc/reflection.cr#L409" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -910,7 +925,7 @@ typed ResponseStream(T) before handing off to the user implementation.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/66898adb85b5d924ec972089aadb5974ad27c710/src/grpc/reflection.cr#L404" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/a7bde38103e92ba20e60e9ca0484e450eef121ff/src/grpc/reflection.cr#L405" target="_blank">View source</a>]
         
       </div>
     </div>
