@@ -767,6 +767,13 @@ describe GRPC do
       cancels.should eq(1)
       finishes.should eq(1)
     end
+
+    it "returns empty headers and trailers in initial state" do
+      ch = ::Channel(Bytes?).new
+      stream = GRPC::RawServerStream.new(ch, -> { GRPC::Status.ok })
+      stream.headers.empty?.should be_true
+      stream.trailers.empty?.should be_true
+    end
   end
 
   describe GRPC::RawClientCall do
@@ -788,6 +795,19 @@ describe GRPC do
 
       cancels.should eq(1)
       finishes.should eq(1)
+    end
+
+    it "returns empty headers and trailers in initial state" do
+      call = GRPC::RawClientCall.new(
+        ->(_b : Bytes) { },
+        -> { Bytes.empty },
+        -> { GRPC::Metadata.new },
+        -> { GRPC::Status.ok },
+        -> { GRPC::Metadata.new },
+        -> { }
+      )
+      call.headers.empty?.should be_true
+      call.trailers.empty?.should be_true
     end
   end
 
@@ -818,6 +838,21 @@ describe GRPC do
       cancels.should eq(1)
       finishes.should eq(1)
     end
+
+    it "returns empty headers and trailers in initial state" do
+      ch = ::Channel(Bytes?).new
+      call = GRPC::RawBidiCall.new(
+        ->(_b : Bytes) { },
+        -> { },
+        ch,
+        -> { GRPC::Metadata.new },
+        -> { GRPC::Status.ok },
+        -> { GRPC::Metadata.new },
+        -> { }
+      )
+      call.headers.empty?.should be_true
+      call.trailers.empty?.should be_true
+    end
   end
 
   describe GRPC::ServerStream(Int32) do
@@ -834,6 +869,12 @@ describe GRPC do
       stream.cancel
 
       cancels.should eq(1)
+    end
+
+    it "returns empty headers and trailers in initial state" do
+      stream = GRPC::ServerStream(Int32).new
+      stream.headers.empty?.should be_true
+      stream.trailers.empty?.should be_true
     end
   end
 
@@ -856,6 +897,17 @@ describe GRPC do
 
       cancels.should eq(1)
     end
+
+    it "returns empty headers and trailers in initial state" do
+      result = ::Channel(Int32 | Exception).new(1)
+      call = GRPC::ClientStream(Int32, Int32).new(
+        ->(_msg : Int32) { nil },
+        -> { nil },
+        result
+      )
+      call.headers.empty?.should be_true
+      call.trailers.empty?.should be_true
+    end
   end
 
   describe GRPC::BidiCall(Int32, Int32) do
@@ -876,6 +928,17 @@ describe GRPC do
       call.cancel
 
       cancels.should eq(1)
+    end
+
+    it "returns empty headers and trailers in initial state" do
+      recv = ::Channel(Int32 | Exception).new(1)
+      call = GRPC::BidiCall(Int32, Int32).new(
+        ->(_msg : Int32) { nil },
+        -> { nil },
+        recv
+      )
+      call.headers.empty?.should be_true
+      call.trailers.empty?.should be_true
     end
   end
 
@@ -1285,6 +1348,29 @@ describe GRPC do
 
       call.wait
     end
+
+    it "grpc_trailers is empty before any trailer block is received" do
+      call = GRPC::Transport::PendingCall.new
+      call.begin_header_block
+      call.add_header(":status", "200")
+      call.add_header("x-initial", "one")
+
+      call.grpc_trailers.empty?.should be_true
+    end
+
+    it "grpc_status transitions from UNKNOWN to OK once trailer block arrives" do
+      call = GRPC::Transport::PendingCall.new
+
+      call.grpc_status.code.should eq(GRPC::StatusCode::UNKNOWN)
+
+      call.begin_header_block
+      call.add_header(":status", "200")
+      call.grpc_status.code.should eq(GRPC::StatusCode::UNKNOWN)
+
+      call.begin_header_block
+      call.add_header("grpc-status", "0")
+      call.grpc_status.code.should eq(GRPC::StatusCode::OK)
+    end
   end
 
   describe GRPC::UnaryResponse do
@@ -1396,6 +1482,29 @@ describe GRPC do
       stream.finish
 
       stream.messages.receive?.should be_nil
+    end
+
+    it "grpc_trailers is empty before any trailer block is received" do
+      stream = GRPC::Transport::PendingStream.new
+      stream.begin_header_block
+      stream.add_header(":status", "200")
+      stream.add_header("x-initial", "one")
+
+      stream.grpc_trailers.empty?.should be_true
+    end
+
+    it "grpc_status transitions from UNKNOWN to OK once trailer block arrives" do
+      stream = GRPC::Transport::PendingStream.new
+
+      stream.grpc_status.code.should eq(GRPC::StatusCode::UNKNOWN)
+
+      stream.begin_header_block
+      stream.add_header(":status", "200")
+      stream.grpc_status.code.should eq(GRPC::StatusCode::UNKNOWN)
+
+      stream.begin_header_block
+      stream.add_header("grpc-status", "0")
+      stream.grpc_status.code.should eq(GRPC::StatusCode::OK)
     end
 
     it "uses Codec.decode for streamed frames" do
