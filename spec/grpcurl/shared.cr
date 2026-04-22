@@ -174,9 +174,110 @@ class E2EProbeService < GRPC::Service
   end
 end
 
+module E2EComplexProto
+  RFC3339_TIME = "2024-01-02T03:04:05Z"
+
+  def self.encode_reply : Bytes
+    io = IO::Memory.new
+    write_embedded_field(io, 1, encode_labels_entry("role", "admin"))
+    write_string_field(io, 2, "picked-name")
+    write_embedded_field(io, 4, encode_nested)
+    write_embedded_field(io, 5, encode_imported)
+    write_embedded_field(io, 6, encode_timestamp)
+    io.to_slice
+  end
+
+  private def self.encode_labels_entry(key : String, value : String) : Bytes
+    io = IO::Memory.new
+    write_string_field(io, 1, key)
+    write_string_field(io, 2, value)
+    io.to_slice
+  end
+
+  private def self.encode_nested : Bytes
+    io = IO::Memory.new
+    write_varint_field(io, 1, 1_u64)
+    io.to_slice
+  end
+
+  private def self.encode_imported : Bytes
+    io = IO::Memory.new
+    write_string_field(io, 1, "from-import")
+    write_varint_field(io, 2, 7_u64)
+    io.to_slice
+  end
+
+  private def self.encode_timestamp : Bytes
+    io = IO::Memory.new
+    write_varint_field(io, 1, Time.parse_rfc3339(RFC3339_TIME).to_unix.to_u64)
+    write_varint_field(io, 2, 0_u64)
+    io.to_slice
+  end
+
+  private def self.write_key(io : IO, field : Int32, wire_type : Int32) : Nil
+    write_varint(io, ((field << 3) | wire_type).to_u64)
+  end
+
+  private def self.write_varint_field(io : IO, field : Int32, value : UInt64) : Nil
+    write_key(io, field, 0)
+    write_varint(io, value)
+  end
+
+  private def self.write_string_field(io : IO, field : Int32, value : String) : Nil
+    write_key(io, field, 2)
+    bytes = value.to_slice
+    write_varint(io, bytes.size.to_u64)
+    io.write(bytes)
+  end
+
+  private def self.write_embedded_field(io : IO, field : Int32, value : Bytes) : Nil
+    write_key(io, field, 2)
+    write_varint(io, value.size.to_u64)
+    io.write(value)
+  end
+
+  private def self.write_varint(io : IO, value : UInt64) : Nil
+    loop do
+      byte = (value & 0x7F).to_u8
+      value >>= 7
+      io.write_byte(value == 0 ? byte : (byte | 0x80_u8))
+      break if value == 0
+    end
+  end
+end
+
+class E2EComplexService < GRPC::Service
+  SERVICE_FULL_NAME = "e2e.ComplexProbe"
+
+  def service_full_name : String
+    SERVICE_FULL_NAME
+  end
+
+  def dispatch(
+    method : String,
+    request_body : Bytes,
+    ctx : GRPC::ServerContext,
+  ) : {Bytes, GRPC::Status}
+    _ = request_body
+    _ = ctx
+
+    case method
+    when "GetComplex"
+      {E2EComplexProto.encode_reply, GRPC::Status.ok}
+    else
+      {Bytes.empty, GRPC::Status.unimplemented("unknown method")}
+    end
+  end
+end
+
 module E2EReflectionWire
-  private LABEL_OPTIONAL = 1_u64
-  private TYPE_STRING    = 9_u64
+  private LABEL_OPTIONAL =  1_u64
+  private LABEL_REPEATED =  3_u64
+  private TYPE_STRING    =  9_u64
+  private TYPE_MESSAGE   = 11_u64
+  private TYPE_INT32     =  5_u64
+  private TYPE_INT64     =  3_u64
+  private TYPE_ENUM      = 14_u64
 
   def self.handle_request(request : Bytes) : Bytes
     kind, value = parse_server_reflection_request(request)
@@ -242,6 +343,7 @@ module E2EReflectionWire
     io = IO::Memory.new
     write_string(io, 1, "e2e.proto")
     write_string(io, 2, "e2e")
+    write_string(io, 12, "proto3")
 
     ["EchoRequest", "EchoReply", "StringMessage"].each do |name|
       write_embedded_raw(io, 4, build_string_message_descriptor(name))
@@ -284,6 +386,185 @@ module E2EReflectionWire
       write_embedded_raw(io, 2, build_method_descriptor(name, client_streaming, server_streaming))
     end
 
+    io.to_slice
+  end
+
+  def self.build_common_file_descriptor_proto : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, "common.proto")
+    write_string(io, 2, "e2e")
+    write_string(io, 12, "proto3")
+    write_embedded_raw(io, 4, build_imported_message_descriptor)
+    io.to_slice
+  end
+
+  def self.build_google_empty_file_descriptor_proto : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, "google/protobuf/empty.proto")
+    write_string(io, 2, "google.protobuf")
+    write_string(io, 12, "proto3")
+
+    msg = IO::Memory.new
+    write_string(msg, 1, "Empty")
+    write_embedded_raw(io, 4, msg.to_slice)
+    io.to_slice
+  end
+
+  def self.build_google_timestamp_file_descriptor_proto : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, "google/protobuf/timestamp.proto")
+    write_string(io, 2, "google.protobuf")
+    write_string(io, 12, "proto3")
+
+    msg = IO::Memory.new
+    write_string(msg, 1, "Timestamp")
+    write_embedded_raw(msg, 2, build_scalar_field_descriptor("seconds", 1, TYPE_INT64))
+    write_embedded_raw(msg, 2, build_scalar_field_descriptor("nanos", 2, TYPE_INT32))
+    write_embedded_raw(io, 4, msg.to_slice)
+    io.to_slice
+  end
+
+  def self.build_complex_file_descriptor_proto : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, "complex.proto")
+    write_string(io, 2, "e2e")
+    write_string(io, 3, "common.proto")
+    write_string(io, 3, "google/protobuf/empty.proto")
+    write_string(io, 3, "google/protobuf/timestamp.proto")
+    write_string(io, 12, "proto3")
+    write_embedded_raw(io, 4, build_complex_reply_descriptor)
+    write_embedded_raw(io, 6, build_complex_service_descriptor)
+    io.to_slice
+  end
+
+  def self.build_imported_message_descriptor : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, "ImportedMessage")
+    write_embedded_raw(io, 2, build_scalar_field_descriptor("note", 1, TYPE_STRING))
+    write_embedded_raw(io, 2, build_scalar_field_descriptor("count", 2, TYPE_INT32))
+    io.to_slice
+  end
+
+  def self.build_complex_reply_descriptor : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, "ComplexReply")
+    write_embedded_raw(io, 3, build_labels_entry_descriptor)
+    write_embedded_raw(io, 3, build_nested_descriptor)
+    write_embedded_raw(io, 8, build_oneof_descriptor("choice"))
+    write_embedded_raw(io, 2, build_repeated_message_field_descriptor("labels", 1, ".e2e.ComplexReply.LabelsEntry"))
+    write_embedded_raw(io, 2, build_oneof_field_descriptor("name", 2, TYPE_STRING, 0))
+    write_embedded_raw(io, 2, build_oneof_field_descriptor("code", 3, TYPE_INT32, 0))
+    write_embedded_raw(io, 2, build_message_field_descriptor("nested", 4, ".e2e.ComplexReply.Nested"))
+    write_embedded_raw(io, 2, build_message_field_descriptor("imported", 5, ".e2e.ImportedMessage"))
+    write_embedded_raw(io, 2, build_message_field_descriptor("created_at", 6, ".google.protobuf.Timestamp"))
+    io.to_slice
+  end
+
+  def self.build_labels_entry_descriptor : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, "LabelsEntry")
+    write_embedded_raw(io, 2, build_scalar_field_descriptor("key", 1, TYPE_STRING))
+    write_embedded_raw(io, 2, build_scalar_field_descriptor("value", 2, TYPE_STRING))
+    write_embedded_raw(io, 7, build_map_entry_options)
+    io.to_slice
+  end
+
+  def self.build_nested_descriptor : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, "Nested")
+    write_embedded_raw(io, 4, build_mode_enum_descriptor)
+    write_embedded_raw(io, 2, build_enum_field_descriptor("mode", 1, ".e2e.ComplexReply.Nested.Mode"))
+    io.to_slice
+  end
+
+  def self.build_mode_enum_descriptor : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, "Mode")
+    write_embedded_raw(io, 2, build_enum_value_descriptor("MODE_UNSPECIFIED", 0))
+    write_embedded_raw(io, 2, build_enum_value_descriptor("MODE_ACTIVE", 1))
+    io.to_slice
+  end
+
+  def self.build_enum_value_descriptor(name : String, number : Int32) : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, name)
+    write_varint_field(io, 2, number.to_u64)
+    io.to_slice
+  end
+
+  def self.build_complex_service_descriptor : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, "ComplexProbe")
+    write_embedded_raw(io, 2, build_complex_method_descriptor)
+    io.to_slice
+  end
+
+  def self.build_complex_method_descriptor : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, "GetComplex")
+    write_string(io, 2, ".google.protobuf.Empty")
+    write_string(io, 3, ".e2e.ComplexReply")
+    io.to_slice
+  end
+
+  def self.build_scalar_field_descriptor(name : String, number : Int32, type : UInt64) : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, name)
+    write_varint_field(io, 3, number.to_u64)
+    write_varint_field(io, 4, LABEL_OPTIONAL)
+    write_varint_field(io, 5, type)
+    io.to_slice
+  end
+
+  def self.build_message_field_descriptor(name : String, number : Int32, type_name : String) : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, name)
+    write_varint_field(io, 3, number.to_u64)
+    write_varint_field(io, 4, LABEL_OPTIONAL)
+    write_varint_field(io, 5, TYPE_MESSAGE)
+    write_string(io, 6, type_name)
+    io.to_slice
+  end
+
+  def self.build_repeated_message_field_descriptor(name : String, number : Int32, type_name : String) : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, name)
+    write_varint_field(io, 3, number.to_u64)
+    write_varint_field(io, 4, LABEL_REPEATED)
+    write_varint_field(io, 5, TYPE_MESSAGE)
+    write_string(io, 6, type_name)
+    io.to_slice
+  end
+
+  def self.build_enum_field_descriptor(name : String, number : Int32, type_name : String) : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, name)
+    write_varint_field(io, 3, number.to_u64)
+    write_varint_field(io, 4, LABEL_OPTIONAL)
+    write_varint_field(io, 5, TYPE_ENUM)
+    write_string(io, 6, type_name)
+    io.to_slice
+  end
+
+  def self.build_oneof_field_descriptor(name : String, number : Int32, type : UInt64, oneof_index : Int32) : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, name)
+    write_varint_field(io, 3, number.to_u64)
+    write_varint_field(io, 4, LABEL_OPTIONAL)
+    write_varint_field(io, 5, type)
+    write_varint_field(io, 9, oneof_index.to_u64)
+    io.to_slice
+  end
+
+  def self.build_oneof_descriptor(name : String) : Bytes
+    io = IO::Memory.new
+    write_string(io, 1, name)
+    io.to_slice
+  end
+
+  def self.build_map_entry_options : Bytes
+    io = IO::Memory.new
+    write_varint_field(io, 7, 1_u64)
     io.to_slice
   end
 
@@ -410,7 +691,12 @@ def wait_for_server(port : Int32, timeout : Time::Span = 2.seconds) : Nil
 end
 
 def enable_e2e_reflection(server : GRPC::Server) : Nil
-  server.enable_reflection.add_file_descriptor(E2EReflectionWire.build_e2e_file_descriptor_proto)
+  reflection = server.enable_reflection
+  reflection.add_file_descriptor(E2EReflectionWire.build_e2e_file_descriptor_proto)
+  reflection.add_file_descriptor(E2EReflectionWire.build_common_file_descriptor_proto)
+  reflection.add_file_descriptor(E2EReflectionWire.build_google_empty_file_descriptor_proto)
+  reflection.add_file_descriptor(E2EReflectionWire.build_google_timestamp_file_descriptor_proto)
+  reflection.add_file_descriptor(E2EReflectionWire.build_complex_file_descriptor_proto)
 end
 
 def wait_for_probe_observation(

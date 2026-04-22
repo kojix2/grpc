@@ -95,6 +95,27 @@ describe "grpcurl e2e reflection source" do
     end
   end
 
+  it "lists methods for e2e.ComplexProbe via reflection" do
+    next unless grpcurl_available?
+
+    port = find_free_port
+    server = GRPC::Server.new
+    server.handle E2EComplexService.new
+    enable_e2e_reflection(server)
+    server.bind("127.0.0.1:#{port}")
+    server.start
+
+    begin
+      wait_for_server(port)
+      args = grpcurl_reflection_args(port, "list", "e2e.ComplexProbe")
+      status, out, err = run_grpcurl(args)
+      raise "grpcurl list complex service failed: #{err}\nstdout: #{out}" unless status.success?
+      out.should contain("e2e.ComplexProbe.GetComplex")
+    ensure
+      server.stop
+    end
+  end
+
   it "describes e2e.Probe via reflection" do
     next unless grpcurl_available?
 
@@ -139,6 +160,85 @@ describe "grpcurl e2e reflection source" do
     end
   end
 
+  it "describes e2e.ComplexProbe via reflection" do
+    next unless grpcurl_available?
+
+    port = find_free_port
+    server = GRPC::Server.new
+    server.handle E2EComplexService.new
+    enable_e2e_reflection(server)
+    server.bind("127.0.0.1:#{port}")
+    server.start
+
+    begin
+      wait_for_server(port)
+      args = grpcurl_reflection_args(port, "describe", "e2e.ComplexProbe")
+      status, out, err = run_grpcurl(args)
+      raise "grpcurl describe complex service failed: #{err}\nstdout: #{out}" unless status.success?
+      out.should contain("service ComplexProbe")
+      out.should contain("rpc GetComplex")
+      out.should contain("google.protobuf.Empty")
+      out.should contain("ComplexReply")
+    ensure
+      server.stop
+    end
+  end
+
+  it "describes e2e.ComplexReply via reflection" do
+    next unless grpcurl_available?
+
+    port = find_free_port
+    server = GRPC::Server.new
+    server.handle E2EComplexService.new
+    enable_e2e_reflection(server)
+    server.bind("127.0.0.1:#{port}")
+    server.start
+
+    begin
+      wait_for_server(port)
+      args = grpcurl_reflection_args(port, "describe", "e2e.ComplexReply")
+      status, out, err = run_grpcurl(args)
+      raise "grpcurl describe complex message failed: #{err}\nstdout: #{out}" unless status.success?
+      out.should contain("message ComplexReply")
+      out.should contain("map<string, string> labels")
+      out.should contain("oneof choice")
+      out.should contain("ImportedMessage imported")
+      out.should contain("google.protobuf.Timestamp created_at")
+    ensure
+      server.stop
+    end
+  end
+
+  it "describes nested enum and imported type via reflection" do
+    next unless grpcurl_available?
+
+    port = find_free_port
+    server = GRPC::Server.new
+    server.handle E2EComplexService.new
+    enable_e2e_reflection(server)
+    server.bind("127.0.0.1:#{port}")
+    server.start
+
+    begin
+      wait_for_server(port)
+
+      enum_args = grpcurl_reflection_args(port, "describe", "e2e.ComplexReply.Nested.Mode")
+      enum_status, enum_out, enum_err = run_grpcurl(enum_args)
+      raise "grpcurl describe nested enum failed: #{enum_err}\nstdout: #{enum_out}" unless enum_status.success?
+      enum_out.should contain("enum Mode")
+      enum_out.should contain("MODE_ACTIVE")
+
+      imported_args = grpcurl_reflection_args(port, "describe", "e2e.ImportedMessage")
+      imported_status, imported_out, imported_err = run_grpcurl(imported_args)
+      raise "grpcurl describe imported message failed: #{imported_err}\nstdout: #{imported_out}" unless imported_status.success?
+      imported_out.should contain("message ImportedMessage")
+      imported_out.should contain("string note")
+      imported_out.should contain("int32 count")
+    ensure
+      server.stop
+    end
+  end
+
   it "invokes unary with reflection only" do
     next unless grpcurl_available?
 
@@ -160,6 +260,36 @@ describe "grpcurl e2e reflection source" do
       status, out, err = run_grpcurl(args)
       raise "grpcurl reflection invoke failed: #{err}\nstdout: #{out}" unless status.success?
       out.should contain("echo:hello")
+    ensure
+      server.stop
+    end
+  end
+
+  it "invokes complex unary with reflection only" do
+    next unless grpcurl_available?
+
+    port = find_free_port
+    server = GRPC::Server.new
+    server.handle E2EComplexService.new
+    enable_e2e_reflection(server)
+    server.bind("127.0.0.1:#{port}")
+    server.start
+
+    begin
+      wait_for_server(port)
+      args = grpcurl_call_args(
+        port,
+        "e2e.ComplexProbe/GetComplex",
+        ["-d", "{}"],
+        include_proto: false,
+      )
+      status, out, err = run_grpcurl(args)
+      raise "grpcurl complex reflection invoke failed: #{err}\nstdout: #{out}" unless status.success?
+      out.should contain("\"role\": \"admin\"")
+      out.should contain("\"name\": \"picked-name\"")
+      out.should contain("MODE_ACTIVE")
+      out.should contain("from-import")
+      out.should contain(E2EComplexProto::RFC3339_TIME)
     ensure
       server.stop
     end
