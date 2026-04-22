@@ -162,11 +162,6 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Health/ServingStatus" data-name="grpc::health::servingstatus">
-      <a href="../../GRPC/Health/ServingStatus.html">ServingStatus</a>
-      
-    </li>
-  
 </ul>
 
       
@@ -648,7 +643,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/49d95dcb91d781c8a7ca630c24d9438d80df4d89/src/grpc/health.cr#L18" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/931a0ae47b25fbcea7b20f6339c36a99fe1e64fd/src/grpc/health.cr#L16" target="_blank">
         grpc/health.cr
       </a>
     
@@ -671,7 +666,7 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28default_status%3AServingStatus%3DServingStatus%3A%3ASERVING%29-class-method" class="signature"><strong>.new</strong>(default_status : ServingStatus = <span class="t">ServingStatus</span><span class="t">::</span><span class="t">SERVING</span>)</a>
+        <a href="#new%28default_status%3AGrpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%3D%3A%3AGrpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%3A%3ASERVING%29-class-method" class="signature"><strong>.new</strong>(default_status : Grpc::Health::V1::HealthCheckResponse::ServingStatus = <span class="t">::</span><span class="t">Grpc</span><span class="t">::</span><span class="t">Health</span><span class="t">::</span><span class="t">V1</span><span class="t">::</span><span class="t">HealthCheckResponse</span><span class="t">::</span><span class="t">ServingStatus</span><span class="t">::</span><span class="t">SERVING</span>)</a>
         
       </li>
     
@@ -694,7 +689,7 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#check_status%28service%3AString%29%3AServingStatus%7CNil-instance-method" class="signature"><strong>#check_status</strong>(service : String) : ServingStatus | Nil</a>
+        <a href="#check_status%28service%3AString%29%3AGrpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%7CNil-instance-method" class="signature"><strong>#check_status</strong>(service : String) : Grpc::Health::V1::HealthCheckResponse::ServingStatus | Nil</a>
         
       </li>
     
@@ -704,7 +699,7 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#list_statuses%3AHash%28String%2CServingStatus%29-instance-method" class="signature"><strong>#list_statuses</strong> : Hash(String, ServingStatus)</a>
+        <a href="#list_statuses%3AHash%28String%2CGrpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%29-instance-method" class="signature"><strong>#list_statuses</strong> : Hash(String, Grpc::Health::V1::HealthCheckResponse::ServingStatus)</a>
         
       </li>
     
@@ -714,17 +709,17 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#set_status%28service%3AString%2Cstatus%3AServingStatus%29%3ANil-instance-method" class="signature"><strong>#set_status</strong>(service : String, status : ServingStatus) : Nil</a>
+        <a href="#set_status%28service%3AString%2Cstatus%3AGrpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%29%3ANil-instance-method" class="signature"><strong>#set_status</strong>(service : String, status : Grpc::Health::V1::HealthCheckResponse::ServingStatus) : Nil</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#subscribe%28service%3AString%29%3ATuple%28%3A%3AChannel%28ServingStatus%29%2CServingStatus%29-instance-method" class="signature"><strong>#subscribe</strong>(service : String) : Tuple(::Channel(ServingStatus), ServingStatus)</a>
+        <a href="#subscribe%28service%3AString%29%3ATuple%28%3A%3AChannel%28Grpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%29%2CGrpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%29-instance-method" class="signature"><strong>#subscribe</strong>(service : String) : Tuple(::Channel(Grpc::Health::V1::HealthCheckResponse::ServingStatus), Grpc::Health::V1::HealthCheckResponse::ServingStatus)</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#unsubscribe%28service%3AString%2Cchannel%3A%3A%3AChannel%28ServingStatus%29%29%3ANil-instance-method" class="signature"><strong>#unsubscribe</strong>(service : String, channel : ::Channel(ServingStatus)) : Nil</a>
+        <a href="#unsubscribe%28service%3AString%2Cchannel%3A%3A%3AChannel%28Grpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%29%29%3ANil-instance-method" class="signature"><strong>#unsubscribe</strong>(service : String, channel : ::Channel(Grpc::Health::V1::HealthCheckResponse::ServingStatus)) : Nil</a>
         
       </li>
     
@@ -772,18 +767,18 @@
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(default_status:ServingStatus=ServingStatus::SERVING)-class-method">
+    <div class="entry-detail" id="new(default_status:Grpc::Health::V1::HealthCheckResponse::ServingStatus=::Grpc::Health::V1::HealthCheckResponse::ServingStatus::SERVING)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(default_status : <a href="../../GRPC/Health/ServingStatus.html">ServingStatus</a> = <span class="t">ServingStatus</span><span class="t">::</span><span class="t">SERVING</span>)
+        def self.<strong>new</strong>(default_status : <a href="../../Grpc/Health/V1/HealthCheckResponse/ServingStatus.html">Grpc::Health::V1::HealthCheckResponse::ServingStatus</a> = <span class="t">::</span><span class="t">Grpc</span><span class="t">::</span><span class="t">Health</span><span class="t">::</span><span class="t">V1</span><span class="t">::</span><span class="t">HealthCheckResponse</span><span class="t">::</span><span class="t">ServingStatus</span><span class="t">::</span><span class="t">SERVING</span>)
 
-        <a class="method-permalink" href="#new%28default_status%3AServingStatus%3DServingStatus%3A%3ASERVING%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28default_status%3AGrpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%3D%3A%3AGrpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%3A%3ASERVING%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/49d95dcb91d781c8a7ca630c24d9438d80df4d89/src/grpc/health.cr#L24" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/931a0ae47b25fbcea7b20f6339c36a99fe1e64fd/src/grpc/health.cr#L22" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -804,18 +799,18 @@
     Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="check_status(service:String):ServingStatus|Nil-instance-method">
+    <div class="entry-detail" id="check_status(service:String):Grpc::Health::V1::HealthCheckResponse::ServingStatus|Nil-instance-method">
       <div class="signature">
         
-        def <strong>check_status</strong>(service : String) : <a href="../../GRPC/Health/ServingStatus.html">ServingStatus</a> | Nil
+        def <strong>check_status</strong>(service : String) : <a href="../../Grpc/Health/V1/HealthCheckResponse/ServingStatus.html">Grpc::Health::V1::HealthCheckResponse::ServingStatus</a> | Nil
 
-        <a class="method-permalink" href="#check_status%28service%3AString%29%3AServingStatus%7CNil-instance-method">#</a>
+        <a class="method-permalink" href="#check_status%28service%3AString%29%3AGrpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%7CNil-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/49d95dcb91d781c8a7ca630c24d9438d80df4d89/src/grpc/health.cr#L31" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/931a0ae47b25fbcea7b20f6339c36a99fe1e64fd/src/grpc/health.cr#L29" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -831,23 +826,23 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/49d95dcb91d781c8a7ca630c24d9438d80df4d89/src/grpc/health.cr#L83" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/931a0ae47b25fbcea7b20f6339c36a99fe1e64fd/src/grpc/health.cr#L81" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="list_statuses:Hash(String,ServingStatus)-instance-method">
+    <div class="entry-detail" id="list_statuses:Hash(String,Grpc::Health::V1::HealthCheckResponse::ServingStatus)-instance-method">
       <div class="signature">
         
-        def <strong>list_statuses</strong> : Hash(String, <a href="../../GRPC/Health/ServingStatus.html">ServingStatus</a>)
+        def <strong>list_statuses</strong> : Hash(String, <a href="../../Grpc/Health/V1/HealthCheckResponse/ServingStatus.html">Grpc::Health::V1::HealthCheckResponse::ServingStatus</a>)
 
-        <a class="method-permalink" href="#list_statuses%3AHash%28String%2CServingStatus%29-instance-method">#</a>
+        <a class="method-permalink" href="#list_statuses%3AHash%28String%2CGrpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%29-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/49d95dcb91d781c8a7ca630c24d9438d80df4d89/src/grpc/health.cr#L37" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/931a0ae47b25fbcea7b20f6339c36a99fe1e64fd/src/grpc/health.cr#L35" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -863,55 +858,55 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/49d95dcb91d781c8a7ca630c24d9438d80df4d89/src/grpc/health.cr#L97" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/931a0ae47b25fbcea7b20f6339c36a99fe1e64fd/src/grpc/health.cr#L95" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="set_status(service:String,status:ServingStatus):Nil-instance-method">
+    <div class="entry-detail" id="set_status(service:String,status:Grpc::Health::V1::HealthCheckResponse::ServingStatus):Nil-instance-method">
       <div class="signature">
         
-        def <strong>set_status</strong>(service : String, status : <a href="../../GRPC/Health/ServingStatus.html">ServingStatus</a>) : Nil
+        def <strong>set_status</strong>(service : String, status : <a href="../../Grpc/Health/V1/HealthCheckResponse/ServingStatus.html">Grpc::Health::V1::HealthCheckResponse::ServingStatus</a>) : Nil
 
-        <a class="method-permalink" href="#set_status%28service%3AString%2Cstatus%3AServingStatus%29%3ANil-instance-method">#</a>
+        <a class="method-permalink" href="#set_status%28service%3AString%2Cstatus%3AGrpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%29%3ANil-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/49d95dcb91d781c8a7ca630c24d9438d80df4d89/src/grpc/health.cr#L67" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/931a0ae47b25fbcea7b20f6339c36a99fe1e64fd/src/grpc/health.cr#L65" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="subscribe(service:String):Tuple(::Channel(ServingStatus),ServingStatus)-instance-method">
+    <div class="entry-detail" id="subscribe(service:String):Tuple(::Channel(Grpc::Health::V1::HealthCheckResponse::ServingStatus),Grpc::Health::V1::HealthCheckResponse::ServingStatus)-instance-method">
       <div class="signature">
         
-        def <strong>subscribe</strong>(service : String) : Tuple(::Channel(<a href="../../GRPC/Health/ServingStatus.html">ServingStatus</a>), <a href="../../GRPC/Health/ServingStatus.html">ServingStatus</a>)
+        def <strong>subscribe</strong>(service : String) : Tuple(::Channel(<a href="../../Grpc/Health/V1/HealthCheckResponse/ServingStatus.html">Grpc::Health::V1::HealthCheckResponse::ServingStatus</a>), <a href="../../Grpc/Health/V1/HealthCheckResponse/ServingStatus.html">Grpc::Health::V1::HealthCheckResponse::ServingStatus</a>)
 
-        <a class="method-permalink" href="#subscribe%28service%3AString%29%3ATuple%28%3A%3AChannel%28ServingStatus%29%2CServingStatus%29-instance-method">#</a>
+        <a class="method-permalink" href="#subscribe%28service%3AString%29%3ATuple%28%3A%3AChannel%28Grpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%29%2CGrpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%29-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/49d95dcb91d781c8a7ca630c24d9438d80df4d89/src/grpc/health.cr#L43" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/931a0ae47b25fbcea7b20f6339c36a99fe1e64fd/src/grpc/health.cr#L41" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="unsubscribe(service:String,channel:::Channel(ServingStatus)):Nil-instance-method">
+    <div class="entry-detail" id="unsubscribe(service:String,channel:::Channel(Grpc::Health::V1::HealthCheckResponse::ServingStatus)):Nil-instance-method">
       <div class="signature">
         
-        def <strong>unsubscribe</strong>(service : String, channel : ::Channel(<a href="../../GRPC/Health/ServingStatus.html">ServingStatus</a>)) : Nil
+        def <strong>unsubscribe</strong>(service : String, channel : ::Channel(<a href="../../Grpc/Health/V1/HealthCheckResponse/ServingStatus.html">Grpc::Health::V1::HealthCheckResponse::ServingStatus</a>)) : Nil
 
-        <a class="method-permalink" href="#unsubscribe%28service%3AString%2Cchannel%3A%3A%3AChannel%28ServingStatus%29%29%3ANil-instance-method">#</a>
+        <a class="method-permalink" href="#unsubscribe%28service%3AString%2Cchannel%3A%3A%3AChannel%28Grpc%3A%3AHealth%3A%3AV1%3A%3AHealthCheckResponse%3A%3AServingStatus%29%29%3ANil-instance-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/49d95dcb91d781c8a7ca630c24d9438d80df4d89/src/grpc/health.cr#L58" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/931a0ae47b25fbcea7b20f6339c36a99fe1e64fd/src/grpc/health.cr#L56" target="_blank">View source</a>]
         
       </div>
     </div>

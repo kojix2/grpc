@@ -162,11 +162,6 @@
       
     </li>
   
-  <li class=" " data-id="grpc/GRPC/Health/ServingStatus" data-name="grpc::health::servingstatus">
-      <a href="GRPC/Health/ServingStatus.html">ServingStatus</a>
-      
-    </li>
-  
 </ul>
 
       
@@ -733,8 +728,8 @@ channel.close</code></pre>
 <pre><code class="language-crystal">server <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Server</span>.new
 reporter <span class="o">=</span> server.enable_health_checking
 
-reporter.set_status(<span class="s">&quot;&quot;</span>, <span class="t">GRPC</span><span class="t">::</span><span class="t">Health</span><span class="t">::</span><span class="t">ServingStatus</span><span class="t">::</span><span class="t">SERVING</span>)
-reporter.set_status(<span class="t">Helloworld</span><span class="t">::</span><span class="t">Greeter</span><span class="t">::</span><span class="t">FULL_NAME</span>, <span class="t">GRPC</span><span class="t">::</span><span class="t">Health</span><span class="t">::</span><span class="t">ServingStatus</span><span class="t">::</span><span class="t">SERVING</span>)</code></pre>
+reporter.set_status(<span class="s">&quot;&quot;</span>, <span class="t">Grpc</span><span class="t">::</span><span class="t">Health</span><span class="t">::</span><span class="t">V1</span><span class="t">::</span><span class="t">HealthCheckResponse</span><span class="t">::</span><span class="t">ServingStatus</span><span class="t">::</span><span class="t">SERVING</span>)
+reporter.set_status(<span class="t">Helloworld</span><span class="t">::</span><span class="t">Greeter</span><span class="t">::</span><span class="t">FULL_NAME</span>, <span class="t">Grpc</span><span class="t">::</span><span class="t">Health</span><span class="t">::</span><span class="t">V1</span><span class="t">::</span><span class="t">HealthCheckResponse</span><span class="t">::</span><span class="t">ServingStatus</span><span class="t">::</span><span class="t">SERVING</span>)</code></pre>
 <h2><a id="metadata-deadlines-and-errors" class="anchor" href="#metadata-deadlines-and-errors">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
