@@ -6,5 +6,10 @@
 *.dwarf.dSYM/
 /.crystal/
 
+/spec/fixtures/tls/*.crt
+/spec/fixtures/tls/*.key
+/spec/fixtures/tls/*.csr
+/spec/fixtures/tls/*.srl
+
 *.lock
 

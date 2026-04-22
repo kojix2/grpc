@@ -1,7 +1,16 @@
+require "openssl"
 require "socket"
 require "../support/proto_helpers"
 
 MISSING_GRPCURL_MSG = "grpcurl is not installed; skipping e2e tests"
+TLS_FIXTURE_DIR     = File.expand_path("../fixtures/tls", __DIR__)
+TLS_GENERATE_SCRIPT = File.join(TLS_FIXTURE_DIR, "generate.sh")
+TLS_CA_CERT         = File.join(TLS_FIXTURE_DIR, "ca.crt")
+TLS_SERVER_CERT     = File.join(TLS_FIXTURE_DIR, "server.crt")
+TLS_SERVER_KEY      = File.join(TLS_FIXTURE_DIR, "server.key")
+TLS_CLIENT_CERT     = File.join(TLS_FIXTURE_DIR, "client.crt")
+TLS_CLIENT_KEY      = File.join(TLS_FIXTURE_DIR, "client.key")
+TLS_FIXTURE_MUTEX   = Mutex.new
 
 def grpcurl_available? : Bool
   status = Process.run(
@@ -13,6 +22,34 @@ def grpcurl_available? : Bool
   status.success?
 rescue
   false
+end
+
+def ensure_e2e_tls_fixtures! : Nil
+  return if e2e_tls_fixtures_exist?
+
+  TLS_FIXTURE_MUTEX.synchronize do
+    return if e2e_tls_fixtures_exist?
+    generate_e2e_tls_fixtures!
+  end
+end
+
+private def e2e_tls_fixtures_exist? : Bool
+  File.exists?(TLS_CA_CERT) &&
+    File.exists?(TLS_SERVER_CERT) &&
+    File.exists?(TLS_SERVER_KEY) &&
+    File.exists?(TLS_CLIENT_CERT) &&
+    File.exists?(TLS_CLIENT_KEY)
+end
+
+private def generate_e2e_tls_fixtures! : Nil
+  stdout = IO::Memory.new
+  stderr = IO::Memory.new
+  status = Process.run("sh", [TLS_GENERATE_SCRIPT], output: stdout, error: stderr)
+  return if status.success?
+
+  stderr_text = stderr.to_s
+  output = stderr_text.empty? ? stdout.to_s : stderr_text
+  raise "failed to generate TLS fixtures: #{output}"
 end
 
 class E2EProbeObservation
@@ -690,6 +727,23 @@ def wait_for_server(port : Int32, timeout : Time::Span = 2.seconds) : Nil
   end
 end
 
+def build_e2e_tls_server_context(require_client_cert : Bool = false) : OpenSSL::SSL::Context::Server
+  ensure_e2e_tls_fixtures!
+  ctx = OpenSSL::SSL::Context::Server.new
+  ctx.certificate_chain = TLS_SERVER_CERT
+  ctx.private_key = TLS_SERVER_KEY
+  ctx.alpn_protocol = "h2"
+  if require_client_cert
+    ctx.ca_certificates = TLS_CA_CERT
+    ctx.verify_mode = OpenSSL::SSL::VerifyMode::PEER | OpenSSL::SSL::VerifyMode::FAIL_IF_NO_PEER_CERT
+  end
+  ctx
+end
+
+def configure_e2e_tls_server(server : GRPC::Server, require_client_cert : Bool = false) : Nil
+  server.use_tls(build_e2e_tls_server_context(require_client_cert))
+end
+
 def enable_e2e_reflection(server : GRPC::Server) : Nil
   reflection = server.enable_reflection
   reflection.add_file_descriptor(E2EReflectionWire.build_e2e_file_descriptor_proto)
@@ -734,6 +788,25 @@ def with_default_grpcurl_timeout(
   args
 end
 
+def e2e_tls_grpcurl_flags(
+  include_ca : Bool = true,
+  include_client_cert : Bool = false,
+) : Array(String)
+  ensure_e2e_tls_fixtures!
+  args = [] of String
+  if include_ca
+    args << "-cacert"
+    args << TLS_CA_CERT
+  end
+  if include_client_cert
+    args << "-cert"
+    args << TLS_CLIENT_CERT
+    args << "-key"
+    args << TLS_CLIENT_KEY
+  end
+  args
+end
+
 def grpcurl_call_args(
   port : Int32,
   method : String,
@@ -762,6 +835,43 @@ def grpcurl_reflection_args(
   args = ["-plaintext"]
   args.concat(with_default_grpcurl_timeout(flags))
   args << "127.0.0.1:#{port}"
+  args << command
+  if value = subject
+    args << value
+  end
+  args
+end
+
+def grpcurl_tls_call_args(
+  host : String,
+  port : Int32,
+  method : String,
+  flags : Array(String) = [] of String,
+  include_proto : Bool = true,
+) : Array(String)
+  args = [] of String
+  if include_proto
+    args << "-import-path"
+    args << File.expand_path("../fixtures/grpcurl", __DIR__)
+    args << "-proto"
+    args << "e2e.proto"
+  end
+  args.concat(with_default_grpcurl_timeout(flags))
+  args << "#{host}:#{port}"
+  args << method
+  args
+end
+
+def grpcurl_tls_reflection_args(
+  host : String,
+  port : Int32,
+  command : String,
+  subject : String? = nil,
+  flags : Array(String) = [] of String,
+) : Array(String)
+  args = [] of String
+  args.concat(with_default_grpcurl_timeout(flags))
+  args << "#{host}:#{port}"
   args << command
   if value = subject
     args << value
