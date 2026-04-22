@@ -584,7 +584,7 @@ It receives gRPC requests, dispatches to registered services, and sends response
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/5a99f0da79c3256eeffcedfe866ed5f3b10d2e89/src/grpc/transport/http2_server_connection.cr#L42" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/86a9418586034b6e87f5f69abd939f86d7a2b00a/src/grpc/transport/http2_server_connection.cr#L32" target="_blank">
         grpc/transport/http2_server_connection.cr
       </a>
     
@@ -617,18 +617,10 @@ It receives gRPC requests, dispatches to registered services, and sends response
     data_flags.value <span class="o">=</span> data_flags.value <span class="o">|</span> (<span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_EOF</span> <span class="o">|</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_NO_END_STREAM</span>)
 
     trailer_nva <span class="o">=</span> <span class="o">[]</span> <span class="k">of</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">Nv</span>
-    sn <span class="o">=</span> ctx.status_name.to_slice
-    sv <span class="o">=</span> ctx.status_value.to_slice
-    trailer_nva <span class="o">&lt;&lt;</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">Nv</span>.new(name: sn.to_unsafe, value: sv.to_unsafe, namelen: sn.size, valuelen: sv.size, flags: <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">NV_FLAG_NONE</span>)
-    mn <span class="o">=</span> ctx.message_name.to_slice
-    mv <span class="o">=</span> ctx.message_value.to_slice
-    trailer_nva <span class="o">&lt;&lt;</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">Nv</span>.new(name: mn.to_unsafe, value: mv.to_unsafe, namelen: mn.size, valuelen: mv.size, flags: <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">NV_FLAG_NONE</span>)
-    <span class="k">if</span> details_name <span class="o">=</span> ctx.details_name
-      <span class="k">if</span> details_value <span class="o">=</span> ctx.details_value
-        dn <span class="o">=</span> details_name.to_slice
-        dv <span class="o">=</span> details_value.to_slice
-        trailer_nva <span class="o">&lt;&lt;</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">Nv</span>.new(name: dn.to_unsafe, value: dv.to_unsafe, namelen: dn.size, valuelen: dv.size, flags: <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">NV_FLAG_NONE</span>)
-      <span class="k">end</span>
+    ctx.trailer_entries.each <span class="k">do</span> <span class="o">|</span>name, value<span class="o">|</span>
+      name_slice <span class="o">=</span> name.to_slice
+      value_slice <span class="o">=</span> value.to_slice
+      trailer_nva <span class="o">&lt;&lt;</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">Nv</span>.new(name: name_slice.to_unsafe, value: value_slice.to_unsafe, namelen: name_slice.size, valuelen: value_slice.size, flags: <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">NV_FLAG_NONE</span>)
     <span class="k">end</span>
     rc <span class="o">=</span> <span class="t">LibNghttp2</span>.submit_trailer(session, stream_id, trailer_nva.to_unsafe, trailer_nva.size)
     <span class="k">if</span> rc <span class="o">&lt;</span> <span class="n">0</span>
@@ -901,7 +893,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/5a99f0da79c3256eeffcedfe866ed5f3b10d2e89/src/grpc/transport/http2_server_connection.cr#L165" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/86a9418586034b6e87f5f69abd939f86d7a2b00a/src/grpc/transport/http2_server_connection.cr#L143" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -933,7 +925,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/5a99f0da79c3256eeffcedfe866ed5f3b10d2e89/src/grpc/transport/http2_server_connection.cr#L190" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/86a9418586034b6e87f5f69abd939f86d7a2b00a/src/grpc/transport/http2_server_connection.cr#L168" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -949,7 +941,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/5a99f0da79c3256eeffcedfe866ed5f3b10d2e89/src/grpc/transport/http2_server_connection.cr#L214" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/86a9418586034b6e87f5f69abd939f86d7a2b00a/src/grpc/transport/http2_server_connection.cr#L192" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -965,7 +957,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/5a99f0da79c3256eeffcedfe866ed5f3b10d2e89/src/grpc/transport/http2_server_connection.cr#L239" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/86a9418586034b6e87f5f69abd939f86d7a2b00a/src/grpc/transport/http2_server_connection.cr#L217" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -981,7 +973,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/5a99f0da79c3256eeffcedfe866ed5f3b10d2e89/src/grpc/transport/http2_server_connection.cr#L297" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/86a9418586034b6e87f5f69abd939f86d7a2b00a/src/grpc/transport/http2_server_connection.cr#L275" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -997,7 +989,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/5a99f0da79c3256eeffcedfe866ed5f3b10d2e89/src/grpc/transport/http2_server_connection.cr#L201" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/86a9418586034b6e87f5f69abd939f86d7a2b00a/src/grpc/transport/http2_server_connection.cr#L179" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1013,7 +1005,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/5a99f0da79c3256eeffcedfe866ed5f3b10d2e89/src/grpc/transport/http2_server_connection.cr#L271" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/86a9418586034b6e87f5f69abd939f86d7a2b00a/src/grpc/transport/http2_server_connection.cr#L249" target="_blank">View source</a>]
         
       </div>
     </div>
