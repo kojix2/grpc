@@ -14,22 +14,12 @@ module GRPC
       property data : Bytes
       property offset : Int32
       property stream_id : Int32
-      # Keep the strings alive so that the Nv pointers inside the callback
-      # remain valid for the duration of the submit_trailer call.
-      property status_name : String
-      property status_value : String
-      property message_name : String
-      property message_value : String
-      property details_name : String?
-      property details_value : String?
+      # Keep trailer strings alive so Nv pointers remain valid during submit_trailer.
+      property trailer_entries : Array(Tuple(String, String))
 
       def initialize(@data : Bytes, @stream_id : Int32,
-                     @status_value : String, @message_value : String,
-                     @details_value : String? = nil)
+                     @trailer_entries : Array(Tuple(String, String)))
         @offset = 0
-        @status_name = "grpc-status"
-        @message_name = "grpc-message"
-        @details_name = @details_value ? "grpc-status-details-bin" : nil
       end
 
       def remaining : Int32
@@ -90,24 +80,12 @@ module GRPC
           data_flags.value |= LibNghttp2::DATA_FLAG_EOF | LibNghttp2::DATA_FLAG_NO_END_STREAM
           # Submit trailers from inside the callback (safe per nghttp2 docs).
           trailer_nva = [] of LibNghttp2::Nv
-          sn = ctx.status_name.to_slice
-          sv = ctx.status_value.to_slice
-          trailer_nva << LibNghttp2::Nv.new(name: sn.to_unsafe, value: sv.to_unsafe,
-            namelen: sn.size, valuelen: sv.size,
-            flags: LibNghttp2::NV_FLAG_NONE)
-          mn = ctx.message_name.to_slice
-          mv = ctx.message_value.to_slice
-          trailer_nva << LibNghttp2::Nv.new(name: mn.to_unsafe, value: mv.to_unsafe,
-            namelen: mn.size, valuelen: mv.size,
-            flags: LibNghttp2::NV_FLAG_NONE)
-          if details_name = ctx.details_name
-            if details_value = ctx.details_value
-              dn = details_name.to_slice
-              dv = details_value.to_slice
-              trailer_nva << LibNghttp2::Nv.new(name: dn.to_unsafe, value: dv.to_unsafe,
-                namelen: dn.size, valuelen: dv.size,
-                flags: LibNghttp2::NV_FLAG_NONE)
-            end
+          ctx.trailer_entries.each do |name, value|
+            name_slice = name.to_slice
+            value_slice = value.to_slice
+            trailer_nva << LibNghttp2::Nv.new(name: name_slice.to_unsafe, value: value_slice.to_unsafe,
+              namelen: name_slice.size, valuelen: value_slice.size,
+              flags: LibNghttp2::NV_FLAG_NONE)
           end
           rc = LibNghttp2.submit_trailer(session, stream_id, trailer_nva.to_unsafe, trailer_nva.size)
           next LibNghttp2::ERR_CALLBACK_FAILURE.to_i64 if rc < 0
@@ -148,7 +126,7 @@ module GRPC
       # stream_id => queued response chunks waiting for prior DATA send completion
       @stream_pending_chunks : Hash(Int32, Deque(Bytes))
       # stream_id => terminal trailers deferred until all DATA frames are sent
-      @stream_pending_trailers : Hash(Int32, Status)
+      @stream_pending_trailers : Hash(Int32, {Status, Metadata})
       # stream_id => whether a DATA frame is currently in flight
       @stream_data_in_flight : Set(Int32)
       # stream_id => live request-streaming state
@@ -175,7 +153,7 @@ module GRPC
         @stream_send_bufs = {} of Int32 => SendBuffer
         @stream_send_boxes = {} of Int32 => Array(Void*)
         @stream_pending_chunks = {} of Int32 => Deque(Bytes)
-        @stream_pending_trailers = {} of Int32 => Status
+        @stream_pending_trailers = {} of Int32 => {Status, Metadata}
         @stream_data_in_flight = Set(Int32).new
         @live_request_states = {} of Int32 => LiveRequestState
         @stream_contexts = {} of Int32 => ServerContext
@@ -308,8 +286,8 @@ module GRPC
           end
           if chunk = next_chunk
             submit_stream_chunk_now(stream_id, chunk, flush: false)
-          elsif trailer = @stream_pending_trailers.delete(stream_id)
-            submit_stream_trailers_now(stream_id, trailer, flush: false)
+          elsif pending = @stream_pending_trailers.delete(stream_id)
+            submit_stream_trailers_now(stream_id, pending[0], pending[1], flush: false)
           end
         end
       end
@@ -377,7 +355,7 @@ module GRPC
           if err = state.error_status
             send_error(stream_id, err.code, err.message)
           else
-            send_response(stream_id, response_bytes, status)
+            send_response(stream_id, response_bytes, status, ctx.trailing_metadata)
           end
         when :bidi
           send_stream_headers(stream_id)
@@ -385,7 +363,7 @@ module GRPC
             send_stream_chunk(stream_id, framed)
           })
           status = dispatch_bidi_stream(method_name, state.requests, ctx, writer, service)
-          send_stream_trailers(stream_id, state.error_status || status)
+          send_stream_trailers(stream_id, state.error_status || status, ctx.trailing_metadata)
         else
           send_error(stream_id, StatusCode::UNIMPLEMENTED, "unknown streaming kind")
         end
@@ -413,7 +391,7 @@ module GRPC
             send_stream_chunk(stream_id, framed)
           })
           status = dispatch_server_stream(method_name, decoded, ctx, writer, service)
-          send_stream_trailers(stream_id, status)
+          send_stream_trailers(stream_id, status, ctx.trailing_metadata)
         else
           dispatch_unary(stream_id, method_name, request_bytes, ctx, service)
         end
@@ -476,7 +454,7 @@ module GRPC
         if @interceptors.empty?
           response_bytes, status = service.dispatch(method_name, decoded, ctx)
           ctx.check_active!
-          send_response(stream_id, response_bytes, status)
+          send_response(stream_id, response_bytes, status, ctx.trailing_metadata)
         else
           full_path = "/#{service.service_full_name}/#{method_name}"
           info = CallInfo.new(full_path, RPCKind::Unary)
@@ -488,7 +466,9 @@ module GRPC
           chain = Interceptors.build_server_chain(@interceptors, base)
           response = chain.call(full_path, request, ctx)
           ctx.check_active!
-          send_response(stream_id, response.raw, response.status)
+          trailers = ctx.trailing_metadata.dup
+          trailers.merge!(response.trailing_metadata)
+          send_response(stream_id, response.raw, response.status, trailers)
         end
       end
 
@@ -535,36 +515,38 @@ module GRPC
         flush_send if flush
       end
 
-      private def send_stream_trailers(stream_id : Int32, status : Status) : Nil
+      private def send_stream_trailers(stream_id : Int32, status : Status,
+                                       trailers : Metadata = Metadata.new) : Nil
         @mutex.synchronize do
           return if @closed || @session.null? || stream_terminated?(stream_id)
           if @stream_data_in_flight.includes?(stream_id) || @stream_pending_chunks[stream_id]?
-            @stream_pending_trailers[stream_id] = status
+            @stream_pending_trailers[stream_id] = {status, trailers.dup}
           else
-            submit_stream_trailers_now(stream_id, status, flush: true)
+            submit_stream_trailers_now(stream_id, status, trailers, flush: true)
           end
         end
       end
 
-      private def submit_stream_trailers_now(stream_id : Int32, status : Status, flush : Bool) : Nil
+      private def submit_stream_trailers_now(stream_id : Int32, status : Status,
+                                             trailers : Metadata, flush : Bool) : Nil
         return if @closed || @session.null? || stream_terminated?(stream_id)
         mark_stream_terminated(stream_id)
-        trailer_nva = build_status_trailers(status)
+        trailer_entries = build_trailer_entries(status, trailers)
+        trailer_nva = build_trailer_nva(trailer_entries)
         rc = LibNghttp2.submit_trailer(@session, stream_id, trailer_nva.to_unsafe, trailer_nva.size)
         raise_submit_error("submit_trailer", rc) if rc < 0
         flush_send if flush
       end
 
-      private def send_response(stream_id : Int32, body : Bytes, status : Status) : Nil
+      private def send_response(stream_id : Int32, body : Bytes, status : Status,
+                                trailers : Metadata = Metadata.new) : Nil
         @mutex.synchronize do
           return if @closed || @session.null? || stream_terminated?(stream_id)
           mark_stream_terminated(stream_id)
           framed = Codec.encode(body)
+          trailer_entries = build_trailer_entries(status, trailers)
           resp_ctx = ResponseContext.new(
-            framed, stream_id,
-            status.code.value.to_s,
-            percent_encode(status.message),
-            TrailerCodec.encode_bin(status.details)
+            framed, stream_id, trailer_entries
           )
           @response_ctxs[stream_id] = resp_ctx
 
@@ -596,22 +578,28 @@ module GRPC
             nva.to_unsafe, nva.size, nil)
           raise_submit_error("submit_headers", headers_rc) if headers_rc < 0
 
-          trailer_nva = build_status_trailers(Status.new(code, message))
+          trailer_entries = build_trailer_entries(Status.new(code, message), Metadata.new)
+          trailer_nva = build_trailer_nva(trailer_entries)
           trailer_rc = LibNghttp2.submit_trailer(@session, stream_id, trailer_nva.to_unsafe, trailer_nva.size)
           raise_submit_error("submit_trailer", trailer_rc) if trailer_rc < 0
           flush_send
         end
       end
 
-      private def build_status_trailers(status : Status) : Array(LibNghttp2::Nv)
+      private def build_trailer_entries(status : Status, metadata : Metadata) : Array(Tuple(String, String))
         trailers = [
-          make_nv("grpc-status", status.code.value.to_s),
-          make_nv("grpc-message", percent_encode(status.message)),
-        ] of LibNghttp2::Nv
+          {"grpc-status", status.code.value.to_s},
+          {"grpc-message", percent_encode(status.message)},
+        ] of Tuple(String, String)
         if encoded_details = TrailerCodec.encode_bin(status.details)
-          trailers << make_nv("grpc-status-details-bin", encoded_details)
+          trailers << {"grpc-status-details-bin", encoded_details}
         end
+        metadata.each_wire { |key, value| trailers << {key, value} }
         trailers
+      end
+
+      private def build_trailer_nva(entries : Array(Tuple(String, String))) : Array(LibNghttp2::Nv)
+        entries.map { |name, value| make_nv(name, value) }
       end
 
       # ---- Helpers ----

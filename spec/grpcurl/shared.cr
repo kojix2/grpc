@@ -133,7 +133,7 @@ class E2EProbeService < GRPC::Service
   end
 
   def server_streaming?(method : String) : Bool
-    method == "ServerStream"
+    method == "ServerStream" || method == "ServerStreamFailAfterTwo"
   end
 
   def dispatch_server_stream(
@@ -150,6 +150,15 @@ class E2EProbeService < GRPC::Service
         writer.send_raw(E2EProto.encode_string("stream:#{i}:#{input}"))
       end
       GRPC::Status.ok
+    when "ServerStreamFailAfterTwo"
+      input = E2EProto.decode_string(request_body)
+      observe(method, input, ctx)
+      2.times do |i|
+        writer.send_raw(E2EProto.encode_string("stream-fail:#{i}:#{input}"))
+      end
+      ctx.trailing_metadata.set("x-e2e-trailer", "server-stream-failed")
+      ctx.trailing_metadata.set("x-e2e-count", "2")
+      GRPC::Status.new(GRPC::StatusCode::INTERNAL, "stream exploded:#{input}")
     else
       observe(method, "", ctx)
       GRPC::Status.unimplemented("unknown method")
@@ -179,7 +188,7 @@ class E2EProbeService < GRPC::Service
   end
 
   def bidi_streaming?(method : String) : Bool
-    method == "BidiStream"
+    method == "BidiStream" || method == "BidiStreamFailAfterTwo"
   end
 
   def dispatch_bidi_stream(
@@ -200,6 +209,20 @@ class E2EProbeService < GRPC::Service
       end
       observe(method, parts.join(","), ctx)
       GRPC::Status.ok
+    when "BidiStreamFailAfterTwo"
+      idx = 0
+      parts = [] of String
+      requests.each do |body|
+        input = E2EProto.decode_string(body)
+        parts << input
+        writer.send_raw(E2EProto.encode_string("bidi-fail:#{idx}:#{input}"))
+        idx += 1
+        break if idx >= 2
+      end
+      observe(method, parts.join(","), ctx)
+      ctx.trailing_metadata.set("x-e2e-trailer", "bidi-failed")
+      ctx.trailing_metadata.set("x-e2e-count", idx.to_s)
+      GRPC::Status.new(GRPC::StatusCode::RESOURCE_EXHAUSTED, "bidi limit reached")
     else
       observe(method, "", ctx)
       GRPC::Status.unimplemented("unknown method")
@@ -415,8 +438,10 @@ module E2EReflectionWire
       {"UnaryFail", false, false},
       {"SlowUnary", false, false},
       {"ServerStream", false, true},
+      {"ServerStreamFailAfterTwo", false, true},
       {"ClientStream", true, false},
       {"BidiStream", true, true},
+      {"BidiStreamFailAfterTwo", true, true},
     ]
 
     methods.each do |name, client_streaming, server_streaming|

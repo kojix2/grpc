@@ -154,6 +154,39 @@ describe "grpcurl e2e proto source" do
     end
   end
 
+  it "prints streamed messages before final INTERNAL status and exposes trailers" do
+    next unless grpcurl_available?
+
+    port = find_free_port
+    server = GRPC::Server.new
+    server.handle E2EProbeService.new
+    server.bind("127.0.0.1:#{port}")
+    server.start
+
+    begin
+      wait_for_server(port)
+      args = grpcurl_call_args(
+        port,
+        "e2e.Probe/ServerStreamFailAfterTwo",
+        ["-v", "-d", "{\"message\":\"boom\"}"],
+      )
+      status, stdout_text, stderr_text = run_grpcurl(args)
+      raise "expected grpc error but got success" if status.success?
+
+      stdout_text.should contain("stream-fail:0:boom")
+      stdout_text.should contain("stream-fail:1:boom")
+      stdout_text.downcase.should contain("response trailers received:")
+      stdout_text.downcase.should contain("x-e2e-trailer: server-stream-failed")
+      stdout_text.downcase.should contain("x-e2e-count: 2")
+
+      detail = stderr_text.downcase
+      detail.should contain("code: internal")
+      detail.should contain("message: stream exploded:boom")
+    ensure
+      server.stop
+    end
+  end
+
   it "sends multiple messages to client-streaming call" do
     next unless grpcurl_available?
 
@@ -200,6 +233,40 @@ describe "grpcurl e2e proto source" do
       raise "grpcurl failed: #{err}\nstdout: #{out}" unless status.success?
       out.should contain("bidi:0:x")
       out.should contain("bidi:1:y")
+    ensure
+      server.stop
+    end
+  end
+
+  it "prints partial bidi responses before final RESOURCE_EXHAUSTED and exposes trailers" do
+    next unless grpcurl_available?
+
+    port = find_free_port
+    server = GRPC::Server.new
+    server.handle E2EProbeService.new
+    server.bind("127.0.0.1:#{port}")
+    server.start
+
+    begin
+      wait_for_server(port)
+      payload = %({"message":"x"}\n{"message":"y"}\n{"message":"z"})
+      args = grpcurl_call_args(
+        port,
+        "e2e.Probe/BidiStreamFailAfterTwo",
+        ["-v", "-d", payload],
+      )
+      status, stdout_text, stderr_text = run_grpcurl(args)
+      raise "expected grpc error but got success" if status.success?
+
+      stdout_text.should contain("bidi-fail:0:x")
+      stdout_text.should contain("bidi-fail:1:y")
+      stdout_text.downcase.should contain("response trailers received:")
+      stdout_text.downcase.should contain("x-e2e-trailer: bidi-failed")
+      stdout_text.downcase.should contain("x-e2e-count: 2")
+
+      detail = stderr_text.downcase
+      detail.should contain("code: resourceexhausted")
+      detail.should contain("message: bidi limit reached")
     ensure
       server.stop
     end

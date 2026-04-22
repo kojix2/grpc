@@ -10,11 +10,13 @@ module GRPC
   class ServerContext
     getter metadata : Metadata
     getter peer : String
+    getter trailing_metadata : Metadata
     property deadline : Time?
 
     @cancelled : Atomic(Bool)
 
     def initialize(@peer : String, @metadata : Metadata = Metadata.new, @deadline : Time? = nil)
+      @trailing_metadata = Metadata.new
       @cancelled = Atomic(Bool).new(false)
     end
 

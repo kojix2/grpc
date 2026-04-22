@@ -6,8 +6,10 @@ service Probe {
   rpc UnaryFail(EchoRequest) returns (EchoReply);
   rpc SlowUnary(EchoRequest) returns (EchoReply);
   rpc ServerStream(EchoRequest) returns (stream EchoReply);
+  rpc ServerStreamFailAfterTwo(EchoRequest) returns (stream EchoReply);
   rpc ClientStream(stream EchoRequest) returns (EchoReply);
   rpc BidiStream(stream EchoRequest) returns (stream EchoReply);
+  rpc BidiStreamFailAfterTwo(stream EchoRequest) returns (stream EchoReply);
 }
 
 message EchoRequest {
