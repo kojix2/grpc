@@ -1,5 +1,5 @@
 require "socket"
-require "./proto_helpers"
+require "../support/proto_helpers"
 
 MISSING_GRPCURL_MSG = "grpcurl is not installed; skipping e2e tests"
 

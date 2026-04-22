@@ -1,5 +1,5 @@
 require "../spec_helper"
-require "./grpcurl_shared"
+require "./shared"
 
 describe "grpcurl e2e proto source" do
   it "invokes unary success and returns expected payload" do

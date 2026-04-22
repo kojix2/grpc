@@ -1,7 +1,7 @@
 require "http/client"
 require "json"
 require "socket"
-require "./proto_helpers"
+require "../support/proto_helpers"
 
 MISSING_GRIPMOCK_MSG = "gripmock is not available; failing gripmock client e2e tests"
 GRIPMOCK_ADMIN_MSG   = "gripmock admin API is not available; failing gripmock client e2e tests"

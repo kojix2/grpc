@@ -1,3 +1,3 @@
 require "./spec_helper"
-require "./e2e/grpcurl_proto_source"
-require "./e2e/grpcurl_reflection"
+require "./grpcurl/proto_source"
+require "./grpcurl/reflection"
