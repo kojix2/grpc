@@ -794,31 +794,36 @@ describe GRPC do
     it "returns SERVING for empty service by default" do
       service = GRPC::Health::Service.new
       ctx = GRPC::ServerContext.new("peer")
+      request = Grpc::Health::V1::HealthCheckRequest.new
 
-      body, status = service.dispatch("Check", GRPC::Health::CheckRequest.new.encode, ctx)
+      body, status = service.dispatch("Check", request.encode, ctx)
       status.should eq(GRPC::Status.ok)
-      GRPC::Health::CheckResponse.decode(body).status.should eq(GRPC::Health::ServingStatus::SERVING)
+      response = Grpc::Health::V1::HealthCheckResponse.decode(body)
+      GRPC::Health.serving_status_from_wire(response.status).should eq(GRPC::Health::ServingStatus::SERVING)
     end
 
-    it "returns SERVICE_UNKNOWN when named service has no status" do
+    it "returns NOT_FOUND when named service has no status" do
       service = GRPC::Health::Service.new
       ctx = GRPC::ServerContext.new("peer")
-      req = GRPC::Health::CheckRequest.new("my.service")
+      req = Grpc::Health::V1::HealthCheckRequest.new
+      req.service = "my.service"
 
       body, status = service.dispatch("Check", req.encode, ctx)
-      status.should eq(GRPC::Status.ok)
-      GRPC::Health::CheckResponse.decode(body).status.should eq(GRPC::Health::ServingStatus::SERVICE_UNKNOWN)
+      body.should be_empty
+      status.should eq(GRPC::Status.not_found("unknown service my.service"))
     end
 
     it "returns configured status for named service" do
       service = GRPC::Health::Service.new
-      service.set_status("my.service", GRPC::Health::ServingStatus::NOT_SERVING)
+      service.reporter.set_status("my.service", GRPC::Health::ServingStatus::NOT_SERVING)
       ctx = GRPC::ServerContext.new("peer")
-      req = GRPC::Health::CheckRequest.new("my.service")
+      req = Grpc::Health::V1::HealthCheckRequest.new
+      req.service = "my.service"
 
       body, status = service.dispatch("Check", req.encode, ctx)
       status.should eq(GRPC::Status.ok)
-      GRPC::Health::CheckResponse.decode(body).status.should eq(GRPC::Health::ServingStatus::NOT_SERVING)
+      response = Grpc::Health::V1::HealthCheckResponse.decode(body)
+      GRPC::Health.serving_status_from_wire(response.status).should eq(GRPC::Health::ServingStatus::NOT_SERVING)
     end
 
     it "treats Watch as server-streaming" do
@@ -827,21 +832,54 @@ describe GRPC do
       service.server_streaming?("Check").should be_false
     end
 
-    it "Watch sends one initial status and returns OK" do
+    it "Watch sends initial unknown status, then updates, until cancelled" do
       service = GRPC::Health::Service.new
-      service.set_status("my.service", GRPC::Health::ServingStatus::NOT_SERVING)
       ctx = GRPC::ServerContext.new("peer")
-      req = GRPC::Health::CheckRequest.new("my.service")
-      sent = [] of Bytes
-      writer = GRPC::RawResponseStream.new(->(bytes : Bytes) { sent << bytes; nil })
+      req = Grpc::Health::V1::HealthCheckRequest.new
+      req.service = "my.service"
+      sent = ::Channel(Bytes).new(2)
+      writer = GRPC::RawResponseStream.new(->(bytes : Bytes) { sent.send(bytes); nil })
+      done = ::Channel(GRPC::Status).new(1)
 
-      status = service.dispatch_server_stream("Watch", req.encode, ctx, writer)
+      spawn do
+        done.send(service.dispatch_server_stream("Watch", req.encode, ctx, writer))
+      end
+
+      first_frame = sent.receive
+      body, consumed = GRPC::Codec.decode(first_frame)
+      consumed.should eq(first_frame.size)
+      response = Grpc::Health::V1::HealthCheckResponse.decode(body)
+      GRPC::Health.serving_status_from_wire(response.status).should eq(GRPC::Health::ServingStatus::SERVICE_UNKNOWN)
+
+      service.reporter.set_status("my.service", GRPC::Health::ServingStatus::NOT_SERVING)
+
+      second_frame = sent.receive
+      body, consumed = GRPC::Codec.decode(second_frame)
+      consumed.should eq(second_frame.size)
+      response = Grpc::Health::V1::HealthCheckResponse.decode(body)
+      GRPC::Health.serving_status_from_wire(response.status).should eq(GRPC::Health::ServingStatus::NOT_SERVING)
+
+      ctx.cancel
+      done.receive.code.should eq(GRPC::StatusCode::CANCELLED)
+    end
+
+    it "lists all currently known health statuses" do
+      service = GRPC::Health::Service.new
+      service.reporter.set_status("my.service", GRPC::Health::ServingStatus::NOT_SERVING)
+      ctx = GRPC::ServerContext.new("peer")
+      request = Grpc::Health::V1::HealthListRequest.new
+
+      body, status = service.dispatch("List", request.encode, ctx)
 
       status.should eq(GRPC::Status.ok)
-      sent.size.should eq(1)
-      body, consumed = GRPC::Codec.decode(sent[0])
-      consumed.should eq(sent[0].size)
-      GRPC::Health::CheckResponse.decode(body).status.should eq(GRPC::Health::ServingStatus::NOT_SERVING)
+      response = Grpc::Health::V1::HealthListResponse.decode(body)
+      statuses = response.statuses.transform_values do |value|
+        GRPC::Health.serving_status_from_wire(value.status)
+      end
+      statuses.should eq({
+        ""           => GRPC::Health::ServingStatus::SERVING,
+        "my.service" => GRPC::Health::ServingStatus::NOT_SERVING,
+      })
     end
 
     describe GRPC::Reflection::Service do
@@ -969,19 +1007,47 @@ describe GRPC do
     it "registers health service via enable_health_checking" do
       server = GRPC::Server.new
 
-      health = server.enable_health_checking
+      reporter = server.enable_health_checking
+      health = server.health_service?
+      fail("expected health service to be registered") unless health
 
       health.service_full_name.should eq("grpc.health.v1.Health")
+      reporter.should be(server.health_reporter?)
       server.health_service?.should be(health)
     end
 
-    it "reuses existing health service on repeated calls" do
+    it "reuses existing health reporter on repeated calls" do
       server = GRPC::Server.new
 
       first = server.enable_health_checking
       second = server.enable_health_checking(default_status: GRPC::Health::ServingStatus::NOT_SERVING)
 
       second.should be(first)
+    end
+
+    it "marks health statuses as NOT_SERVING on stop" do
+      server = GRPC::Server.new
+      reporter = server.enable_health_checking
+      reporter.set_status("my.service", GRPC::Health::ServingStatus::SERVING)
+
+      server.stop
+
+      health = server.health_service?
+      fail("expected health service to remain accessible") unless health
+
+      body, status = health.dispatch(
+        "Check",
+        begin
+          request = Grpc::Health::V1::HealthCheckRequest.new
+          request.service = "my.service"
+          request.encode
+        end,
+        GRPC::ServerContext.new("peer")
+      )
+
+      status.should eq(GRPC::Status.ok)
+      response = Grpc::Health::V1::HealthCheckResponse.decode(body)
+      GRPC::Health.serving_status_from_wire(response.status).should eq(GRPC::Health::ServingStatus::NOT_SERVING)
     end
   end
 

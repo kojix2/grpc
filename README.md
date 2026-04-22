@@ -140,6 +140,18 @@ puts reply.message
 channel.close
 ```
 
+## Health Checking
+
+`enable_health_checking` registers the built-in `grpc.health.v1.Health` service and returns a reporter for status updates.
+
+```crystal
+server = GRPC::Server.new
+reporter = server.enable_health_checking
+
+reporter.set_status("", GRPC::Health::ServingStatus::SERVING)
+reporter.set_status(Helloworld::Greeter::FULL_NAME, GRPC::Health::ServingStatus::SERVING)
+```
+
 ## Metadata, Deadlines, and Errors
 
 Client context with metadata and deadline:

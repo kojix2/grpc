@@ -1,208 +1,203 @@
+require "./health/v1/health.pb"
+require "./health/v1/health.grpc"
+
 module GRPC
   module Health
-    enum ServingStatus : Int32
-      UNKNOWN         = 0
-      SERVING         = 1
-      NOT_SERVING     = 2
-      SERVICE_UNKNOWN = 3
+    alias ServingStatus = ::Grpc::Health::V1::HealthCheckResponse::ServingStatus
+
+    def self.generated_check_response(status : ServingStatus) : ::Grpc::Health::V1::HealthCheckResponse
+      response = ::Grpc::Health::V1::HealthCheckResponse.new
+      response.status = Proto::OpenEnum(ServingStatus).new(status)
+      response
     end
 
-    struct CheckRequest
-      getter service : String
-
-      def initialize(@service : String = "")
-      end
-
-      def encode : Bytes
-        return Bytes.empty if @service.empty?
-
-        io = IO::Memory.new
-        Health.write_varint(io, 10_u64) # field 1, length-delimited
-        value = @service.to_slice
-        Health.write_varint(io, value.size.to_u64)
-        io.write(value)
-        io.to_slice
-      end
-
-      def self.decode(bytes : Bytes) : self
-        cursor = 0
-        service = ""
-
-        while cursor < bytes.size
-          tag, cursor = Health.read_varint(bytes, cursor)
-          field_number = (tag >> 3).to_i32
-          wire_type = (tag & 0x7_u64).to_i32
-
-          if field_number == 1 && wire_type == 2
-            len, cursor = Health.read_varint(bytes, cursor)
-            length = len.to_i
-            Health.ensure_length!(bytes, cursor, length)
-            service = String.new(bytes[cursor, length])
-            cursor += length
-          else
-            cursor = Health.skip_field(bytes, cursor, wire_type)
-          end
-        end
-
-        new(service)
-      end
+    def self.serving_status_from_wire(status : Proto::OpenEnum(ServingStatus)) : ServingStatus
+      status.known || ServingStatus::UNKNOWN
     end
 
-    struct CheckResponse
-      getter status : ServingStatus
-
-      def initialize(@status : ServingStatus)
-      end
-
-      def encode : Bytes
-        io = IO::Memory.new
-        Health.write_varint(io, 8_u64) # field 1, varint
-        Health.write_varint(io, @status.value.to_u64)
-        io.to_slice
-      end
-
-      def self.decode(bytes : Bytes) : self
-        cursor = 0
-        status = ServingStatus::UNKNOWN
-
-        while cursor < bytes.size
-          tag, cursor = Health.read_varint(bytes, cursor)
-          field_number = (tag >> 3).to_i32
-          wire_type = (tag & 0x7_u64).to_i32
-
-          if field_number == 1 && wire_type == 0
-            raw_value, cursor = Health.read_varint(bytes, cursor)
-            value = raw_value.to_i32
-            status = ServingStatus.from_value?(value) || ServingStatus::UNKNOWN
-          else
-            cursor = Health.skip_field(bytes, cursor, wire_type)
-          end
-        end
-
-        new(status)
-      end
-    end
-
-    def self.write_varint(io : IO, value : UInt64) : Nil
-      current = value
-      loop do
-        byte = (current & 0x7F_u64).to_u8
-        current >>= 7
-        if current == 0_u64
-          io.write_byte(byte)
-          break
-        else
-          io.write_byte(byte | 0x80_u8)
-        end
-      end
-    end
-
-    def self.read_varint(bytes : Bytes, start : Int32) : {UInt64, Int32}
-      result = 0_u64
-      shift = 0
-      cursor = start
-
-      while cursor < bytes.size
-        byte = bytes[cursor]
-        cursor += 1
-        result |= ((byte & 0x7F_u8).to_u64 << shift)
-        return {result, cursor} if (byte & 0x80_u8) == 0_u8
-        shift += 7
-        raise ArgumentError.new("malformed varint") if shift >= 64
-      end
-
-      raise ArgumentError.new("truncated varint")
-    end
-
-    def self.skip_field(bytes : Bytes, start : Int32, wire_type : Int32) : Int32
-      case wire_type
-      when 0
-        _, cursor = read_varint(bytes, start)
-        cursor
-      when 1
-        Health.ensure_length!(bytes, start, 8)
-        start + 8
-      when 2
-        len, cursor = Health.read_varint(bytes, start)
-        length = len.to_i
-        Health.ensure_length!(bytes, cursor, length)
-        cursor + length
-      when 5
-        Health.ensure_length!(bytes, start, 4)
-        start + 4
-      else
-        raise ArgumentError.new("unsupported wire type: #{wire_type}")
-      end
-    end
-
-    def self.ensure_length!(bytes : Bytes, start : Int32, length : Int32) : Nil
-      if length < 0 || start < 0 || start + length > bytes.size
-        raise ArgumentError.new("truncated message")
-      end
-    end
-
-    # Minimal standard health checking service.
-    # This step intentionally implements unary Check only (no Watch yet).
-    class Service < GRPC::Service
-      SERVICE_FULL_NAME = "grpc.health.v1.Health"
-
+    class Registry
+      @mutex : Mutex
       @statuses : Hash(String, ServingStatus)
-      @default_status : ServingStatus
+      @watchers : Hash(String, Array(::Channel(ServingStatus)))
+      @overall_default_status : ServingStatus
 
       def initialize(default_status : ServingStatus = ServingStatus::SERVING)
-        @statuses = {} of String => ServingStatus
-        @default_status = default_status
+        @mutex = Mutex.new
+        @statuses = {"" => default_status} of String => ServingStatus
+        @watchers = {} of String => Array(::Channel(ServingStatus))
+        @overall_default_status = default_status
       end
 
-      def service_full_name : String
-        SERVICE_FULL_NAME
+      def check_status(service : String) : ServingStatus?
+        @mutex.synchronize do
+          @statuses[normalize_service_name(service)]?
+        end
+      end
+
+      def list_statuses : Hash(String, ServingStatus)
+        @mutex.synchronize do
+          @statuses.dup
+        end
+      end
+
+      def subscribe(service : String) : {::Channel(ServingStatus), ServingStatus}
+        normalized = normalize_service_name(service)
+
+        @mutex.synchronize do
+          channel = ::Channel(ServingStatus).new(8)
+          watchers = @watchers[normalized]? || begin
+            created = [] of ::Channel(ServingStatus)
+            @watchers[normalized] = created
+            created
+          end
+          watchers << channel
+          {channel, @statuses[normalized]? || ServingStatus::SERVICE_UNKNOWN}
+        end
+      end
+
+      def unsubscribe(service : String, channel : ::Channel(ServingStatus)) : Nil
+        normalized = normalize_service_name(service)
+        @mutex.synchronize do
+          return unless watchers = @watchers[normalized]?
+          watchers.delete(channel)
+          @watchers.delete(normalized) if watchers.empty?
+        end
+      end
+
+      def set_status(service : String, status : ServingStatus) : Nil
+        normalized = normalize_service_name(service)
+        watchers = [] of ::Channel(ServingStatus)
+
+        changed = @mutex.synchronize do
+          previous = @statuses[normalized]?
+          next false if previous == status
+
+          @statuses[normalized] = status
+          watchers = (@watchers[normalized]? || [] of ::Channel(ServingStatus)).dup
+          true
+        end
+
+        notify_watchers(watchers, status) if changed
+      end
+
+      def clear_status(service : String) : Nil
+        normalized = normalize_service_name(service)
+        return set_status("", @overall_default_status) if normalized.empty?
+
+        watchers = [] of ::Channel(ServingStatus)
+        cleared = @mutex.synchronize do
+          removed = @statuses.delete(normalized)
+          watchers = (@watchers[normalized]? || [] of ::Channel(ServingStatus)).dup
+          !removed.nil?
+        end
+
+        notify_watchers(watchers, ServingStatus::SERVICE_UNKNOWN) if cleared
+      end
+
+      def set_all_not_serving : Nil
+        notifications = [] of {Array(::Channel(ServingStatus)), ServingStatus}
+
+        @mutex.synchronize do
+          @statuses.each do |service, current|
+            next if current == ServingStatus::NOT_SERVING
+
+            @statuses[service] = ServingStatus::NOT_SERVING
+            watchers = (@watchers[service]? || [] of ::Channel(ServingStatus)).dup
+            notifications << {watchers, ServingStatus::NOT_SERVING}
+          end
+        end
+
+        notifications.each do |watchers, status|
+          notify_watchers(watchers, status)
+        end
+      end
+
+      private def notify_watchers(watchers : Array(::Channel(ServingStatus)), status : ServingStatus) : Nil
+        watchers.each do |watcher|
+          watcher.send(status)
+        rescue
+        end
+      end
+
+      private def normalize_service_name(service : String) : String
+        service
+      end
+    end
+
+    class Reporter
+      def initialize(@registry : Registry)
       end
 
       def set_status(service : String, status : ServingStatus) : self
-        @statuses[service] = status
+        @registry.set_status(service, status)
         self
       end
 
       def clear_status(service : String) : self
-        @statuses.delete(service)
+        @registry.clear_status(service)
         self
       end
 
-      def server_streaming?(method : String) : Bool
-        method == "Watch"
+      def set_all_not_serving : self
+        @registry.set_all_not_serving
+        self
       end
 
-      def dispatch_server_stream(method : String, request_body : Bytes,
-                                 ctx : ServerContext, writer : RawResponseStream) : Status
+      def shutdown! : self
+        set_all_not_serving
+      end
+    end
+
+    # Built-in standard health checking service.
+    # State is owned by Registry/Reporter; Service only serves RPCs.
+    class Service < ::Grpc::Health::V1::Health::Service
+      SERVICE_FULL_NAME           = ::Grpc::Health::V1::Health::FULL_NAME
+      FILE_DESCRIPTOR_PROTO_BYTES = ::Grpc::Health::V1::Health::FILE_DESCRIPTOR_PROTO_BYTES
+
+      getter reporter : Reporter
+
+      def initialize(default_status : ServingStatus = ServingStatus::SERVING)
+        @registry = Registry.new(default_status)
+        @reporter = Reporter.new(@registry)
+      end
+
+      def check(request : ::Grpc::Health::V1::HealthCheckRequest, ctx : GRPC::ServerContext) : ::Grpc::Health::V1::HealthCheckResponse
         _ = ctx
-        case method
-        when "Watch"
-          request = CheckRequest.decode(request_body)
-          writer.send_raw(CheckResponse.new(resolve_status(request.service)).encode)
-          Status.ok
+        if status = @registry.check_status(request.service)
+          Health.generated_check_response(status)
         else
-          Status.unimplemented("method #{method} not found")
+          raise GRPC::StatusError.new(GRPC::Status.not_found("unknown service #{request.service}"))
         end
-      rescue ex
-        Status.invalid_argument(ex.message || "invalid health watch request")
       end
 
-      def dispatch(method : String, request_body : Bytes, ctx : ServerContext) : {Bytes, Status}
+      def list(request : ::Grpc::Health::V1::HealthListRequest, ctx : GRPC::ServerContext) : ::Grpc::Health::V1::HealthListResponse
+        _ = request
         _ = ctx
-        case method
-        when "Check"
-          request = CheckRequest.decode(request_body)
-          {CheckResponse.new(resolve_status(request.service)).encode, Status.ok}
-        else
-          {Bytes.empty, Status.unimplemented("method #{method} not found")}
+        response = ::Grpc::Health::V1::HealthListResponse.new
+        @registry.list_statuses.each do |service, status|
+          response.statuses[service] = Health.generated_check_response(status)
         end
-      rescue ex
-        {Bytes.empty, Status.invalid_argument(ex.message || "invalid health check request")}
+        response
       end
 
-      private def resolve_status(service : String) : ServingStatus
-        return @default_status if service.empty?
-        @statuses[service]? || ServingStatus::SERVICE_UNKNOWN
+      def watch(request : ::Grpc::Health::V1::HealthCheckRequest,
+                writer : GRPC::ResponseStream(::Grpc::Health::V1::HealthCheckResponse),
+                ctx : GRPC::ServerContext) : GRPC::Status
+        subscription, current = @registry.subscribe(request.service)
+        begin
+          writer.send(Health.generated_check_response(current))
+          loop do
+            select
+            when status = subscription.receive
+              ctx.check_active!
+              writer.send(Health.generated_check_response(status))
+            when timeout(100.milliseconds)
+              ctx.check_active!
+            end
+          end
+        ensure
+          @registry.unsubscribe(request.service, subscription)
+        end
       end
     end
   end

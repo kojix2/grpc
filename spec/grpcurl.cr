@@ -1,4 +1,5 @@
 require "./spec_helper"
+require "./grpcurl/health"
 require "./grpcurl/proto_source"
 require "./grpcurl/reflection"
 require "./grpcurl/tls"

@@ -2,15 +2,17 @@ require "openssl"
 require "socket"
 require "../support/proto_helpers"
 
-MISSING_GRPCURL_MSG = "grpcurl is not installed; skipping e2e tests"
-TLS_FIXTURE_DIR     = File.expand_path("../fixtures/tls", __DIR__)
-TLS_GENERATE_SCRIPT = File.join(TLS_FIXTURE_DIR, "generate.sh")
-TLS_CA_CERT         = File.join(TLS_FIXTURE_DIR, "ca.crt")
-TLS_SERVER_CERT     = File.join(TLS_FIXTURE_DIR, "server.crt")
-TLS_SERVER_KEY      = File.join(TLS_FIXTURE_DIR, "server.key")
-TLS_CLIENT_CERT     = File.join(TLS_FIXTURE_DIR, "client.crt")
-TLS_CLIENT_KEY      = File.join(TLS_FIXTURE_DIR, "client.key")
-TLS_FIXTURE_MUTEX   = Mutex.new
+MISSING_GRPCURL_MSG      = "grpcurl is not installed; skipping e2e tests"
+TLS_FIXTURE_DIR          = File.expand_path("../fixtures/tls", __DIR__)
+TLS_GENERATE_SCRIPT      = File.join(TLS_FIXTURE_DIR, "generate.sh")
+TLS_CA_CERT              = File.join(TLS_FIXTURE_DIR, "ca.crt")
+TLS_SERVER_CERT          = File.join(TLS_FIXTURE_DIR, "server.crt")
+TLS_SERVER_KEY           = File.join(TLS_FIXTURE_DIR, "server.key")
+TLS_CLIENT_CERT          = File.join(TLS_FIXTURE_DIR, "client.crt")
+TLS_CLIENT_KEY           = File.join(TLS_FIXTURE_DIR, "client.key")
+TLS_FIXTURE_MUTEX        = Mutex.new
+HEALTH_PROTO_IMPORT_PATH = File.expand_path("../../vendor/grpc-proto", __DIR__)
+HEALTH_PROTO_FILE        = "grpc/health/v1/health.proto"
 
 def grpcurl_available? : Bool
   status = Process.run(
@@ -845,13 +847,15 @@ def grpcurl_call_args(
   method : String,
   flags : Array(String) = [] of String,
   include_proto : Bool = true,
+  import_path : String = File.expand_path("../fixtures/grpcurl", __DIR__),
+  proto : String = "e2e.proto",
 ) : Array(String)
   args = ["-plaintext"]
   if include_proto
     args << "-import-path"
-    args << File.expand_path("../fixtures/grpcurl", __DIR__)
+    args << import_path
     args << "-proto"
-    args << "e2e.proto"
+    args << proto
   end
   args.concat(with_default_grpcurl_timeout(flags))
   args << "127.0.0.1:#{port}"
@@ -881,13 +885,15 @@ def grpcurl_tls_call_args(
   method : String,
   flags : Array(String) = [] of String,
   include_proto : Bool = true,
+  import_path : String = File.expand_path("../fixtures/grpcurl", __DIR__),
+  proto : String = "e2e.proto",
 ) : Array(String)
   args = [] of String
   if include_proto
     args << "-import-path"
-    args << File.expand_path("../fixtures/grpcurl", __DIR__)
+    args << import_path
     args << "-proto"
-    args << "e2e.proto"
+    args << proto
   end
   args.concat(with_default_grpcurl_timeout(flags))
   args << "#{host}:#{port}"

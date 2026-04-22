@@ -25,6 +25,7 @@ module GRPC
     @interceptors : Array(ServerInterceptor)
     @tls_context : OpenSSL::SSL::Context::Server?
     @transport_factory : ServerTransportFactory
+    @health_reporter : Health::Reporter?
     @health_service : Health::Service?
     @reflection_service : Reflection::Service?
     @active_transports : Hash(UInt64, Transport::ServerTransport)
@@ -35,6 +36,7 @@ module GRPC
       @tcp_server = nil
       @interceptors = [] of ServerInterceptor
       @tls_context = nil
+      @health_reporter = nil
       @health_service = nil
       @reflection_service = nil
       @active_transports = {} of UInt64 => Transport::ServerTransport
@@ -48,6 +50,9 @@ module GRPC
     def handle(service : Service) : self
       @services[service.service_full_name] = service
       @reflection_service.try &.register_service(service.service_full_name)
+      if service.is_a?(Health::Service)
+        @reflection_service.try &.add_file_descriptor(Health::Service::FILE_DESCRIPTOR_PROTO_BYTES)
+      end
       self
     end
 
@@ -125,6 +130,8 @@ module GRPC
     end
 
     def stop : Nil
+      @health_reporter.try &.shutdown!
+
       tcp = @tcp_server
       @tcp_server = nil
       tcp.try &.close
@@ -137,17 +144,23 @@ module GRPC
       end
     end
 
-    # enable_health_checking registers the built-in health service and returns it.
+    # enable_health_checking registers the built-in health service and returns its reporter.
     # Calling this multiple times returns the same instance.
-    def enable_health_checking(default_status : Health::ServingStatus = Health::ServingStatus::SERVING) : Health::Service
-      if service = @health_service
-        return service
+    def enable_health_checking(default_status : Health::ServingStatus = Health::ServingStatus::SERVING) : Health::Reporter
+      if reporter = @health_reporter
+        return reporter
       end
 
       service = Health::Service.new(default_status)
       handle(service)
+      @health_reporter = service.reporter
       @health_service = service
-      service
+      service.reporter
+    end
+
+    # Returns the registered health reporter if enabled.
+    def health_reporter? : Health::Reporter?
+      @health_reporter
     end
 
     # Returns the registered health service if enabled.
@@ -165,6 +178,9 @@ module GRPC
       service = Reflection::Service.new
       @services.each_key do |service_name|
         service.register_service(service_name)
+      end
+      if @health_service
+        service.add_file_descriptor(Health::Service::FILE_DESCRIPTOR_PROTO_BYTES)
       end
       handle(service)
       @reflection_service = service
