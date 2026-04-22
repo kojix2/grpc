@@ -24,6 +24,8 @@ module GRPC
       @headers_proc = -> { Metadata.new }
       @finished = false
       @finish_mutex = Mutex.new
+      @cancelled = false
+      @cancel_mutex = Mutex.new
     end
 
     def each(& : Bytes ->) : Nil
@@ -51,6 +53,7 @@ module GRPC
     end
 
     def cancel : Nil
+      return unless mark_cancelled_once
       @cancel_proc.call
       finish_once
     end
@@ -77,6 +80,14 @@ module GRPC
         @finished = true
       end
       @on_finish.call
+    end
+
+    private def mark_cancelled_once : Bool
+      @cancel_mutex.synchronize do
+        return false if @cancelled
+        @cancelled = true
+      end
+      true
     end
   end
 
@@ -107,6 +118,8 @@ module GRPC
     )
       @messages = ::Channel(T | Exception).new(128)
       @status_override = nil
+      @cancelled = false
+      @cancel_mutex = Mutex.new
     end
 
     def each(& : T ->) : Nil
@@ -132,6 +145,7 @@ module GRPC
     end
 
     def cancel : Nil
+      return unless mark_cancelled_once
       @cancel_proc.call
     end
 
@@ -146,6 +160,14 @@ module GRPC
     def finish(status_override : Status? = nil) : Nil
       @status_override = status_override
       @messages.close
+    end
+
+    private def mark_cancelled_once : Bool
+      @cancel_mutex.synchronize do
+        return false if @cancelled
+        @cancelled = true
+      end
+      true
     end
   end
 
@@ -172,6 +194,8 @@ module GRPC
                    @trailers_proc : -> Metadata = -> { Metadata.new },
                    @cancel_proc : -> Nil = -> { })
       @closed = false
+      @cancelled = false
+      @cancel_mutex = Mutex.new
     end
 
     # send transmits a request message to the server.
@@ -193,6 +217,7 @@ module GRPC
     end
 
     def cancel : Nil
+      return unless mark_cancelled_once
       @cancel_proc.call
     end
 
@@ -206,6 +231,14 @@ module GRPC
 
     def trailers : Metadata
       @trailers_proc.call
+    end
+
+    private def mark_cancelled_once : Bool
+      @cancel_mutex.synchronize do
+        return false if @cancelled
+        @cancelled = true
+      end
+      true
     end
   end
 
@@ -237,6 +270,8 @@ module GRPC
                    @trailers_proc : -> Metadata = -> { Metadata.new },
                    @cancel_proc : -> Nil = -> { })
       @closed = false
+      @cancelled = false
+      @cancel_mutex = Mutex.new
     end
 
     # send transmits a request message to the server.
@@ -262,6 +297,7 @@ module GRPC
     end
 
     def cancel : Nil
+      return unless mark_cancelled_once
       @cancel_proc.call
     end
 
@@ -275,6 +311,14 @@ module GRPC
 
     def trailers : Metadata
       @trailers_proc.call
+    end
+
+    private def mark_cancelled_once : Bool
+      @cancel_mutex.synchronize do
+        return false if @cancelled
+        @cancelled = true
+      end
+      true
     end
   end
 
@@ -330,6 +374,8 @@ module GRPC
     )
       @finished = false
       @finish_mutex = Mutex.new
+      @cancelled = false
+      @cancel_mutex = Mutex.new
     end
 
     # send_raw passes *message_bytes* (raw protobuf, no gRPC framing) to the transport.
@@ -346,6 +392,7 @@ module GRPC
     end
 
     def cancel : Nil
+      return unless mark_cancelled_once
       @cancel_proc.call
       finish_once
     end
@@ -380,6 +427,14 @@ module GRPC
       end
       @on_finish.call
     end
+
+    private def mark_cancelled_once : Bool
+      @cancel_mutex.synchronize do
+        return false if @cancelled
+        @cancelled = true
+      end
+      true
+    end
   end
 
   # RawBidiCall is the client-side handle for a full-duplex bidi-streaming RPC.
@@ -401,6 +456,8 @@ module GRPC
     )
       @finished = false
       @finish_mutex = Mutex.new
+      @cancelled = false
+      @cancel_mutex = Mutex.new
     end
 
     # send_raw passes *message_bytes* (raw protobuf, no gRPC framing) to the transport.
@@ -426,6 +483,7 @@ module GRPC
     end
 
     def cancel : Nil
+      return unless mark_cancelled_once
       @cancel_proc.call
       finish_once
     end
@@ -459,6 +517,14 @@ module GRPC
         @finished = true
       end
       @on_finish.call
+    end
+
+    private def mark_cancelled_once : Bool
+      @cancel_mutex.synchronize do
+        return false if @cancelled
+        @cancelled = true
+      end
+      true
     end
   end
 end

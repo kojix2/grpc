@@ -417,6 +417,26 @@ describe GRPC do
         GRPC::Codec.decode(bad_frame)
       end
     end
+
+    it "raises INTERNAL for incomplete frame header" do
+      ex = expect_raises(GRPC::StatusError) do
+        GRPC::Codec.decode(Bytes[0x00, 0x00, 0x00, 0x00])
+      end
+
+      ex.status.code.should eq(GRPC::StatusCode::INTERNAL)
+      ex.status.message.should eq("incomplete gRPC frame header")
+    end
+
+    it "raises INTERNAL for incomplete frame body" do
+      # Header says body length is 3, but only 2 bytes follow.
+      truncated = Bytes[0x00, 0x00, 0x00, 0x00, 0x03, 0x41, 0x42]
+      ex = expect_raises(GRPC::StatusError) do
+        GRPC::Codec.decode(truncated)
+      end
+
+      ex.status.code.should eq(GRPC::StatusCode::INTERNAL)
+      ex.status.message.should eq("incomplete gRPC frame body")
+    end
   end
 
   describe GRPC::Marshaller do
@@ -641,6 +661,37 @@ describe GRPC do
       status.message.should eq("invalid input")
     end
 
+    it "treats non-numeric grpc-status as UNKNOWN" do
+      headers = GRPC::Metadata.new
+      trailers = GRPC::Metadata.new
+      trailers.add("grpc-status", "abc")
+
+      status = GRPC::Transport::GrpcStatusInterpreter.grpc_status(headers, trailers, nil)
+      status.code.should eq(GRPC::StatusCode::UNKNOWN)
+      status.message.should eq("invalid grpc-status: abc")
+    end
+
+    it "treats out-of-range grpc-status as UNKNOWN" do
+      headers = GRPC::Metadata.new
+      trailers = GRPC::Metadata.new
+      trailers.add("grpc-status", "999")
+
+      status = GRPC::Transport::GrpcStatusInterpreter.grpc_status(headers, trailers, nil)
+      status.code.should eq(GRPC::StatusCode::UNKNOWN)
+      status.message.should eq("invalid grpc-status: 999")
+    end
+
+    it "falls back to headers grpc-status when trailers are missing" do
+      headers = GRPC::Metadata.new
+      trailers = GRPC::Metadata.new
+      headers.add("grpc-status", "3")
+      headers.add("grpc-message", "header%20only")
+
+      status = GRPC::Transport::GrpcStatusInterpreter.grpc_status(headers, trailers, nil)
+      status.code.should eq(GRPC::StatusCode::INVALID_ARGUMENT)
+      status.message.should eq("header only")
+    end
+
     it "uses override when grpc-status is missing" do
       headers = GRPC::Metadata.new
       trailers = GRPC::Metadata.new
@@ -704,7 +755,7 @@ describe GRPC do
       finishes.should eq(1)
     end
 
-    it "runs finish hooks once across repeated cancel calls" do
+    it "invokes cancel once and runs finish hooks once across repeated cancel calls" do
       ch = ::Channel(Bytes?).new(1)
       cancels = 0
       finishes = 0
@@ -713,13 +764,14 @@ describe GRPC do
       stream.cancel
       stream.cancel
 
-      cancels.should eq(2)
+      cancels.should eq(1)
       finishes.should eq(1)
     end
   end
 
   describe GRPC::RawClientCall do
-    it "runs finish hooks once even if cancel follows close_and_recv" do
+    it "invokes cancel once and runs finish hooks once even if cancel follows close_and_recv" do
+      cancels = 0
       finishes = 0
       call = GRPC::RawClientCall.new(
         ->(_b : Bytes) { },
@@ -727,22 +779,25 @@ describe GRPC do
         -> { GRPC::Metadata.new },
         -> { GRPC::Status.ok },
         -> { GRPC::Metadata.new },
-        -> { }
+        -> { cancels += 1; nil }
       ).with_on_finish(-> { finishes += 1; nil })
 
       call.close_and_recv.should eq(Bytes[7_u8])
       call.cancel
+      call.cancel
 
+      cancels.should eq(1)
       finishes.should eq(1)
     end
   end
 
   describe GRPC::RawBidiCall do
-    it "runs finish hooks once even if cancel follows iteration" do
+    it "invokes cancel once and runs finish hooks once even if cancel follows iteration" do
       ch = ::Channel(Bytes?).new(2)
       ch.send(Bytes[9_u8])
       ch.close
 
+      cancels = 0
       finishes = 0
       call = GRPC::RawBidiCall.new(
         ->(_b : Bytes) { },
@@ -751,15 +806,76 @@ describe GRPC do
         -> { GRPC::Metadata.new },
         -> { GRPC::Status.ok },
         -> { GRPC::Metadata.new },
-        -> { }
+        -> { cancels += 1; nil }
       ).with_on_finish(-> { finishes += 1; nil })
 
       received = [] of Bytes
       call.each { |msg| received << msg }
       call.cancel
+      call.cancel
 
       received.should eq([Bytes[9_u8]])
+      cancels.should eq(1)
       finishes.should eq(1)
+    end
+  end
+
+  describe GRPC::ServerStream(Int32) do
+    it "invokes cancel callback only once" do
+      cancels = 0
+      stream = GRPC::ServerStream(Int32).new(
+        -> { GRPC::Metadata.new },
+        -> { GRPC::Status.ok },
+        -> { GRPC::Metadata.new },
+        -> { cancels += 1; nil }
+      )
+
+      stream.cancel
+      stream.cancel
+
+      cancels.should eq(1)
+    end
+  end
+
+  describe GRPC::ClientStream(Int32, Int32) do
+    it "invokes cancel callback only once" do
+      cancels = 0
+      result = ::Channel(Int32 | Exception).new(1)
+      call = GRPC::ClientStream(Int32, Int32).new(
+        ->(_msg : Int32) { nil },
+        -> { nil },
+        result,
+        -> { GRPC::Metadata.new },
+        -> { GRPC::Status.ok },
+        -> { GRPC::Metadata.new },
+        -> { cancels += 1; nil }
+      )
+
+      call.cancel
+      call.cancel
+
+      cancels.should eq(1)
+    end
+  end
+
+  describe GRPC::BidiCall(Int32, Int32) do
+    it "invokes cancel callback only once" do
+      cancels = 0
+      recv = ::Channel(Int32 | Exception).new(1)
+      call = GRPC::BidiCall(Int32, Int32).new(
+        ->(_msg : Int32) { nil },
+        -> { nil },
+        recv,
+        -> { GRPC::Metadata.new },
+        -> { GRPC::Status.ok },
+        -> { GRPC::Metadata.new },
+        -> { cancels += 1; nil }
+      )
+
+      call.cancel
+      call.cancel
+
+      cancels.should eq(1)
     end
   end
 
@@ -1172,13 +1288,38 @@ describe GRPC do
   end
 
   describe GRPC::UnaryResponse do
-    it "raises status errors with trailing metadata from ok!" do
+    it "raises with the original non-OK status" do
       trailers = GRPC::Metadata.new
       trailers.add("x-extra", "value")
       response = GRPC::UnaryResponse(String).new(nil, GRPC::Metadata.new, trailers, GRPC::Status.internal("boom"))
 
       ex = expect_raises(GRPC::StatusError) { response.ok! }
-      ex.trailers.get("x-extra").should eq("value")
+      ex.status.code.should eq(GRPC::StatusCode::INTERNAL)
+      ex.status.message.should eq("boom")
+    end
+
+    it "raises INTERNAL when status is OK but message is missing" do
+      response = GRPC::UnaryResponse(String).new(nil, GRPC::Metadata.new, GRPC::Metadata.new, GRPC::Status.ok)
+
+      ex = expect_raises(GRPC::StatusError) { response.ok! }
+      ex.status.code.should eq(GRPC::StatusCode::INTERNAL)
+      ex.status.message.should eq("unary response message missing")
+    end
+
+    it "preserves trailing metadata on both error paths" do
+      trailers_non_ok = GRPC::Metadata.new
+      trailers_non_ok.add("x-extra", "non-ok")
+      non_ok = GRPC::UnaryResponse(String).new(nil, GRPC::Metadata.new, trailers_non_ok, GRPC::Status.internal("boom"))
+
+      ex_non_ok = expect_raises(GRPC::StatusError) { non_ok.ok! }
+      ex_non_ok.trailers.get("x-extra").should eq("non-ok")
+
+      trailers_missing = GRPC::Metadata.new
+      trailers_missing.add("x-extra", "missing")
+      missing_message = GRPC::UnaryResponse(String).new(nil, GRPC::Metadata.new, trailers_missing, GRPC::Status.ok)
+
+      ex_missing = expect_raises(GRPC::StatusError) { missing_message.ok! }
+      ex_missing.trailers.get("x-extra").should eq("missing")
     end
   end
 
