@@ -1,4 +1,4 @@
-@[Link("libnghttp2")]
+@[Link("nghttp2", pkg_config: "libnghttp2")]
 lib LibNghttp2
   # Opaque session type
   type Session = Void

@@ -288,6 +288,13 @@ module GRPC
 
         next_chunk : Bytes? = nil
         @mutex.synchronize do
+          # A gRPC message may span many DATA frames. Only advance after its
+          # source is exhausted; release its GC anchor at that point.
+          if buffer = @stream_send_bufs[stream_id]?
+            return if buffer.remaining > 0
+          end
+          @stream_send_bufs.delete(stream_id)
+          @stream_send_boxes.delete(stream_id)
           @stream_data_in_flight.delete(stream_id)
           if queue = @stream_pending_chunks[stream_id]?
             next_chunk = queue.shift?
@@ -504,13 +511,26 @@ module GRPC
       end
 
       private def send_stream_chunk(stream_id : Int32, framed_bytes : Bytes) : Nil
-        @mutex.synchronize do
-          return if @closed || @session.null? || stream_terminated?(stream_id)
-          if @stream_data_in_flight.includes?(stream_id)
-            (@stream_pending_chunks[stream_id] ||= Deque(Bytes).new) << framed_bytes
-          else
-            submit_stream_chunk_now(stream_id, framed_bytes, flush: true)
+        deadline = Time.instant + 5.seconds
+        loop do
+          accepted = @mutex.synchronize do
+            raise ConnectionError.new("stream closed") if @closed || @session.null? || stream_terminated?(stream_id)
+            if @stream_data_in_flight.includes?(stream_id)
+              queue = (@stream_pending_chunks[stream_id] ||= Deque(Bytes).new)
+              if queue.size < 8
+                queue << framed_bytes
+                true
+              else
+                false
+              end
+            else
+              submit_stream_chunk_now(stream_id, framed_bytes, flush: true)
+              true
+            end
           end
+          return if accepted
+          raise StatusError.new(StatusCode::RESOURCE_EXHAUSTED, "HTTP/2 consumer stalled") if Time.instant >= deadline
+          sleep 1.millisecond
         end
       end
 
@@ -578,6 +598,12 @@ module GRPC
       end
 
       private def send_error(stream_id : Int32, code : StatusCode, message : String) : Nil
+        # A streaming response already has its initial HEADERS. Sending a second
+        # :status block is invalid HTTP/2/gRPC; terminate behind queued DATA.
+        if @mutex.synchronize { @stream_headers_sent.includes?(stream_id) }
+          send_stream_trailers(stream_id, Status.new(code, message))
+          return
+        end
         @mutex.synchronize do
           return if @closed || @session.null? || stream_terminated?(stream_id)
           mark_stream_terminated(stream_id)
