@@ -367,6 +367,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/FlowControlledBuffer" data-name="grpc::transport::flowcontrolledbuffer">
+      <a href="../../../GRPC/Transport/FlowControlledBuffer.html">FlowControlledBuffer</a>
+      
+    </li>
+  
   <li class="parent " data-id="grpc/GRPC/Transport/GrpcDeframer" data-name="grpc::transport::grpcdeframer">
       <a href="../../../GRPC/Transport/GrpcDeframer.html">GrpcDeframer</a>
       
@@ -613,7 +618,7 @@
 </h1>
 
 
-  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../../GRPC/Transport/Http2ServerConnection/LiveRequestState.html">GRPC::Transport::Http2ServerConnection::LiveRequestState</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../../GRPC/Transport/Http2ServerConnection/LiveRequestState.html">GRPC::Transport::Http2ServerConnection::LiveRequestState</a></li><li class="superclass"><a href="../../../GRPC/Transport/FlowControlledBuffer.html">GRPC::Transport::FlowControlledBuffer</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
 
 
 
@@ -654,7 +659,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/867a084acf52ae6713522171097bd2a257bcc73c/src/grpc/transport/http2_server_connection.cr#L38" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/94c4507ba5292d95ec3af24e5a57f44c4d1423dd/src/grpc/transport/http2_server_connection.cr#L38" target="_blank">
         grpc/transport/http2_server_connection.cr
       </a>
     
@@ -677,7 +682,8 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28kind%3ASymbol%29-class-method" class="signature"><strong>.new</strong>(kind : Symbol)</a>
+        <a href="#new%28kind%3ASymbol%2Cconsumed%3AInt32-%3ENil%3D-%3E%28_bytes%3AInt32%29do%0Aend%29-class-method" class="signature"><strong>.new</strong>(kind : Symbol, consumed : Int32 -> Nil = <span class="o">-&gt;</span>(_bytes : <span class="t">Int32</span>) <span class="k">do</span>
+<span class="k">end</span>)</a>
         
       </li>
     
@@ -700,32 +706,7 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#close%3ANil-instance-method" class="signature"><strong>#close</strong> : Nil</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#deframer%3AGrpcDeframer-instance-method" class="signature"><strong>#deframer</strong> : GrpcDeframer</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#error_status%3AStatus%7CNil-instance-method" class="signature"><strong>#error_status</strong> : Status | Nil</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#error_status%3D%28error_status%3AStatus%7CNil%29-instance-method" class="signature"><strong>#error_status=</strong>(error_status : Status | Nil)</a>
-        
-      </li>
-    
-      <li class="entry-summary">
         <a href="#kind%3ASymbol-instance-method" class="signature"><strong>#kind</strong> : Symbol</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#push%28message%3ABytes%29%3ABool-instance-method" class="signature"><strong>#push</strong>(message : Bytes) : Bool</a>
         
       </li>
     
@@ -739,6 +720,78 @@
 
 
   <div class="methods-inherited">
+    
+      
+
+  <h3>Instance methods inherited from class <code><a href="../../../GRPC/Transport/FlowControlledBuffer.html">GRPC::Transport::FlowControlledBuffer</a></code></h3>
+  
+  
+    <a href="../../../GRPC/Transport/FlowControlledBuffer.html#append%28chunk%3ABytes%29%3AInt32-instance-method" class="tooltip">
+      <span>append(chunk : Bytes) : Int32</span>
+    append</a>, 
+    
+  
+    <a href="../../../GRPC/Transport/FlowControlledBuffer.html#close%3ANil-instance-method" class="tooltip">
+      <span>close : Nil</span>
+    close</a>, 
+    
+  
+    <a href="../../../GRPC/Transport/FlowControlledBuffer.html#consumed%3AInt32-%3ENil-instance-method" class="tooltip">
+      <span>consumed : Int32 -> Nil</span>
+    consumed</a>, 
+    
+  
+    <a href="../../../GRPC/Transport/FlowControlledBuffer.html#consumed%3D%28consumed%3AInt32-%3ENil%29-instance-method" class="tooltip">
+      <span>consumed=(consumed : Int32 -> Nil)</span>
+    consumed=</a>, 
+    
+  
+    <a href="../../../GRPC/Transport/FlowControlledBuffer.html#deframer%3AGrpcDeframer-instance-method" class="tooltip">
+      <span>deframer : GrpcDeframer</span>
+    deframer</a>, 
+    
+  
+    <a href="../../../GRPC/Transport/FlowControlledBuffer.html#error_status%3AStatus%7CNil-instance-method" class="tooltip">
+      <span>error_status : Status | Nil</span>
+    error_status</a>, 
+    
+  
+    <a href="../../../GRPC/Transport/FlowControlledBuffer.html#error_status%3D%28error_status%3AStatus%7CNil%29-instance-method" class="tooltip">
+      <span>error_status=(error_status : Status | Nil)</span>
+    error_status=</a>, 
+    
+  
+    <a href="../../../GRPC/Transport/FlowControlledBuffer.html#finish%3ANil-instance-method" class="tooltip">
+      <span>finish : Nil</span>
+    finish</a>, 
+    
+  
+    <a href="../../../GRPC/Transport/FlowControlledBuffer.html#messages%3A%3A%3AChannel%28Bytes%7CNil%29-instance-method" class="tooltip">
+      <span>messages : ::Channel(Bytes | Nil)</span>
+    messages</a>
+    
+  
+
+
+      
+
+  <h3>Constructor methods inherited from class <code><a href="../../../GRPC/Transport/FlowControlledBuffer.html">GRPC::Transport::FlowControlledBuffer</a></code></h3>
+  
+  
+    <a href="../../../GRPC/Transport/FlowControlledBuffer.html#new%28consumed%3AInt32-%3ENil%3D-%3E%28_bytes%3AInt32%29do%0Aend%29-class-method" class="tooltip">
+      <span>new(consumed : Int32 -> Nil = <span class="o">-&gt;</span>(_bytes : <span class="t">Int32</span>) <span class="k">do</span>
+<span class="k">end</span>)</span>
+    new</a>
+    
+  
+
+
+      
+
+
+      
+
+
     
       
 
@@ -778,18 +831,20 @@
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(kind:Symbol)-class-method">
+    <div class="entry-detail" id="new(kind:Symbol,consumed:Int32-&gt;Nil=-&gt;(_bytes:Int32)do
+end)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(kind : Symbol)
+        def self.<strong>new</strong>(kind : Symbol, consumed : Int32 -> Nil = <span class="o">-&gt;</span>(_bytes : <span class="t">Int32</span>) <span class="k">do</span>
+<span class="k">end</span>)
 
-        <a class="method-permalink" href="#new%28kind%3ASymbol%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28kind%3ASymbol%2Cconsumed%3AInt32-%3ENil%3D-%3E%28_bytes%3AInt32%29do%0Aend%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/867a084acf52ae6713522171097bd2a257bcc73c/src/grpc/transport/http2_server_connection.cr#L44" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/94c4507ba5292d95ec3af24e5a57f44c4d1423dd/src/grpc/transport/http2_server_connection.cr#L42" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -810,70 +865,6 @@
     Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="close:Nil-instance-method">
-      <div class="signature">
-        
-        def <strong>close</strong> : Nil
-
-        <a class="method-permalink" href="#close%3ANil-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc/blob/867a084acf52ae6713522171097bd2a257bcc73c/src/grpc/transport/http2_server_connection.cr#L64" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="deframer:GrpcDeframer-instance-method">
-      <div class="signature">
-        
-        def <strong>deframer</strong> : <a href="../../../GRPC/Transport/GrpcDeframer.html">GrpcDeframer</a>
-
-        <a class="method-permalink" href="#deframer%3AGrpcDeframer-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc/blob/867a084acf52ae6713522171097bd2a257bcc73c/src/grpc/transport/http2_server_connection.cr#L41" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="error_status:Status|Nil-instance-method">
-      <div class="signature">
-        
-        def <strong>error_status</strong> : <a href="../../../GRPC/Status.html">Status</a> | Nil
-
-        <a class="method-permalink" href="#error_status%3AStatus%7CNil-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc/blob/867a084acf52ae6713522171097bd2a257bcc73c/src/grpc/transport/http2_server_connection.cr#L42" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="error_status=(error_status:Status|Nil)-instance-method">
-      <div class="signature">
-        
-        def <strong>error_status=</strong>(error_status : <a href="../../../GRPC/Status.html">Status</a> | Nil)
-
-        <a class="method-permalink" href="#error_status%3D%28error_status%3AStatus%7CNil%29-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc/blob/867a084acf52ae6713522171097bd2a257bcc73c/src/grpc/transport/http2_server_connection.cr#L42" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
     <div class="entry-detail" id="kind:Symbol-instance-method">
       <div class="signature">
         
@@ -885,23 +876,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/867a084acf52ae6713522171097bd2a257bcc73c/src/grpc/transport/http2_server_connection.cr#L40" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="push(message:Bytes):Bool-instance-method">
-      <div class="signature">
-        
-        def <strong>push</strong>(message : Bytes) : Bool
-
-        <a class="method-permalink" href="#push%28message%3ABytes%29%3ABool-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/kojix2/grpc/blob/867a084acf52ae6713522171097bd2a257bcc73c/src/grpc/transport/http2_server_connection.cr#L52" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/94c4507ba5292d95ec3af24e5a57f44c4d1423dd/src/grpc/transport/http2_server_connection.cr#L40" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -917,7 +892,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/867a084acf52ae6713522171097bd2a257bcc73c/src/grpc/transport/http2_server_connection.cr#L39" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/94c4507ba5292d95ec3af24e5a57f44c4d1423dd/src/grpc/transport/http2_server_connection.cr#L39" target="_blank">View source</a>]
         
       </div>
     </div>

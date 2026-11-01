@@ -367,6 +367,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/FlowControlledBuffer" data-name="grpc::transport::flowcontrolledbuffer">
+      <a href="GRPC/Transport/FlowControlledBuffer.html">FlowControlledBuffer</a>
+      
+    </li>
+  
   <li class="parent " data-id="grpc/GRPC/Transport/GrpcDeframer" data-name="grpc::transport::grpcdeframer">
       <a href="GRPC/Transport/GrpcDeframer.html">GrpcDeframer</a>
       
@@ -639,6 +644,13 @@ pacman -S nghttp2             # Arch</code></pre>
 </a>Testing</h2>
 <p>Default suite:</p>
 <pre><code class="language-sh">crystal spec</code></pre>
+<p>Streaming receivers return HTTP/2 stream-window credit as the consumer takes
+messages. Short bursts can contain more than 256 requests or 128 responses
+without being rejected merely because they arrived together. The initial
+65,535-byte window is unchanged. Partial messages can progress beyond that
+window while complete messages awaiting consumption apply backpressure.
+Connection credit is managed separately so a stalled stream does not block
+other RPCs. Consume or cancel streams to release their delivery resources.</p>
 <p>grpcurl E2E entry point:</p>
 <pre><code class="language-sh">crystal spec spec/grpcurl.cr</code></pre>
 <p>GripMock E2E entry point (requires GripMock at 127.0.0.1:4770 and admin API at 127.0.0.1:4771):</p>
