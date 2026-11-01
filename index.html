@@ -623,307 +623,71 @@
     <use href="#octicon-link"/>
   </svg>
 </a>grpc.cr</h1>
-<p><a href="https://github.com/kojix2/grpc.cr/actions/workflows/test.yml"><img src="https://github.com/kojix2/grpc.cr/actions/workflows/test.yml/badge.svg" alt="Test" /></a>
-<a href="https://tokei.kojix2.net/github/kojix2/grpc.cr"><img src="https://img.shields.io/endpoint?url=https://tokei.kojix2.net/badge/github/kojix2/grpc.cr/lines" alt="Lines of Code" /></a></p>
-<p>📡 <a href="https://grpc.io/">gRPC</a> for <a href="https://crystal-lang.org/">Crystal</a> built on <a href="https://nghttp2.org/">libnghttp2</a>.</p>
-<p>This project depends on the published <a href="https://github.com/kojix2/proto">proto</a> shard for:</p>
-<ul>
-<li>protobuf runtime support</li>
-<li>.pb.cr generation via protoc-gen-crystal</li>
-<li>protobuf naming and descriptor semantics</li>
-</ul>
-<p>grpc.cr focuses on gRPC transport, service/client stubs, streaming, and interceptors.</p>
+<p><a href="https://github.com/kojix2/grpc/actions/workflows/test.yml"><img src="https://github.com/kojix2/grpc/actions/workflows/test.yml/badge.svg" alt="Test" /></a></p>
+<p>gRPC client/server for Crystal &gt;= 1.19.1, built on libnghttp2 and
+<a href="https://github.com/kojix2/proto">proto.cr</a>. Supports all four RPC shapes,
+live full-duplex streaming, TLS, metadata, deadlines, interceptors, health and reflection.</p>
 <h2><a id="installation" class="anchor" href="#installation">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>Installation</h2>
+<p>Install libnghttp2, add the dependency, then run <code>shards install</code>:</p>
+<pre><code class="language-sh">sudo apt-get install libnghttp2-dev  # Debian/Ubuntu
+# macOS:
+brew install libnghttp2
+export LIBRARY_PATH=&quot;$(brew --prefix libnghttp2)/lib${LIBRARY_PATH:+:$LIBRARY_PATH}&quot;</code></pre>
 <pre><code class="language-yaml">dependencies:
   grpc:
     github: kojix2/grpc</code></pre>
-<p>Install system dependency (libnghttp2):</p>
-<pre><code class="language-sh">brew install nghttp2          # macOS
-apt install libnghttp2-dev    # Debian/Ubuntu
-pacman -S nghttp2             # Arch</code></pre>
-<p>Install shards:</p>
-<pre><code class="language-sh">shards install</code></pre>
-<h2><a id="testing" class="anchor" href="#testing">
+<h2><a id="try-it" class="anchor" href="#try-it">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
-</a>Testing</h2>
-<p>Default suite:</p>
-<pre><code class="language-sh">crystal spec</code></pre>
-<p>See <a href="spec/README.md">the test layout</a> for focused commands and conventions for
-file boundaries, example granularity and ordering.</p>
-<p>Streaming receivers return HTTP/2 stream-window credit as the consumer takes
-messages. Short bursts can contain more than 256 requests or 128 responses
-without being rejected merely because they arrived together. The initial
-65,535-byte window is unchanged. Partial messages can progress beyond that
-window while complete messages awaiting consumption apply backpressure.
-Connection credit is managed separately so a stalled stream does not block
-other RPCs. Consume or cancel streams to release their delivery resources.</p>
-<p>Receive budgets default to <strong>64 MiB each</strong> for an encoded message (excluding its
-5-byte header), a decoded message, and unconsumed decoded data in one stream.
-Oversized headers are rejected before waiting for their payloads. Gzip decoding
-stops after the decoded limit plus one detection byte; an over-budget RPC ends
-with <code>RESOURCE_EXHAUSTED</code> while other RPCs on the connection remain usable.</p>
-<pre><code class="language-crystal">limits <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">ReceiveLimits</span>.new(
-  max_wire_size: <span class="n">16</span> <span class="o">*</span> <span class="n">1024</span> <span class="o">*</span> <span class="n">1024</span>,
-  max_message_size: <span class="n">8</span> <span class="o">*</span> <span class="n">1024</span> <span class="o">*</span> <span class="n">1024</span>,
-  max_buffered_bytes: <span class="n">32</span> <span class="o">*</span> <span class="n">1024</span> <span class="o">*</span> <span class="n">1024</span>,
-)
-channel <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Channel</span>.new(<span class="s">&quot;localhost:50051&quot;</span>,
-  endpoint_config: <span class="t">GRPC</span><span class="t">::</span><span class="t">EndpointConfig</span>.new(receive_limits: limits))
-server <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Server</span>.new(receive_limits: limits)</code></pre>
-<p>The backlog budget is released as messages are consumed, so it does not limit
-the lifetime size of a stream. These are per-message/per-stream limits rather
-than a process-wide RAM cap: framed input, decoding workspace, and concurrent
-RPCs also use memory. Custom transport factories must enforce their own budgets.
-The default HTTP/2 window remains 65,535 bytes.</p>
-<p>grpcurl E2E entry point:</p>
-<pre><code class="language-sh">crystal spec spec/grpcurl.cr</code></pre>
-<p>GripMock E2E entry point (requires GripMock at 127.0.0.1:4770 and admin API at 127.0.0.1:4771):</p>
-<pre><code class="language-sh">crystal spec spec/gripmock.cr</code></pre>
-<h2><a id="code-generation" class="anchor" href="#code-generation">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Code Generation</h2>
-<p>grpc.cr uses two protoc plugins:</p>
-<ul>
-<li><code>protoc-gen-crystal</code> from the proto shard</li>
-<li><code>protoc-gen-crystal-grpc</code> from this repository</li>
-</ul>
-<h3><a id="1-build-both-plugins" class="anchor" href="#1-build-both-plugins">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>1) Build both plugins</h3>
-<pre><code class="language-sh"># protobuf plugin from the installed proto shard dependency
-crystal build lib/proto/src/protoc-gen-crystal_main.cr -o bin/protoc-gen-crystal
-
-# gRPC plugin from this repository
-crystal build src/protoc-gen-crystal-grpc_main.cr -o bin/protoc-gen-crystal-grpc</code></pre>
-<h3><a id="2-generate-protobuf-types-first-.pb.cr" class="anchor" href="#2-generate-protobuf-types-first-.pb.cr">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>2) Generate protobuf types first (.pb.cr)</h3>
-<pre><code class="language-sh">protoc --plugin=protoc-gen-crystal=bin/protoc-gen-crystal \
-  --crystal_out=. helloworld.proto</code></pre>
-<h3><a id="3-generate-g-rpc-stubs-.grpc.cr" class="anchor" href="#3-generate-g-rpc-stubs-.grpc.cr">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>3) Generate gRPC stubs (.grpc.cr)</h3>
-<pre><code class="language-sh">protoc --plugin=protoc-gen-crystal-grpc=bin/protoc-gen-crystal-grpc \
-  --crystal-grpc_out=. helloworld.proto</code></pre>
-<p><code>protoc-gen-crystal-grpc</code> expects message types generated by <code>protoc-gen-crystal</code>.</p>
-<p>Require order in application code:</p>
-<pre><code class="language-crystal"><span class="k">require</span> <span class="s">&quot;grpc&quot;</span>
-<span class="k">require</span> <span class="s">&quot;./helloworld.pb.cr&quot;</span>
-<span class="k">require</span> <span class="s">&quot;./helloworld.grpc.cr&quot;</span></code></pre>
-<p>Generated <code>.grpc.cr</code> code reopens the service namespace and places metadata, server base class, and typed client together:</p>
-<pre><code class="language-crystal"><span class="k">module</span> <span class="t">Helloworld</span>
-  <span class="k">module</span> <span class="t">Greeter</span>
-    <span class="t">FULL_NAME</span> <span class="o">=</span> <span class="s">&quot;helloworld.Greeter&quot;</span>
-
-    <span class="k">abstract</span> <span class="k">class</span> <span class="t">Service</span> <span class="o">&lt;</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Service</span>
-    <span class="k">end</span>
-
-    <span class="k">class</span> <span class="t">Client</span>
-    <span class="k">end</span>
-  <span class="k">end</span>
-<span class="k">end</span></code></pre>
-<h2><a id="unary-example" class="anchor" href="#unary-example">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Unary Example</h2>
-<p>Server:</p>
-<pre><code class="language-crystal"><span class="k">require</span> <span class="s">&quot;grpc&quot;</span>
-
-<span class="k">class</span> <span class="t">GreeterImpl</span> <span class="o">&lt;</span> <span class="t">Helloworld</span><span class="t">::</span><span class="t">Greeter</span><span class="t">::</span><span class="t">Service</span>
-  <span class="k">def</span> <span class="m">say_hello</span>(req : <span class="t">Helloworld</span><span class="t">::</span><span class="t">HelloRequest</span>, ctx : <span class="t">GRPC</span><span class="t">::</span><span class="t">ServerContext</span>) : <span class="t">Helloworld</span><span class="t">::</span><span class="t">HelloReply</span>
-    <span class="t">Helloworld</span><span class="t">::</span><span class="t">HelloReply</span>.new(message: <span class="s">&quot;Hello, </span><span class="i">#{</span>req.name<span class="i">}</span><span class="s">!&quot;</span>)
-  <span class="k">end</span>
-<span class="k">end</span>
-
-server <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Server</span>.new
-server.handle <span class="t">GreeterImpl</span>.new
-server.listen <span class="s">&quot;0.0.0.0&quot;</span>, <span class="n">50051</span></code></pre>
-<p>Client:</p>
-<pre><code class="language-crystal"><span class="k">require</span> <span class="s">&quot;grpc&quot;</span>
-
-channel <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Channel</span>.new(<span class="s">&quot;localhost:50051&quot;</span>)
-client  <span class="o">=</span> <span class="t">Helloworld</span><span class="t">::</span><span class="t">Greeter</span><span class="t">::</span><span class="t">Client</span>.new(channel)
-reply   <span class="o">=</span> client.say_hello(<span class="t">Helloworld</span><span class="t">::</span><span class="t">HelloRequest</span>.new(name: <span class="s">&quot;Alice&quot;</span>))
-puts reply.message
-channel.close</code></pre>
-<h2><a id="health-checking" class="anchor" href="#health-checking">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Health Checking</h2>
-<p><code>enable_health_checking</code> registers the built-in <code>grpc.health.v1.Health</code> service and returns a reporter for status updates.</p>
-<pre><code class="language-crystal">server <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Server</span>.new
-reporter <span class="o">=</span> server.enable_health_checking
-
-reporter.set_status(<span class="s">&quot;&quot;</span>, <span class="t">Grpc</span><span class="t">::</span><span class="t">Health</span><span class="t">::</span><span class="t">V1</span><span class="t">::</span><span class="t">HealthCheckResponse</span><span class="t">::</span><span class="t">ServingStatus</span><span class="t">::</span><span class="t">SERVING</span>)
-reporter.set_status(<span class="t">Helloworld</span><span class="t">::</span><span class="t">Greeter</span><span class="t">::</span><span class="t">FULL_NAME</span>, <span class="t">Grpc</span><span class="t">::</span><span class="t">Health</span><span class="t">::</span><span class="t">V1</span><span class="t">::</span><span class="t">HealthCheckResponse</span><span class="t">::</span><span class="t">ServingStatus</span><span class="t">::</span><span class="t">SERVING</span>)</code></pre>
-<h2><a id="metadata-deadlines-and-errors" class="anchor" href="#metadata-deadlines-and-errors">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Metadata, Deadlines, and Errors</h2>
-<p>Client context with metadata and deadline:</p>
-<pre><code class="language-crystal">ctx <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">ClientContext</span>.new(
-  metadata: {<span class="s">&quot;authorization&quot;</span> <span class="o">=&gt;</span> <span class="s">&quot;Bearer token&quot;</span>},
-  deadline: <span class="n">5</span>.seconds,
-)
-reply <span class="o">=</span> client.say_hello(req, ctx: ctx)</code></pre>
-<p>Error handling:</p>
-<pre><code class="language-crystal"><span class="k">begin</span>
-  reply <span class="o">=</span> client.say_hello(req)
-<span class="k">rescue</span> ex : <span class="t">GRPC</span><span class="t">::</span><span class="t">StatusError</span>
-  puts ex.code
-  puts ex.message
-<span class="k">end</span></code></pre>
-<p>Server-side status error:</p>
-<pre><code class="language-crystal"><span class="k">def</span> <span class="m">say_hello</span>(req, ctx)
-  raise <span class="t">GRPC</span><span class="t">::</span><span class="t">StatusError</span>.new(<span class="t">GRPC</span><span class="t">::</span><span class="t">StatusCode</span><span class="t">::</span><span class="t">NOT_FOUND</span>, <span class="s">&quot;user not found&quot;</span>)
-<span class="k">end</span></code></pre>
-<h2><a id="streaming" class="anchor" href="#streaming">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Streaming</h2>
-<p>Generated stubs expose typed APIs for all four RPC styles.</p>
-<pre><code class="language-crystal"><span class="c"># Server streaming</span>
-stream <span class="o">=</span> client.range(<span class="t">Numbers</span><span class="t">::</span><span class="t">Number</span>.new(<span class="n">5</span>))
-stream.each { <span class="o">|</span>num<span class="o">|</span> puts num.value }
-puts stream.status
-
-<span class="c"># Client streaming</span>
-call <span class="o">=</span> client.sum
-(<span class="n">1</span>..<span class="n">5</span>).each { <span class="o">|</span>i<span class="o">|</span> call.send(<span class="t">Numbers</span><span class="t">::</span><span class="t">Number</span>.new(i)) }
-total <span class="o">=</span> call.close_and_recv
-
-<span class="c"># Bidirectional streaming</span>
-bidi <span class="o">=</span> client.transform
-[<span class="n">2</span>, <span class="n">3</span>, <span class="n">4</span>].each { <span class="o">|</span>i<span class="o">|</span> bidi.send(<span class="t">Numbers</span><span class="t">::</span><span class="t">Number</span>.new(i)) }
-bidi.close_send
-bidi.each { <span class="o">|</span>num<span class="o">|</span> puts num.value }</code></pre>
-<p>Cancel a stream:</p>
-<pre><code class="language-crystal">stream <span class="o">=</span> client.range(req)
-stream.cancel</code></pre>
-<h2><a id="tls" class="anchor" href="#tls">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>TLS</h2>
-<pre><code class="language-crystal"><span class="c"># Server</span>
-server <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Server</span>.new
-server.use_tls(cert: <span class="s">&quot;server.crt&quot;</span>, key: <span class="s">&quot;server.key&quot;</span>)
-
-<span class="c"># Client with system CA</span>
-channel <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Channel</span>.new(<span class="s">&quot;https://host:50443&quot;</span>)
-
-<span class="c"># Client with custom context</span>
-ctx <span class="o">=</span> <span class="t">OpenSSL</span><span class="t">::</span><span class="t">SSL</span><span class="t">::</span><span class="t">Context</span><span class="t">::</span><span class="t">Client</span>.new
-ctx.ca_certificates <span class="o">=</span> <span class="s">&quot;ca.crt&quot;</span>
-channel <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Channel</span>.new(<span class="s">&quot;https://host:50443&quot;</span>, tls_context: ctx)</code></pre>
-<h2><a id="interceptors" class="anchor" href="#interceptors">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Interceptors</h2>
-<pre><code class="language-crystal"><span class="k">class</span> <span class="t">LoggingInterceptor</span> <span class="o">&lt;</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">ServerInterceptor</span>
-  <span class="k">def</span> <span class="m">call</span>(request : <span class="t">GRPC</span><span class="t">::</span><span class="t">RequestEnvelope</span>,
-           ctx : <span class="t">GRPC</span><span class="t">::</span><span class="t">ServerContext</span>,
-           next_call : <span class="t">GRPC</span><span class="t">::</span><span class="t">UnaryServerCall</span>) : <span class="t">GRPC</span><span class="t">::</span><span class="t">ResponseEnvelope</span>
-    <span class="t">STDERR</span>.puts <span class="s">&quot;-&gt; </span><span class="i">#{</span>request.info.method_path<span class="i">}</span><span class="s">&quot;</span>
-    next_call.call(request.info.method_path, request, ctx)
-  <span class="k">end</span>
-<span class="k">end</span>
-
-server.intercept <span class="t">LoggingInterceptor</span>.new</code></pre>
-<pre><code class="language-crystal"><span class="k">class</span> <span class="t">AuthInterceptor</span> <span class="o">&lt;</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">ClientInterceptor</span>
-  <span class="k">def</span> <span class="m">call</span>(request : <span class="t">GRPC</span><span class="t">::</span><span class="t">RequestEnvelope</span>,
-           ctx : <span class="t">GRPC</span><span class="t">::</span><span class="t">ClientContext</span>,
-           next_call : <span class="t">GRPC</span><span class="t">::</span><span class="t">UnaryClientCall</span>) : <span class="t">GRPC</span><span class="t">::</span><span class="t">ResponseEnvelope</span>
-    ctx.metadata.set(<span class="s">&quot;authorization&quot;</span>, <span class="s">&quot;Bearer </span><span class="i">#{</span>@token<span class="i">}</span><span class="s">&quot;</span>)
-    next_call.call(request.info.method_path, request, ctx)
-  <span class="k">end</span>
-<span class="k">end</span>
-
-channel <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Channel</span>.new(<span class="s">&quot;localhost:50051&quot;</span>,
-  interceptors: [<span class="t">AuthInterceptor</span>.new(token)] <span class="k">of</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">ClientInterceptor</span>)</code></pre>
-<p><code>RequestEnvelope</code> includes <code>#raw</code>, <code>#info</code>, and <code>#decode(T)</code>.</p>
-<h2><a id="channel-configuration" class="anchor" href="#channel-configuration">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Channel Configuration</h2>
-<p><code>EndpointConfig</code> groups transport and lifecycle options.</p>
-<pre><code class="language-crystal">config <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">EndpointConfig</span>.new(
-  connect_timeout:   <span class="n">5</span>.seconds,
-  tcp_keepalive:     <span class="n">30</span>.seconds,
-  concurrency_limit: <span class="n">20</span>,
-  rate_limit:        <span class="t">GRPC</span><span class="t">::</span><span class="t">RateLimitConfig</span>.new(<span class="n">200_u64</span>, <span class="n">1</span>.second),
-)
-channel <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Channel</span>.new(<span class="s">&quot;https://api.example.com:443&quot;</span>, endpoint_config: config)</code></pre>
-<h2><a id="transport-factory-injection" class="anchor" href="#transport-factory-injection">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Transport Factory Injection</h2>
-<p><code>Channel</code> and <code>Server</code> accept factory procs to swap transport implementations.</p>
-<pre><code class="language-crystal">client_factory <span class="o">=</span> <span class="o">-&gt;</span>(host : <span class="t">String</span>, port : <span class="t">Int32</span>, use_tls : <span class="t">Bool</span>,
-                    tls_ctx : <span class="t">OpenSSL</span><span class="t">::</span><span class="t">SSL</span><span class="t">::</span><span class="t">Context</span><span class="t">::</span><span class="t">Client</span>?,
-                    config : <span class="t">GRPC</span><span class="t">::</span><span class="t">EndpointConfig</span>) {
-  <span class="t">GRPC</span><span class="t">::</span><span class="t">Transport</span><span class="t">::</span><span class="t">Http2ClientConnection</span>.new(host, port, use_tls, tls_ctx, config)
-    .<span class="k">as</span>(<span class="t">GRPC</span><span class="t">::</span><span class="t">Transport</span><span class="t">::</span><span class="t">ClientTransport</span>)
-}
-
-server_factory <span class="o">=</span> <span class="o">-&gt;</span>(io : <span class="t">IO</span>,
-                    services : <span class="t">Hash</span>(<span class="t">String</span>, <span class="t">GRPC</span><span class="t">::</span><span class="t">Service</span>),
-                    interceptors : <span class="t">Array</span>(<span class="t">GRPC</span><span class="t">::</span><span class="t">ServerInterceptor</span>),
-                    peer : <span class="t">String</span>,
-                    tls_sock : <span class="t">OpenSSL</span><span class="t">::</span><span class="t">SSL</span><span class="t">::</span><span class="t">Socket</span><span class="t">::</span><span class="t">Server</span>?) {
-  <span class="t">GRPC</span><span class="t">::</span><span class="t">Transport</span><span class="t">::</span><span class="t">Http2ServerConnection</span>.new(io, services, interceptors, peer, tls_sock)
-    .<span class="k">as</span>(<span class="t">GRPC</span><span class="t">::</span><span class="t">Transport</span><span class="t">::</span><span class="t">ServerTransport</span>)
-}
-
-channel <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Channel</span>.new(<span class="s">&quot;localhost:50051&quot;</span>, transport_factory: client_factory)
-server <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Server</span>.new(transport_factory: server_factory)</code></pre>
-<h2><a id="examples" class="anchor" href="#examples">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Examples</h2>
-<p>Unary:</p>
+</a>Try it</h2>
+<p>From this checkout, run the server and client in separate terminals:</p>
 <pre><code class="language-sh">crystal run examples/helloworld/server.cr
 crystal run examples/helloworld/client.cr -- localhost 50051 Alice</code></pre>
-<p>Streaming:</p>
-<pre><code class="language-sh">crystal run examples/streaming/server.cr
-crystal run examples/streaming/client.cr</code></pre>
-<p>Interceptors:</p>
-<pre><code class="language-sh">crystal run examples/interceptors/server.cr
-crystal run examples/interceptors/client.cr -- localhost 50053 Alice secret</code></pre>
-<p>TLS:</p>
-<pre><code class="language-sh">openssl req -x509 -newkey rsa:2048 -keyout server.key -out server.crt \
-  -days 365 -nodes -subj &quot;/CN=localhost&quot;
-
-crystal run examples/tls/server.cr -- server.crt server.key
-crystal run examples/tls/client.cr -- localhost 50443 Alice</code></pre>
-<h2><a id="license" class="anchor" href="#license">
+<p>See runnable examples for <a href="examples/streaming/">streaming</a>,
+<a href="examples/tls/">TLS</a> and <a href="examples/interceptors/">interceptors</a>.</p>
+<h2><a id="generate-your-api" class="anchor" href="#generate-your-api">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
-</a>License</h2>
-<p>MIT</p>
+</a>Generate your API</h2>
+<p>From this checkout, build both plugins; <code>protoc</code> must also be installed:</p>
+<pre><code class="language-sh">mkdir -p bin
+crystal build lib/proto/src/protoc-gen-crystal_main.cr -o bin/protoc-gen-crystal
+shards build
+protoc --plugin=protoc-gen-crystal=bin/protoc-gen-crystal \
+  --plugin=protoc-gen-crystal-grpc=bin/protoc-gen-crystal-grpc \
+  --crystal_out=. --crystal-grpc_out=. path/to/service.proto</code></pre>
+<p>Replace the schema path with your own. In the consuming application, require
+<code>grpc</code> first, then the generated <code>.pb.cr</code> and <code>.grpc.cr</code> files. Unary methods
+return the decoded message or raise <code><a href="GRPC/StatusError.html">GRPC::StatusError</a></code>; the corresponding
+<code>*_response</code> method returns status and metadata. Consume or cancel streams.</p>
+<h2><a id="receive-limits" class="anchor" href="#receive-limits">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Receive limits</h2>
+<p><code><a href="GRPC/ReceiveLimits.html">GRPC::ReceiveLimits</a></code> defaults to 64 MiB each for wire payload, decoded message
+and unconsumed decoded data per stream. Set it through
+<code>EndpointConfig.new(receive_limits: limits)</code> on clients or
+<code>Server.new(receive_limits: limits)</code> on default servers.
+Excess data ends that RPC with <code>RESOURCE_EXHAUSTED</code>; these are not process-wide
+RAM limits. Custom transports enforce their own budgets.</p>
+<p>Clients can send gzip requests and decode gzip responses. Servers decode gzip
+requests and currently send uncompressed responses.</p>
+<h2><a id="test" class="anchor" href="#test">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Test</h2>
+<pre><code class="language-sh">crystal spec
+crystal spec spec/grpcurl.cr  # requires grpcurl</code></pre>
+<p>See <a href="spec/README.md">test layout</a> for focused tests and GripMock setup.
+License: <a href="LICENSE">MIT</a>.</p>
 </div>
 </body>
 </html>
