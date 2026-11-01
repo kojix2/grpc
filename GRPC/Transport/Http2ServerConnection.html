@@ -242,6 +242,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ReceiveLimits" data-name="grpc::receivelimits">
+      <a href="../../GRPC/ReceiveLimits.html">ReceiveLimits</a>
+      
+    </li>
+  
   <li class="parent " data-id="grpc/GRPC/Reflection" data-name="grpc::reflection">
       <a href="../../GRPC/Reflection.html">Reflection</a>
       
@@ -467,6 +472,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/UnaryMessageBuffer" data-name="grpc::transport::unarymessagebuffer">
+      <a href="../../GRPC/Transport/UnaryMessageBuffer.html">UnaryMessageBuffer</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -674,7 +684,7 @@ It receives gRPC requests, dispatches to registered services, and sends response
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_server_connection.cr#L32" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_server_connection.cr#L32" target="_blank">
         grpc/transport/http2_server_connection.cr
       </a>
     
@@ -773,7 +783,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28socket%3AIO%2Cservices%3AHash%28String%2CService%29%2Cinterceptors%3AArray%28ServerInterceptor%29%3D%5B%5DofServerInterceptor%2Cpeer_address%3AString%3D%22unknown%22%2Ctls_socket%3AOpenSSL%3A%3ASSL%3A%3ASocket%3A%3AServer%7CNil%3Dnil%29-class-method" class="signature"><strong>.new</strong>(socket : IO, services : Hash(String, Service), interceptors : Array(ServerInterceptor) = <span class="o">[]</span> <span class="k">of</span> <span class="t">ServerInterceptor</span>, peer_address : String = <span class="s">&quot;unknown&quot;</span>, tls_socket : OpenSSL::SSL::Socket::Server | Nil = <span class="n">nil</span>)</a>
+        <a href="#new%28socket%3AIO%2Cservices%3AHash%28String%2CService%29%2Cinterceptors%3AArray%28ServerInterceptor%29%3D%5B%5DofServerInterceptor%2Cpeer_address%3AString%3D%22unknown%22%2Ctls_socket%3AOpenSSL%3A%3ASSL%3A%3ASocket%3A%3AServer%7CNil%3Dnil%2Creceive_limits%3AReceiveLimits%3DReceiveLimits.new%29-class-method" class="signature"><strong>.new</strong>(socket : IO, services : Hash(String, Service), interceptors : Array(ServerInterceptor) = <span class="o">[]</span> <span class="k">of</span> <span class="t">ServerInterceptor</span>, peer_address : String = <span class="s">&quot;unknown&quot;</span>, tls_socket : OpenSSL::SSL::Socket::Server | Nil = <span class="n">nil</span>, receive_limits : ReceiveLimits = <span class="t">ReceiveLimits</span>.new)</a>
         
       </li>
     
@@ -972,18 +982,18 @@ so the stream stays open for subsequent data or trailer submission.</p>
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(socket:IO,services:Hash(String,Service),interceptors:Array(ServerInterceptor)=[]ofServerInterceptor,peer_address:String=&quot;unknown&quot;,tls_socket:OpenSSL::SSL::Socket::Server|Nil=nil)-class-method">
+    <div class="entry-detail" id="new(socket:IO,services:Hash(String,Service),interceptors:Array(ServerInterceptor)=[]ofServerInterceptor,peer_address:String=&quot;unknown&quot;,tls_socket:OpenSSL::SSL::Socket::Server|Nil=nil,receive_limits:ReceiveLimits=ReceiveLimits.new)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(socket : IO, services : Hash(String, <a href="../../GRPC/Service.html">Service</a>), interceptors : Array(<a href="../../GRPC/ServerInterceptor.html">ServerInterceptor</a>) = <span class="o">[]</span> <span class="k">of</span> <span class="t">ServerInterceptor</span>, peer_address : String = <span class="s">&quot;unknown&quot;</span>, tls_socket : OpenSSL::SSL::Socket::Server | Nil = <span class="n">nil</span>)
+        def self.<strong>new</strong>(socket : IO, services : Hash(String, <a href="../../GRPC/Service.html">Service</a>), interceptors : Array(<a href="../../GRPC/ServerInterceptor.html">ServerInterceptor</a>) = <span class="o">[]</span> <span class="k">of</span> <span class="t">ServerInterceptor</span>, peer_address : String = <span class="s">&quot;unknown&quot;</span>, tls_socket : OpenSSL::SSL::Socket::Server | Nil = <span class="n">nil</span>, receive_limits : <a href="../../GRPC/ReceiveLimits.html">ReceiveLimits</a> = <span class="t">ReceiveLimits</span>.new)
 
-        <a class="method-permalink" href="#new%28socket%3AIO%2Cservices%3AHash%28String%2CService%29%2Cinterceptors%3AArray%28ServerInterceptor%29%3D%5B%5DofServerInterceptor%2Cpeer_address%3AString%3D%22unknown%22%2Ctls_socket%3AOpenSSL%3A%3ASSL%3A%3ASocket%3A%3AServer%7CNil%3Dnil%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28socket%3AIO%2Cservices%3AHash%28String%2CService%29%2Cinterceptors%3AArray%28ServerInterceptor%29%3D%5B%5DofServerInterceptor%2Cpeer_address%3AString%3D%22unknown%22%2Ctls_socket%3AOpenSSL%3A%3ASSL%3A%3ASocket%3A%3AServer%7CNil%3Dnil%2Creceive_limits%3AReceiveLimits%3DReceiveLimits.new%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_server_connection.cr#L125" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_server_connection.cr#L126" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1015,7 +1025,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_server_connection.cr#L150" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_server_connection.cr#L152" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1031,7 +1041,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_server_connection.cr#L174" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_server_connection.cr#L176" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1047,7 +1057,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_server_connection.cr#L204" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_server_connection.cr#L212" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1063,7 +1073,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_server_connection.cr#L263" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_server_connection.cr#L271" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1079,7 +1089,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_server_connection.cr#L161" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_server_connection.cr#L163" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1095,7 +1105,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_server_connection.cr#L237" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_server_connection.cr#L245" target="_blank">View source</a>]
         
       </div>
     </div>

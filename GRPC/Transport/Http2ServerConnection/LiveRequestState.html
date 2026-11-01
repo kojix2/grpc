@@ -242,6 +242,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ReceiveLimits" data-name="grpc::receivelimits">
+      <a href="../../../GRPC/ReceiveLimits.html">ReceiveLimits</a>
+      
+    </li>
+  
   <li class="parent " data-id="grpc/GRPC/Reflection" data-name="grpc::reflection">
       <a href="../../../GRPC/Reflection.html">Reflection</a>
       
@@ -467,6 +472,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/UnaryMessageBuffer" data-name="grpc::transport::unarymessagebuffer">
+      <a href="../../../GRPC/Transport/UnaryMessageBuffer.html">UnaryMessageBuffer</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -659,7 +669,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_server_connection.cr#L38" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_server_connection.cr#L38" target="_blank">
         grpc/transport/http2_server_connection.cr
       </a>
     
@@ -682,8 +692,8 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28kind%3ASymbol%2Cconsumed%3AInt32-%3ENil%3D-%3E%28_bytes%3AInt32%29do%0Aend%29-class-method" class="signature"><strong>.new</strong>(kind : Symbol, consumed : Int32 -> Nil = <span class="o">-&gt;</span>(_bytes : <span class="t">Int32</span>) <span class="k">do</span>
-<span class="k">end</span>)</a>
+        <a href="#new%28kind%3ASymbol%2Cconsumed%3AInt32-%3ENil%3D-%3E%28_bytes%3AInt32%29do%0Aend%2Climits%3AReceiveLimits%3DReceiveLimits.new%29-class-method" class="signature"><strong>.new</strong>(kind : Symbol, consumed : Int32 -> Nil = <span class="o">-&gt;</span>(_bytes : <span class="t">Int32</span>) <span class="k">do</span>
+<span class="k">end</span>, limits : ReceiveLimits = <span class="t">ReceiveLimits</span>.new)</a>
         
       </li>
     
@@ -778,9 +788,9 @@
   <h3>Constructor methods inherited from class <code><a href="../../../GRPC/Transport/FlowControlledBuffer.html">GRPC::Transport::FlowControlledBuffer</a></code></h3>
   
   
-    <a href="../../../GRPC/Transport/FlowControlledBuffer.html#new%28consumed%3AInt32-%3ENil%3D-%3E%28_bytes%3AInt32%29do%0Aend%29-class-method" class="tooltip">
+    <a href="../../../GRPC/Transport/FlowControlledBuffer.html#new%28consumed%3AInt32-%3ENil%3D-%3E%28_bytes%3AInt32%29do%0Aend%2Climits%3AReceiveLimits%3DReceiveLimits.new%29-class-method" class="tooltip">
       <span>new(consumed : Int32 -> Nil = <span class="o">-&gt;</span>(_bytes : <span class="t">Int32</span>) <span class="k">do</span>
-<span class="k">end</span>)</span>
+<span class="k">end</span>, limits : ReceiveLimits = <span class="t">ReceiveLimits</span>.new)</span>
     new</a>
     
   
@@ -832,19 +842,19 @@
   </h2>
   
     <div class="entry-detail" id="new(kind:Symbol,consumed:Int32-&gt;Nil=-&gt;(_bytes:Int32)do
-end)-class-method">
+end,limits:ReceiveLimits=ReceiveLimits.new)-class-method">
       <div class="signature">
         
         def self.<strong>new</strong>(kind : Symbol, consumed : Int32 -> Nil = <span class="o">-&gt;</span>(_bytes : <span class="t">Int32</span>) <span class="k">do</span>
-<span class="k">end</span>)
+<span class="k">end</span>, limits : <a href="../../../GRPC/ReceiveLimits.html">ReceiveLimits</a> = <span class="t">ReceiveLimits</span>.new)
 
-        <a class="method-permalink" href="#new%28kind%3ASymbol%2Cconsumed%3AInt32-%3ENil%3D-%3E%28_bytes%3AInt32%29do%0Aend%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28kind%3ASymbol%2Cconsumed%3AInt32-%3ENil%3D-%3E%28_bytes%3AInt32%29do%0Aend%2Climits%3AReceiveLimits%3DReceiveLimits.new%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_server_connection.cr#L42" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_server_connection.cr#L42" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -876,7 +886,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_server_connection.cr#L40" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_server_connection.cr#L40" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -892,7 +902,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_server_connection.cr#L39" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_server_connection.cr#L39" target="_blank">View source</a>]
         
       </div>
     </div>

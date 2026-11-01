@@ -242,6 +242,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ReceiveLimits" data-name="grpc::receivelimits">
+      <a href="../GRPC/ReceiveLimits.html">ReceiveLimits</a>
+      
+    </li>
+  
   <li class="parent " data-id="grpc/GRPC/Reflection" data-name="grpc::reflection">
       <a href="../GRPC/Reflection.html">Reflection</a>
       
@@ -467,6 +472,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/UnaryMessageBuffer" data-name="grpc::transport::unarymessagebuffer">
+      <a href="../GRPC/Transport/UnaryMessageBuffer.html">UnaryMessageBuffer</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -660,7 +670,7 @@ This is the primary configuration entry point for future connection manager work
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L117" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L119" target="_blank">
         grpc/endpoint.cr
       </a>
     
@@ -683,7 +693,7 @@ This is the primary configuration entry point for future connection manager work
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28connect_timeout%3ATime%3A%3ASpan%7CNil%3Dnil%2Ctcp_keepalive%3ATime%3A%3ASpan%7CNil%3Dnil%2Ckeepalive%3AKeepaliveParams%7CNil%3Dnil%2Cconcurrency_limit%3AInt32%7CNil%3Dnil%2Crate_limit%3ARateLimitConfig%7CNil%3Dnil%2Cbackoff%3ABackoffConfig%3DBackoffConfig.new%29-class-method" class="signature"><strong>.new</strong>(connect_timeout : Time::Span | Nil = <span class="n">nil</span>, tcp_keepalive : Time::Span | Nil = <span class="n">nil</span>, keepalive : KeepaliveParams | Nil = <span class="n">nil</span>, concurrency_limit : Int32 | Nil = <span class="n">nil</span>, rate_limit : RateLimitConfig | Nil = <span class="n">nil</span>, backoff : BackoffConfig = <span class="t">BackoffConfig</span>.new)</a>
+        <a href="#new%28connect_timeout%3ATime%3A%3ASpan%7CNil%3Dnil%2Ctcp_keepalive%3ATime%3A%3ASpan%7CNil%3Dnil%2Ckeepalive%3AKeepaliveParams%7CNil%3Dnil%2Cconcurrency_limit%3AInt32%7CNil%3Dnil%2Crate_limit%3ARateLimitConfig%7CNil%3Dnil%2Cbackoff%3ABackoffConfig%3DBackoffConfig.new%2Creceive_limits%3AReceiveLimits%3DReceiveLimits.new%29-class-method" class="signature"><strong>.new</strong>(connect_timeout : Time::Span | Nil = <span class="n">nil</span>, tcp_keepalive : Time::Span | Nil = <span class="n">nil</span>, keepalive : KeepaliveParams | Nil = <span class="n">nil</span>, concurrency_limit : Int32 | Nil = <span class="n">nil</span>, rate_limit : RateLimitConfig | Nil = <span class="n">nil</span>, backoff : BackoffConfig = <span class="t">BackoffConfig</span>.new, receive_limits : ReceiveLimits = <span class="t">ReceiveLimits</span>.new)</a>
         
       </li>
     
@@ -756,6 +766,16 @@ This is the primary configuration entry point for future connection manager work
       </li>
     
       <li class="entry-summary">
+        <a href="#receive_limits%3AReceiveLimits-instance-method" class="signature"><strong>#receive_limits</strong> : ReceiveLimits</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#receive_limits%3D%28receive_limits%3AReceiveLimits%29-instance-method" class="signature"><strong>#receive_limits=</strong>(receive_limits : ReceiveLimits)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#tcp_keepalive%3ATime%3A%3ASpan%7CNil-instance-method" class="signature"><strong>#tcp_keepalive</strong> : Time::Span | Nil</a>
         
       </li>
@@ -809,18 +829,18 @@ This is the primary configuration entry point for future connection manager work
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(connect_timeout:Time::Span|Nil=nil,tcp_keepalive:Time::Span|Nil=nil,keepalive:KeepaliveParams|Nil=nil,concurrency_limit:Int32|Nil=nil,rate_limit:RateLimitConfig|Nil=nil,backoff:BackoffConfig=BackoffConfig.new)-class-method">
+    <div class="entry-detail" id="new(connect_timeout:Time::Span|Nil=nil,tcp_keepalive:Time::Span|Nil=nil,keepalive:KeepaliveParams|Nil=nil,concurrency_limit:Int32|Nil=nil,rate_limit:RateLimitConfig|Nil=nil,backoff:BackoffConfig=BackoffConfig.new,receive_limits:ReceiveLimits=ReceiveLimits.new)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(connect_timeout : Time::Span | Nil = <span class="n">nil</span>, tcp_keepalive : Time::Span | Nil = <span class="n">nil</span>, keepalive : <a href="../GRPC/KeepaliveParams.html">KeepaliveParams</a> | Nil = <span class="n">nil</span>, concurrency_limit : Int32 | Nil = <span class="n">nil</span>, rate_limit : <a href="../GRPC/RateLimitConfig.html">RateLimitConfig</a> | Nil = <span class="n">nil</span>, backoff : <a href="../GRPC/BackoffConfig.html">BackoffConfig</a> = <span class="t">BackoffConfig</span>.new)
+        def self.<strong>new</strong>(connect_timeout : Time::Span | Nil = <span class="n">nil</span>, tcp_keepalive : Time::Span | Nil = <span class="n">nil</span>, keepalive : <a href="../GRPC/KeepaliveParams.html">KeepaliveParams</a> | Nil = <span class="n">nil</span>, concurrency_limit : Int32 | Nil = <span class="n">nil</span>, rate_limit : <a href="../GRPC/RateLimitConfig.html">RateLimitConfig</a> | Nil = <span class="n">nil</span>, backoff : <a href="../GRPC/BackoffConfig.html">BackoffConfig</a> = <span class="t">BackoffConfig</span>.new, receive_limits : <a href="../GRPC/ReceiveLimits.html">ReceiveLimits</a> = <span class="t">ReceiveLimits</span>.new)
 
-        <a class="method-permalink" href="#new%28connect_timeout%3ATime%3A%3ASpan%7CNil%3Dnil%2Ctcp_keepalive%3ATime%3A%3ASpan%7CNil%3Dnil%2Ckeepalive%3AKeepaliveParams%7CNil%3Dnil%2Cconcurrency_limit%3AInt32%7CNil%3Dnil%2Crate_limit%3ARateLimitConfig%7CNil%3Dnil%2Cbackoff%3ABackoffConfig%3DBackoffConfig.new%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28connect_timeout%3ATime%3A%3ASpan%7CNil%3Dnil%2Ctcp_keepalive%3ATime%3A%3ASpan%7CNil%3Dnil%2Ckeepalive%3AKeepaliveParams%7CNil%3Dnil%2Cconcurrency_limit%3AInt32%7CNil%3Dnil%2Crate_limit%3ARateLimitConfig%7CNil%3Dnil%2Cbackoff%3ABackoffConfig%3DBackoffConfig.new%2Creceive_limits%3AReceiveLimits%3DReceiveLimits.new%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L125" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L128" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -852,7 +872,7 @@ This is the primary configuration entry point for future connection manager work
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L123" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L125" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -868,7 +888,7 @@ This is the primary configuration entry point for future connection manager work
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L123" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L125" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -884,7 +904,7 @@ This is the primary configuration entry point for future connection manager work
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L121" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L123" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -900,7 +920,7 @@ This is the primary configuration entry point for future connection manager work
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L121" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L123" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -916,7 +936,7 @@ This is the primary configuration entry point for future connection manager work
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L118" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L120" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -932,7 +952,7 @@ This is the primary configuration entry point for future connection manager work
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L118" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L120" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -948,7 +968,7 @@ This is the primary configuration entry point for future connection manager work
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L120" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L122" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -964,7 +984,7 @@ This is the primary configuration entry point for future connection manager work
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L120" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L122" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -980,7 +1000,7 @@ This is the primary configuration entry point for future connection manager work
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L122" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L124" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -996,7 +1016,39 @@ This is the primary configuration entry point for future connection manager work
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L122" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L124" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="receive_limits:ReceiveLimits-instance-method">
+      <div class="signature">
+        
+        def <strong>receive_limits</strong> : <a href="../GRPC/ReceiveLimits.html">ReceiveLimits</a>
+
+        <a class="method-permalink" href="#receive_limits%3AReceiveLimits-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L126" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="receive_limits=(receive_limits:ReceiveLimits)-instance-method">
+      <div class="signature">
+        
+        def <strong>receive_limits=</strong>(receive_limits : <a href="../GRPC/ReceiveLimits.html">ReceiveLimits</a>)
+
+        <a class="method-permalink" href="#receive_limits%3D%28receive_limits%3AReceiveLimits%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L126" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1012,7 +1064,7 @@ This is the primary configuration entry point for future connection manager work
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L119" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L121" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1028,7 +1080,7 @@ This is the primary configuration entry point for future connection manager work
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/endpoint.cr#L119" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/endpoint.cr#L121" target="_blank">View source</a>]
         
       </div>
     </div>

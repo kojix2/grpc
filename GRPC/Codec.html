@@ -242,6 +242,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ReceiveLimits" data-name="grpc::receivelimits">
+      <a href="../GRPC/ReceiveLimits.html">ReceiveLimits</a>
+      
+    </li>
+  
   <li class="parent " data-id="grpc/GRPC/Reflection" data-name="grpc::reflection">
       <a href="../GRPC/Reflection.html">Reflection</a>
       
@@ -467,6 +472,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/UnaryMessageBuffer" data-name="grpc::transport::unarymessagebuffer">
+      <a href="../GRPC/Transport/UnaryMessageBuffer.html">UnaryMessageBuffer</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -660,7 +670,7 @@ Bytes 1-4: Message-Length (big-endian uint32) — length of the (possibly compre
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/codec.cr#L9" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/codec.cr#L10" target="_blank">
         grpc/codec.cr
       </a>
     
@@ -704,21 +714,21 @@ Bytes 1-4: Message-Length (big-endian uint32) — length of the (possibly compre
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#decode%28data%3ABytes%2Cencoding%3AString%7CNil%3Dnil%2Cvalidate_encoding%3ABool%3Dfalse%29%3ATuple%28Bytes%2CInt32%29-class-method" class="signature"><strong>.decode</strong>(data : Bytes, encoding : String | Nil = <span class="n">nil</span>, validate_encoding : Bool = <span class="n">false</span>) : Tuple(Bytes, Int32)</a>
+        <a href="#decode%28data%3ABytes%2Cencoding%3AString%7CNil%3Dnil%2Cvalidate_encoding%3ABool%3Dfalse%2Climits%3AReceiveLimits%3DReceiveLimits.new%29%3ATuple%28Bytes%2CInt32%29-class-method" class="signature"><strong>.decode</strong>(data : Bytes, encoding : String | Nil = <span class="n">nil</span>, validate_encoding : Bool = <span class="n">false</span>, limits : ReceiveLimits = <span class="t">ReceiveLimits</span>.new) : Tuple(Bytes, Int32)</a>
         
           <div class="summary"><p>Decode reads one gRPC message from the given Bytes slice.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#decode_all%28data%3ABytes%29%3AArray%28Bytes%29-class-method" class="signature"><strong>.decode_all</strong>(data : Bytes) : Array(Bytes)</a>
+        <a href="#decode_all%28data%3ABytes%2Climits%3AReceiveLimits%3DReceiveLimits.new%29%3AArray%28Bytes%29-class-method" class="signature"><strong>.decode_all</strong>(data : Bytes, limits : ReceiveLimits = <span class="t">ReceiveLimits</span>.new) : Array(Bytes)</a>
         
           <div class="summary"><p>Decode all gRPC messages from the given Bytes slice.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#decode_payload%28compressed%3AUInt8%2Cbody%3ABytes%2Cencoding%3AString%7CNil%3Dnil%2Cvalidate_encoding%3ABool%3Dfalse%29%3ABytes-class-method" class="signature"><strong>.decode_payload</strong>(compressed : UInt8, body : Bytes, encoding : String | Nil = <span class="n">nil</span>, validate_encoding : Bool = <span class="n">false</span>) : Bytes</a>
+        <a href="#decode_payload%28compressed%3AUInt8%2Cbody%3ABytes%2Cencoding%3AString%7CNil%3Dnil%2Cvalidate_encoding%3ABool%3Dfalse%2Climits%3AReceiveLimits%3DReceiveLimits.new%29%3ABytes-class-method" class="signature"><strong>.decode_payload</strong>(compressed : UInt8, body : Bytes, encoding : String | Nil = <span class="n">nil</span>, validate_encoding : Bool = <span class="n">false</span>, limits : ReceiveLimits = <span class="t">ReceiveLimits</span>.new) : Bytes</a>
         
       </li>
     
@@ -735,7 +745,7 @@ Bytes 1-4: Message-Length (big-endian uint32) — length of the (possibly compre
       </li>
     
       <li class="entry-summary">
-        <a href="#validate_frame_header%28compressed%3AUInt8%2Clength%3AUInt32%29%3AInt32-class-method" class="signature"><strong>.validate_frame_header</strong>(compressed : UInt8, length : UInt32) : Int32</a>
+        <a href="#validate_frame_header%28compressed%3AUInt8%2Clength%3AUInt32%2Climits%3AReceiveLimits%3DReceiveLimits.new%29%3AInt32-class-method" class="signature"><strong>.validate_frame_header</strong>(compressed : UInt8, length : UInt32, limits : ReceiveLimits = <span class="t">ReceiveLimits</span>.new) : Int32</a>
         
           <div class="summary"><p>Bytes and deframer offsets use Int32.</p></div>
         
@@ -765,12 +775,12 @@ Bytes 1-4: Message-Length (big-endian uint32) — length of the (possibly compre
     Class Method Detail
   </h2>
   
-    <div class="entry-detail" id="decode(data:Bytes,encoding:String|Nil=nil,validate_encoding:Bool=false):Tuple(Bytes,Int32)-class-method">
+    <div class="entry-detail" id="decode(data:Bytes,encoding:String|Nil=nil,validate_encoding:Bool=false,limits:ReceiveLimits=ReceiveLimits.new):Tuple(Bytes,Int32)-class-method">
       <div class="signature">
         
-        def self.<strong>decode</strong>(data : Bytes, encoding : String | Nil = <span class="n">nil</span>, validate_encoding : Bool = <span class="n">false</span>) : Tuple(Bytes, Int32)
+        def self.<strong>decode</strong>(data : Bytes, encoding : String | Nil = <span class="n">nil</span>, validate_encoding : Bool = <span class="n">false</span>, limits : <a href="../GRPC/ReceiveLimits.html">ReceiveLimits</a> = <span class="t">ReceiveLimits</span>.new) : Tuple(Bytes, Int32)
 
-        <a class="method-permalink" href="#decode%28data%3ABytes%2Cencoding%3AString%7CNil%3Dnil%2Cvalidate_encoding%3ABool%3Dfalse%29%3ATuple%28Bytes%2CInt32%29-class-method">#</a>
+        <a class="method-permalink" href="#decode%28data%3ABytes%2Cencoding%3AString%7CNil%3Dnil%2Cvalidate_encoding%3ABool%3Dfalse%2Climits%3AReceiveLimits%3DReceiveLimits.new%29%3ATuple%28Bytes%2CInt32%29-class-method">#</a>
       </div>
       
         <div class="doc">
@@ -784,17 +794,17 @@ Raises StatusError on incomplete or malformed frames.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/codec.cr#L34" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/codec.cr#L35" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="decode_all(data:Bytes):Array(Bytes)-class-method">
+    <div class="entry-detail" id="decode_all(data:Bytes,limits:ReceiveLimits=ReceiveLimits.new):Array(Bytes)-class-method">
       <div class="signature">
         
-        def self.<strong>decode_all</strong>(data : Bytes) : Array(Bytes)
+        def self.<strong>decode_all</strong>(data : Bytes, limits : <a href="../GRPC/ReceiveLimits.html">ReceiveLimits</a> = <span class="t">ReceiveLimits</span>.new) : Array(Bytes)
 
-        <a class="method-permalink" href="#decode_all%28data%3ABytes%29%3AArray%28Bytes%29-class-method">#</a>
+        <a class="method-permalink" href="#decode_all%28data%3ABytes%2Climits%3AReceiveLimits%3DReceiveLimits.new%29%3AArray%28Bytes%29-class-method">#</a>
       </div>
       
         <div class="doc">
@@ -805,23 +815,23 @@ Raises StatusError on incomplete or malformed frames.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/codec.cr#L86" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/codec.cr#L99" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="decode_payload(compressed:UInt8,body:Bytes,encoding:String|Nil=nil,validate_encoding:Bool=false):Bytes-class-method">
+    <div class="entry-detail" id="decode_payload(compressed:UInt8,body:Bytes,encoding:String|Nil=nil,validate_encoding:Bool=false,limits:ReceiveLimits=ReceiveLimits.new):Bytes-class-method">
       <div class="signature">
         
-        def self.<strong>decode_payload</strong>(compressed : UInt8, body : Bytes, encoding : String | Nil = <span class="n">nil</span>, validate_encoding : Bool = <span class="n">false</span>) : Bytes
+        def self.<strong>decode_payload</strong>(compressed : UInt8, body : Bytes, encoding : String | Nil = <span class="n">nil</span>, validate_encoding : Bool = <span class="n">false</span>, limits : <a href="../GRPC/ReceiveLimits.html">ReceiveLimits</a> = <span class="t">ReceiveLimits</span>.new) : Bytes
 
-        <a class="method-permalink" href="#decode_payload%28compressed%3AUInt8%2Cbody%3ABytes%2Cencoding%3AString%7CNil%3Dnil%2Cvalidate_encoding%3ABool%3Dfalse%29%3ABytes-class-method">#</a>
+        <a class="method-permalink" href="#decode_payload%28compressed%3AUInt8%2Cbody%3ABytes%2Cencoding%3AString%7CNil%3Dnil%2Cvalidate_encoding%3ABool%3Dfalse%2Climits%3AReceiveLimits%3DReceiveLimits.new%29%3ABytes-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/codec.cr#L60" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/codec.cr#L66" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -843,7 +853,7 @@ Pass <code>compress: true</code> to gzip-compress the payload.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/codec.cr#L14" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/codec.cr#L15" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -859,17 +869,17 @@ Pass <code>compress: true</code> to gzip-compress the payload.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/codec.cr#L79" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/codec.cr#L92" target="_blank">View source</a>]
         
       </div>
     </div>
   
-    <div class="entry-detail" id="validate_frame_header(compressed:UInt8,length:UInt32):Int32-class-method">
+    <div class="entry-detail" id="validate_frame_header(compressed:UInt8,length:UInt32,limits:ReceiveLimits=ReceiveLimits.new):Int32-class-method">
       <div class="signature">
         
-        def self.<strong>validate_frame_header</strong>(compressed : UInt8, length : UInt32) : Int32
+        def self.<strong>validate_frame_header</strong>(compressed : UInt8, length : UInt32, limits : <a href="../GRPC/ReceiveLimits.html">ReceiveLimits</a> = <span class="t">ReceiveLimits</span>.new) : Int32
 
-        <a class="method-permalink" href="#validate_frame_header%28compressed%3AUInt8%2Clength%3AUInt32%29%3AInt32-class-method">#</a>
+        <a class="method-permalink" href="#validate_frame_header%28compressed%3AUInt8%2Clength%3AUInt32%2Climits%3AReceiveLimits%3DReceiveLimits.new%29%3AInt32-class-method">#</a>
       </div>
       
         <div class="doc">
@@ -881,7 +891,7 @@ before conversion or adding the header, and reject bad flags immediately.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/codec.cr#L50" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/codec.cr#L52" target="_blank">View source</a>]
         
       </div>
     </div>

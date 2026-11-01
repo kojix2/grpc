@@ -242,6 +242,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ReceiveLimits" data-name="grpc::receivelimits">
+      <a href="GRPC/ReceiveLimits.html">ReceiveLimits</a>
+      
+    </li>
+  
   <li class="parent " data-id="grpc/GRPC/Reflection" data-name="grpc::reflection">
       <a href="GRPC/Reflection.html">Reflection</a>
       
@@ -467,6 +472,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/UnaryMessageBuffer" data-name="grpc::transport::unarymessagebuffer">
+      <a href="GRPC/Transport/UnaryMessageBuffer.html">UnaryMessageBuffer</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -653,6 +663,24 @@ without being rejected merely because they arrived together. The initial
 window while complete messages awaiting consumption apply backpressure.
 Connection credit is managed separately so a stalled stream does not block
 other RPCs. Consume or cancel streams to release their delivery resources.</p>
+<p>Receive budgets default to <strong>64 MiB each</strong> for an encoded message (excluding its
+5-byte header), a decoded message, and unconsumed decoded data in one stream.
+Oversized headers are rejected before waiting for their payloads. Gzip decoding
+stops after the decoded limit plus one detection byte; an over-budget RPC ends
+with <code>RESOURCE_EXHAUSTED</code> while other RPCs on the connection remain usable.</p>
+<pre><code class="language-crystal">limits <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">ReceiveLimits</span>.new(
+  max_wire_size: <span class="n">16</span> <span class="o">*</span> <span class="n">1024</span> <span class="o">*</span> <span class="n">1024</span>,
+  max_message_size: <span class="n">8</span> <span class="o">*</span> <span class="n">1024</span> <span class="o">*</span> <span class="n">1024</span>,
+  max_buffered_bytes: <span class="n">32</span> <span class="o">*</span> <span class="n">1024</span> <span class="o">*</span> <span class="n">1024</span>,
+)
+channel <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Channel</span>.new(<span class="s">&quot;localhost:50051&quot;</span>,
+  endpoint_config: <span class="t">GRPC</span><span class="t">::</span><span class="t">EndpointConfig</span>.new(receive_limits: limits))
+server <span class="o">=</span> <span class="t">GRPC</span><span class="t">::</span><span class="t">Server</span>.new(receive_limits: limits)</code></pre>
+<p>The backlog budget is released as messages are consumed, so it does not limit
+the lifetime size of a stream. These are per-message/per-stream limits rather
+than a process-wide RAM cap: framed input, decoding workspace, and concurrent
+RPCs also use memory. Custom transport factories must enforce their own budgets.
+The default HTTP/2 window remains 65,535 bytes.</p>
 <p>grpcurl E2E entry point:</p>
 <pre><code class="language-sh">crystal spec spec/grpcurl.cr</code></pre>
 <p>GripMock E2E entry point (requires GripMock at 127.0.0.1:4770 and admin API at 127.0.0.1:4771):</p>

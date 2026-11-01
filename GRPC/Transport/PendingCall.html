@@ -242,6 +242,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ReceiveLimits" data-name="grpc::receivelimits">
+      <a href="../../GRPC/ReceiveLimits.html">ReceiveLimits</a>
+      
+    </li>
+  
   <li class="parent " data-id="grpc/GRPC/Reflection" data-name="grpc::reflection">
       <a href="../../GRPC/Reflection.html">Reflection</a>
       
@@ -467,6 +472,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Transport/UnaryMessageBuffer" data-name="grpc::transport::unarymessagebuffer">
+      <a href="../../GRPC/Transport/UnaryMessageBuffer.html">UnaryMessageBuffer</a>
+      
+    </li>
+  
 </ul>
 
       
@@ -659,7 +669,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L132" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L132" target="_blank">
         grpc/transport/http2_client_connection.cr
       </a>
     
@@ -682,7 +692,7 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new-class-method" class="signature"><strong>.new</strong></a>
+        <a href="#new%28limits%3AReceiveLimits%3DReceiveLimits.new%29-class-method" class="signature"><strong>.new</strong>(limits : ReceiveLimits = <span class="t">ReceiveLimits</span>.new)</a>
         
       </li>
     
@@ -715,6 +725,21 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#cancel%3ANil-instance-method" class="signature"><strong>#cancel</strong> : Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#cancel_proc%3A-%3ENil%7CNil-instance-method" class="signature"><strong>#cancel_proc</strong> :  -> Nil | Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#cancel_proc%3D%28cancel_proc%3A-%3ENil%7CNil%29-instance-method" class="signature"><strong>#cancel_proc=</strong>(cancel_proc :  -> Nil | Nil)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#complete%3ANil-instance-method" class="signature"><strong>#complete</strong> : Nil</a>
         
       </li>
@@ -741,6 +766,11 @@
     
       <li class="entry-summary">
         <a href="#grpc_trailers%3AMetadata-instance-method" class="signature"><strong>#grpc_trailers</strong> : Metadata</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#receive_data%28chunk%3ABytes%29%3AInt32-instance-method" class="signature"><strong>#receive_data</strong>(chunk : Bytes) : Int32</a>
         
       </li>
     
@@ -833,18 +863,18 @@
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new-class-method">
+    <div class="entry-detail" id="new(limits:ReceiveLimits=ReceiveLimits.new)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>
+        def self.<strong>new</strong>(limits : <a href="../../GRPC/ReceiveLimits.html">ReceiveLimits</a> = <span class="t">ReceiveLimits</span>.new)
 
-        <a class="method-permalink" href="#new-class-method">#</a>
+        <a class="method-permalink" href="#new%28limits%3AReceiveLimits%3DReceiveLimits.new%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L140" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L142" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -876,7 +906,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L161" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L181" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -892,7 +922,55 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L157" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L177" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="cancel:Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>cancel</strong> : Nil
+
+        <a class="method-permalink" href="#cancel%3ANil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L168" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="cancel_proc:-&gt;Nil|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>cancel_proc</strong> :  -> Nil | Nil
+
+        <a class="method-permalink" href="#cancel_proc%3A-%3ENil%7CNil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L136" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="cancel_proc=(cancel_proc:-&gt;Nil|Nil)-instance-method">
+      <div class="signature">
+        
+        def <strong>cancel_proc=</strong>(cancel_proc :  -> Nil | Nil)
+
+        <a class="method-permalink" href="#cancel_proc%3D%28cancel_proc%3A-%3ENil%7CNil%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L136" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -908,7 +986,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L171" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L191" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -924,7 +1002,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L134" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L134" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -940,7 +1018,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L134" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L134" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -956,7 +1034,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L189" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L209" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -972,7 +1050,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L181" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L201" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -988,7 +1066,23 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L193" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L213" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="receive_data(chunk:Bytes):Int32-instance-method">
+      <div class="signature">
+        
+        def <strong>receive_data</strong>(chunk : Bytes) : Int32
+
+        <a class="method-permalink" href="#receive_data%28chunk%3ABytes%29%3AInt32-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L157" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1004,7 +1098,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L133" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L133" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1020,7 +1114,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L133" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L133" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1036,7 +1130,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L185" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L205" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1052,7 +1146,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L149" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L153" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1068,7 +1162,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L135" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L135" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1084,7 +1178,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L135" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L135" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1100,7 +1194,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L153" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L173" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1116,7 +1210,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L176" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L196" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1132,7 +1226,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/625cb899d5e2fe064c6a57cdf1953f3c692ed710/src/grpc/transport/http2_client_connection.cr#L167" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/3e1bda0ce56eb440d65690539593ab03405199ac/src/grpc/transport/http2_client_connection.cr#L187" target="_blank">View source</a>]
         
       </div>
     </div>
