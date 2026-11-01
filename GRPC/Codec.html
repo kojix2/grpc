@@ -660,7 +660,7 @@ Bytes 1-4: Message-Length (big-endian uint32) — length of the (possibly compre
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/94c4507ba5292d95ec3af24e5a57f44c4d1423dd/src/grpc/codec.cr#L9" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/e7127510e1beccb80de8d9bd6ad85b61d3f2ddc9/src/grpc/codec.cr#L9" target="_blank">
         grpc/codec.cr
       </a>
     
@@ -734,6 +734,13 @@ Bytes 1-4: Message-Length (big-endian uint32) — length of the (possibly compre
         
       </li>
     
+      <li class="entry-summary">
+        <a href="#validate_frame_header%28compressed%3AUInt8%2Clength%3AUInt32%29%3AInt32-class-method" class="signature"><strong>.validate_frame_header</strong>(compressed : UInt8, length : UInt32) : Int32</a>
+        
+          <div class="summary"><p>Bytes and deframer offsets use Int32.</p></div>
+        
+      </li>
+    
   </ul>
 
 
@@ -777,7 +784,7 @@ Raises StatusError on incomplete or malformed frames.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/94c4507ba5292d95ec3af24e5a57f44c4d1423dd/src/grpc/codec.cr#L34" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/e7127510e1beccb80de8d9bd6ad85b61d3f2ddc9/src/grpc/codec.cr#L34" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -798,7 +805,7 @@ Raises StatusError on incomplete or malformed frames.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/94c4507ba5292d95ec3af24e5a57f44c4d1423dd/src/grpc/codec.cr#L74" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/e7127510e1beccb80de8d9bd6ad85b61d3f2ddc9/src/grpc/codec.cr#L86" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -814,7 +821,7 @@ Raises StatusError on incomplete or malformed frames.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/94c4507ba5292d95ec3af24e5a57f44c4d1423dd/src/grpc/codec.cr#L48" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/e7127510e1beccb80de8d9bd6ad85b61d3f2ddc9/src/grpc/codec.cr#L60" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -836,7 +843,7 @@ Pass <code>compress: true</code> to gzip-compress the payload.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/94c4507ba5292d95ec3af24e5a57f44c4d1423dd/src/grpc/codec.cr#L14" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/e7127510e1beccb80de8d9bd6ad85b61d3f2ddc9/src/grpc/codec.cr#L14" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -852,7 +859,29 @@ Pass <code>compress: true</code> to gzip-compress the payload.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/94c4507ba5292d95ec3af24e5a57f44c4d1423dd/src/grpc/codec.cr#L67" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/e7127510e1beccb80de8d9bd6ad85b61d3f2ddc9/src/grpc/codec.cr#L79" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="validate_frame_header(compressed:UInt8,length:UInt32):Int32-class-method">
+      <div class="signature">
+        
+        def self.<strong>validate_frame_header</strong>(compressed : UInt8, length : UInt32) : Int32
+
+        <a class="method-permalink" href="#validate_frame_header%28compressed%3AUInt8%2Clength%3AUInt32%29%3AInt32-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Bytes and deframer offsets use Int32. Validate the unsigned wire length
+before conversion or adding the header, and reject bad flags immediately.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/e7127510e1beccb80de8d9bd6ad85b61d3f2ddc9/src/grpc/codec.cr#L50" target="_blank">View source</a>]
         
       </div>
     </div>
