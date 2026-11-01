@@ -1,6 +1,7 @@
 # grpc.cr
 
 [![Test](https://github.com/kojix2/grpc/actions/workflows/test.yml/badge.svg)](https://github.com/kojix2/grpc/actions/workflows/test.yml)
+[![Lines of Code](https://img.shields.io/endpoint?url=https%3A%2F%2Ftokei.kojix2.net%2Fbadge%2Fgithub%2Fkojix2%2Fgrpc%2Flines)](https://tokei.kojix2.net/github/kojix2/grpc)
 
 gRPC client/server for Crystal >= 1.19.1, built on libnghttp2 and
 [proto.cr](https://github.com/kojix2/proto). Supports all four RPC shapes,
