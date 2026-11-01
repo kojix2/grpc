@@ -1581,27 +1581,23 @@ describe GRPC do
       stream.grpc_status.code.should eq(GRPC::StatusCode::UNIMPLEMENTED)
     end
 
-    it "fails only the saturated response stream instead of blocking the connection callback" do
+    it "hands off coalesced responses outside the connection callback without losing messages" do
       stream = GRPC::Transport::PendingStream.new
       frame = GRPC::Codec.encode(Bytes[1_u8])
       connection_lock = Mutex.new
-      finished = ::Channel(Nil).new(1)
-      stream.cancel_proc = -> {
-        connection_lock.synchronize { finished.send(nil) }
+      consumed = 0
+      stream.inbound.consumed = ->(bytes : Int32) {
+        connection_lock.synchronize { consumed += bytes }
         nil
       }
-
-      spawn do
-        connection_lock.synchronize { 129.times { stream.receive_data(frame) } }
-      end
-
-      select
-      when finished.receive
-      when timeout(100.milliseconds)
-        fail("saturated response stream cancellation deadlocked")
-      end
-
-      stream.grpc_status.code.should eq(GRPC::StatusCode::RESOURCE_EXHAUSTED)
+      connection_lock.synchronize { 512.times { stream.receive_data(frame) } }
+      consumed.should eq(0)
+      stream.trailers.add("grpc-status", "0")
+      stream.finish
+      512.times { stream.messages.receive.should eq(Bytes[1_u8]) }
+      stream.messages.receive?.should be_nil
+      consumed.should eq(512 * frame.size)
+      stream.grpc_status.ok?.should be_true
     end
 
     it "reports an incomplete trailing response frame at end of stream" do

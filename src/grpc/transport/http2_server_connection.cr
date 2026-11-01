@@ -1,7 +1,7 @@
 require "log"
 
 require "./http2_connection"
-require "./grpc_deframer"
+require "./flow_controlled_buffer"
 require "./interface"
 
 module GRPC
@@ -35,38 +35,13 @@ module GRPC
       LOGGER = ::Log.for(self)
 
       # Per-stream state for live request-streaming RPCs.
-      class LiveRequestState
+      class LiveRequestState < FlowControlledBuffer
         getter requests : RawRequestStream
         getter kind : Symbol
-        getter deframer : GrpcDeframer
-        property error_status : Status?
 
-        def initialize(@kind : Symbol)
-          @channel = ::Channel(Bytes?).new(256)
-          @requests = RawRequestStream.new(@channel)
-          @deframer = GrpcDeframer.new(validate_encoding: true)
-          @error_status = nil
-          @closed = Atomic(Bool).new(false)
-        end
-
-        def push(message : Bytes) : Bool
-          return false if @closed.get
-          select
-          when @channel.send(message)
-            true
-          else
-            false
-          end
-        rescue ::Channel::ClosedError
-          false
-        end
-
-        def close : Nil
-          # compare_and_set returns {old_value, success?}; only the winner executes.
-          return unless @closed.compare_and_set(false, true)[1]
-          @channel.close
-        rescue
-          # no-op
+        def initialize(@kind : Symbol, consumed : Int32 -> Nil = ->(_bytes : Int32) { })
+          super(consumed)
+          @requests = RawRequestStream.new(messages)
         end
       end
 
@@ -197,6 +172,9 @@ module GRPC
       end
 
       def on_data_chunk_cb(stream_id : Int32, data : UInt8*, len : LibC::SizeT) : Nil
+        # Keep the connection window available to other streams. Only the
+        # individual request stream is backpressured by its consumer.
+        check LibNghttp2.session_consume_connection(@session, len)
         sd = stream_data_for(stream_id)
         return unless sd
 
@@ -210,16 +188,17 @@ module GRPC
           service, method_name, kind = target
           state = @live_request_states[stream_id]?
           unless state
-            state = LiveRequestState.new(kind)
+            state = LiveRequestState.new(kind, ->(bytes : Int32) { consume_stream_bytes(stream_id, bytes) })
             state.deframer.encoding = sd.headers.get("grpc-encoding")
             @live_request_states[stream_id] = state
             spawn dispatch_live_request_stream(stream_id, sd, service, method_name, state)
           end
-          append_live_request_chunk(state, chunk)
+          append_live_request_chunk(stream_id, state, chunk)
           return
         end
 
         sd.body.write(chunk)
+        consume_stream_bytes(stream_id, chunk.size, flush: false)
       end
 
       def on_frame_recv_cb(frame : Void*) : Nil
@@ -243,7 +222,7 @@ module GRPC
 
         if target = request_stream_target(sd)
           service, method_name, kind = target
-          state = LiveRequestState.new(kind)
+          state = LiveRequestState.new(kind, ->(bytes : Int32) { consume_stream_bytes(stream_id, bytes) })
           state.deframer.encoding = sd.headers.get("grpc-encoding")
           @live_request_states[stream_id] = state
           spawn dispatch_live_request_stream(stream_id, sd, service, method_name, state)
@@ -724,20 +703,17 @@ module GRPC
         Status.unimplemented("service #{service_full_name} not found")
       end
 
-      private def append_live_request_chunk(state : LiveRequestState, chunk : Bytes) : Nil
+      private def append_live_request_chunk(stream_id : Int32, state : LiveRequestState, chunk : Bytes) : Nil
         return if state.error_status
 
-        state.deframer.append(chunk)
-        state.deframer.drain_messages.each do |message|
-          unless state.push(message)
-            state.error_status = Status.resource_exhausted("request stream receive buffer exhausted")
-            state.close
-            break
-          end
-        end
+        # Append only; delivery and blocking application handoffs run in their
+        # own fiber, with stream credit returned after each actual receive.
+        # Partial-frame credit is returned here to permit messages exceeding
+        # the stream window without enlarging the receive queue.
+        consume_stream_bytes(stream_id, state.append(chunk), flush: false)
       rescue ex : StatusError
         state.error_status = ex.status
-        state.close
+        state.finish
       rescue ex
         state.error_status = Status.internal(ex.message || "failed to decode request stream")
         state.close
@@ -747,7 +723,7 @@ module GRPC
         if state.deframer.remainder_size > 0 && state.error_status.nil?
           state.error_status = Status.internal("incomplete gRPC frame body")
         end
-        state.close
+        state.finish
       end
 
       private def register_stream_context(stream_id : Int32, ctx : ServerContext) : Nil

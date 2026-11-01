@@ -1,5 +1,5 @@
 require "./http2_connection"
-require "./grpc_deframer"
+require "./flow_controlled_buffer"
 require "./grpc_status_interpreter"
 require "./interface"
 require "./stream_state"
@@ -18,10 +18,11 @@ module GRPC
       @status_override : Status?
       @header_state : StreamHeaderState
       @terminal_state : StreamTerminalState
-      @deframer : GrpcDeframer
+      getter inbound : FlowControlledBuffer
 
       def initialize
-        @messages = ::Channel(Bytes?).new(128)
+        @inbound = FlowControlledBuffer.new
+        @messages = @inbound.messages
         @send_buf = nil
         @live_send_buf = nil
         @send_resume_proc = nil
@@ -29,7 +30,6 @@ module GRPC
         @status_override = nil
         @header_state = StreamHeaderState.new
         @terminal_state = StreamTerminalState.new
-        @deframer = GrpcDeframer.new(validate_encoding: true)
         @outbound_compression = false
       end
 
@@ -49,7 +49,7 @@ module GRPC
         @header_state.add_header(key, value)
         if key.downcase == "grpc-encoding"
           Codec.validate_encoding!(value)
-          @deframer.encoding = value
+          @inbound.deframer.encoding = value
         end
       rescue ex : ArgumentError
         self.transport_error = Status.internal(ex.message || "invalid response metadata")
@@ -58,42 +58,22 @@ module GRPC
         finish
       end
 
-      def receive_data(chunk : Bytes) : Nil
-        return if @terminal_state.finished? || @terminal_state.cancelled?
-        @deframer.append(chunk)
-        @deframer.drain_messages.each do |msg|
-          delivered = select
-          when @messages.send(msg)
-            true
-          else
-            false
-          end
-          unless delivered
-            self.transport_error = Status.resource_exhausted("response stream receive buffer exhausted")
-            finish
-            # receive_data runs from nghttp2's DATA callback while the
-            # connection mutex is held. The transport cancel proc acquires the
-            # same mutex, so invoke it on another fiber after this callback can
-            # return and release the lock.
-            spawn { @cancel_proc.try &.call }
-            break
-          end
-        end
+      def receive_data(chunk : Bytes) : Int32
+        return 0 if @terminal_state.finished? || @terminal_state.cancelled?
+        @inbound.append(chunk)
       rescue ex : StatusError
         self.transport_error = ex.status
         finish
-      rescue ::Channel::ClosedError
-        # Cancellation can close the delivery channel while a final DATA
-        # callback is already in flight. The stream is terminal, so discard it.
+        0
       end
 
       def finish : Nil
         return unless @terminal_state.mark_finished
-        if @deframer.remainder_size > 0 && @status_override.nil?
+        if @inbound.deframer.remainder_size > 0 && @status_override.nil?
           @status_override = Status.internal("incomplete gRPC response frame")
         end
         @live_send_buf.try &.close
-        @messages.close rescue nil
+        @inbound.finish
       end
 
       def transport_error=(status : Status) : Nil
@@ -120,7 +100,7 @@ module GRPC
         return unless @terminal_state.mark_cancelled
         @live_send_buf.try &.close
         @cancel_proc.try &.call
-        @messages.close rescue nil
+        @inbound.close
       end
 
       def cancelled? : Bool
@@ -137,7 +117,7 @@ module GRPC
       end
 
       def grpc_status : Status
-        GrpcStatusInterpreter.grpc_status(@header_state.headers, @header_state.trailers, @status_override)
+        GrpcStatusInterpreter.grpc_status(@header_state.headers, @header_state.trailers, @status_override || @inbound.error_status)
       end
     end
 
@@ -642,6 +622,7 @@ module GRPC
           stream_id = LibNghttp2.submit_request(@session, nil, nva, nvlen, pointerof(dp), boxed_ps)
           raise ConnectionError.new("submit_request failed: #{stream_id}") if stream_id < 0
 
+          ps.inbound.consumed = ->(bytes : Int32) { consume_stream_bytes(stream_id, bytes) }
           @pending_streams[stream_id] = ps
           @stream_boxes[stream_id] = boxed_ps
           @data_source_boxes[stream_id] = boxed_src
@@ -690,6 +671,7 @@ module GRPC
           stream_id = LibNghttp2.submit_request(@session, nil, nva, nvlen, pointerof(dp), boxed_ps)
           raise ConnectionError.new("submit_request failed: #{stream_id}") if stream_id < 0
 
+          ps.inbound.consumed = ->(bytes : Int32) { consume_stream_bytes(stream_id, bytes) }
           @pending_streams[stream_id] = ps
           @stream_boxes[stream_id] = boxed_ps
           start_deadline_watcher(stream_id, metadata, ps)
@@ -791,10 +773,12 @@ module GRPC
       end
 
       def on_data_chunk_cb(stream_id : Int32, data : UInt8*, len : LibC::SizeT) : Nil
+        check LibNghttp2.session_consume_connection(@session, len)
         if call = @pending[stream_id]?
           call.response_body.write(Slice.new(data, len))
+          consume_stream_bytes(stream_id, len.to_i, flush: false)
         elsif ps = @pending_streams[stream_id]?
-          ps.receive_data(Slice.new(data, len))
+          consume_stream_bytes(stream_id, ps.receive_data(Slice.new(data, len)), flush: false)
         end
       end
 

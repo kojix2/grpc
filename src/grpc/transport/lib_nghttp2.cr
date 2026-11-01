@@ -3,6 +3,7 @@ lib LibNghttp2
   # Opaque session type
   type Session = Void
   type SessionCallbacks = Void
+  type Option = Void
 
   # ---- Constants ----
 
@@ -162,6 +163,18 @@ lib LibNghttp2
   ) : Void
 
   # ---- Session creation / deletion ----
+
+  fun option_new = nghttp2_option_new(option_ptr : Option**) : Int32
+  fun option_del = nghttp2_option_del(option : Option*) : Void
+  fun option_set_no_auto_window_update = nghttp2_option_set_no_auto_window_update(option : Option*, value : Int32) : Void
+  fun session_server_new2 = nghttp2_session_server_new2(
+    session_ptr : Session**, callbacks : SessionCallbacks*, user_data : Void*, option : Option*,
+  ) : Int32
+  fun session_client_new2 = nghttp2_session_client_new2(
+    session_ptr : Session**, callbacks : SessionCallbacks*, user_data : Void*, option : Option*,
+  ) : Int32
+  fun session_consume_stream = nghttp2_session_consume_stream(session : Session*, stream_id : Int32, size : LibC::SizeT) : Int32
+  fun session_consume_connection = nghttp2_session_consume_connection(session : Session*, size : LibC::SizeT) : Int32
 
   fun session_server_new = nghttp2_session_server_new(
     session_ptr : Session**, callbacks : SessionCallbacks*, user_data : Void*,

@@ -42,6 +42,14 @@ Default suite:
 crystal spec
 ```
 
+Streaming receivers return HTTP/2 stream-window credit as the consumer takes
+messages. Short bursts can contain more than 256 requests or 128 responses
+without being rejected merely because they arrived together. The initial
+65,535-byte window is unchanged. Partial messages can progress beyond that
+window while complete messages awaiting consumption apply backpressure.
+Connection credit is managed separately so a stalled stream does not block
+other RPCs. Consume or cancel streams to release their delivery resources.
+
 grpcurl E2E entry point:
 
 ```sh

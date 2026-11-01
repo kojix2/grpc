@@ -28,7 +28,12 @@ module GRPC
       end
 
       def drain_messages : Array(Bytes)
-        messages = [] of Bytes
+        drain_frames.map(&.[0])
+      end
+
+      # Preserve the wire size for HTTP/2 credit, including compressed frames.
+      def drain_frames : Array(Tuple(Bytes, Int32))
+        messages = [] of Tuple(Bytes, Int32)
 
         loop do
           break if @remainder_size < Codec::HEADER_SIZE
@@ -41,7 +46,7 @@ module GRPC
 
           skip_exact(Codec::HEADER_SIZE)
           message = consume_message_payload(header)
-          messages << message
+          messages << {message, total}
         end
 
         messages

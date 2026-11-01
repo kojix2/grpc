@@ -109,10 +109,17 @@ module GRPC
 
         install_callbacks(callbacks)
 
-        if server_side
-          check LibNghttp2.session_server_new(pointerof(@session), callbacks, @user_data)
-        else
-          check LibNghttp2.session_client_new(pointerof(@session), callbacks, @user_data)
+        options = Pointer(LibNghttp2::Option).null
+        check LibNghttp2.option_new(pointerof(options))
+        begin
+          LibNghttp2.option_set_no_auto_window_update(options, 1)
+          if server_side
+            check LibNghttp2.session_server_new2(pointerof(@session), callbacks, @user_data, options)
+          else
+            check LibNghttp2.session_client_new2(pointerof(@session), callbacks, @user_data, options)
+          end
+        ensure
+          LibNghttp2.option_del(options)
         end
         LibNghttp2.session_callbacks_del(callbacks)
 
@@ -202,6 +209,15 @@ module GRPC
       end
 
       # --- I/O ---
+
+      protected def consume_stream_bytes(stream_id : Int32, bytes : Int32, *, flush : Bool = true) : Nil
+        return if bytes <= 0
+        @mutex.synchronize do
+          return if @closed || @session.null?
+          check LibNghttp2.session_consume_stream(@session, stream_id, bytes.to_u64)
+          flush_send if flush
+        end
+      end
 
       # flush_send writes all pending nghttp2 outbound data to the socket.
       protected def flush_send : Nil
