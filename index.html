@@ -644,6 +644,8 @@ pacman -S nghttp2             # Arch</code></pre>
 </a>Testing</h2>
 <p>Default suite:</p>
 <pre><code class="language-sh">crystal spec</code></pre>
+<p>See <a href="spec/README.md">the test layout</a> for focused commands and conventions for
+file boundaries, example granularity and ordering.</p>
 <p>Streaming receivers return HTTP/2 stream-window credit as the consumer takes
 messages. Short bursts can contain more than 256 requests or 128 responses
 without being rejected merely because they arrived together. The initial
