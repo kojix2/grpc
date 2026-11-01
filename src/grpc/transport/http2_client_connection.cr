@@ -52,19 +52,26 @@ module GRPC
           @inbound.deframer.encoding = value
         end
       rescue ex : ArgumentError
-        self.transport_error = Status.internal(ex.message || "invalid response metadata")
+        fail_stream(Status.internal(ex.message || "invalid response metadata"))
       rescue ex : StatusError
-        self.transport_error = ex.status
-        finish
+        fail_stream(ex.status)
       end
 
       def receive_data(chunk : Bytes) : Int32
         return 0 if @terminal_state.finished? || @terminal_state.cancelled?
         @inbound.append(chunk)
       rescue ex : StatusError
-        self.transport_error = ex.status
-        finish
+        fail_stream(ex.status)
         0
+      end
+
+      private def fail_stream(status : Status) : Nil
+        return if @terminal_state.finished? || @terminal_state.cancelled?
+        self.transport_error = status
+        finish
+        # Header/DATA callbacks hold the connection mutex. Reset only the
+        # offending RPC after returning, without leaking a malformed stream.
+        spawn { @cancel_proc.try &.call }
       end
 
       def finish : Nil

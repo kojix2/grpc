@@ -58,13 +58,13 @@ module GRPC
 
       private def read_header : FrameHeader
         compressed = read_byte_at(0)
-        length = 0
+        length = 0_u32
 
         4.times do |index|
-          length = (length << 8) | read_byte_at(index + 1)
+          length = (length << 8) | read_byte_at(index + 1).to_u32
         end
 
-        FrameHeader.new(compressed.to_u8, length)
+        FrameHeader.new(compressed.to_u8, Codec.validate_frame_header(compressed.to_u8, length))
       end
 
       private def consume_message_payload(header : FrameHeader) : Bytes

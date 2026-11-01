@@ -36,13 +36,25 @@ module GRPC
       raise StatusError.new(StatusCode::INTERNAL, "incomplete gRPC frame header") if data.size < HEADER_SIZE
 
       compressed = data[0]
-      length = IO::ByteFormat::BigEndian.decode(UInt32, data[1, 4]).to_i
+      length = validate_frame_header(compressed, IO::ByteFormat::BigEndian.decode(UInt32, data[1, 4]))
       total = HEADER_SIZE + length
 
       raise StatusError.new(StatusCode::INTERNAL, "incomplete gRPC frame body") if data.size < total
 
       body = data[HEADER_SIZE, length]
       {decode_payload(compressed, body, encoding, validate_encoding), total}
+    end
+
+    # Bytes and deframer offsets use Int32. Validate the unsigned wire length
+    # before conversion or adding the header, and reject bad flags immediately.
+    def self.validate_frame_header(compressed : UInt8, length : UInt32) : Int32
+      unless compressed == 0 || compressed == 1
+        raise StatusError.new(StatusCode::UNIMPLEMENTED, "unsupported gRPC compression flag: #{compressed}")
+      end
+      if length > (Int32::MAX - HEADER_SIZE).to_u32
+        raise StatusError.new(StatusCode::RESOURCE_EXHAUSTED, "gRPC frame length exceeds supported limit")
+      end
+      length.to_i
     end
 
     def self.decode_payload(compressed : UInt8, body : Bytes,
@@ -89,7 +101,12 @@ module GRPC
     end
 
     private def self.decompress_gzip(data : Bytes) : Bytes
+      # The gzip reader permits a file containing no members. A compressed
+      # gRPC frame must contain an actual gzip member, even for an empty message.
+      raise StatusError.new(StatusCode::INTERNAL, "empty gzip payload") if data.empty?
       Compress::Gzip::Reader.open(IO::Memory.new(data), &.getb_to_end)
+    rescue ex : IO::Error | Compress::Gzip::Error | Compress::Deflate::Error
+      raise StatusError.new(StatusCode::INTERNAL, "invalid gzip payload: #{ex.message}", cause: ex)
     end
   end
 end
