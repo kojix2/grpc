@@ -10,7 +10,8 @@ module GRPC
       @remainder_size : Int32
       property encoding : String?
 
-      def initialize(@encoding : String? = nil, @validate_encoding : Bool = false)
+      def initialize(@encoding : String? = nil, @validate_encoding : Bool = false,
+                     @limits : ReceiveLimits = ReceiveLimits.new)
         @segments = Deque(Bytes).new
         @head_offset = 0
         @remainder_size = 0
@@ -34,7 +35,20 @@ module GRPC
       # Preserve the wire size for HTTP/2 credit, including compressed frames.
       def drain_frames : Array(Tuple(Bytes, Int32))
         messages = [] of Tuple(Bytes, Int32)
+        decoded_size = 0_i64
+        each_frame do |message, total|
+          decoded_size += message.size
+          if decoded_size > @limits.max_buffered_bytes
+            raise StatusError.new(StatusCode::RESOURCE_EXHAUSTED, "decoded gRPC batch exceeds receive buffer limit")
+          end
+          messages << {message, total}
+        end
+        messages
+      end
 
+      # Yield one decoded frame at a time so consumers can enforce their own
+      # backlog budget before a whole coalesced batch is decompressed.
+      def each_frame(& : Bytes, Int32 ->) : Nil
         loop do
           break if @remainder_size < Codec::HEADER_SIZE
 
@@ -46,10 +60,8 @@ module GRPC
 
           skip_exact(Codec::HEADER_SIZE)
           message = consume_message_payload(header)
-          messages << {message, total}
+          yield message, total
         end
-
-        messages
       end
 
       def remainder_size : Int32
@@ -64,12 +76,12 @@ module GRPC
           length = (length << 8) | read_byte_at(index + 1).to_u32
         end
 
-        FrameHeader.new(compressed.to_u8, Codec.validate_frame_header(compressed.to_u8, length))
+        FrameHeader.new(compressed.to_u8, Codec.validate_frame_header(compressed.to_u8, length, @limits))
       end
 
       private def consume_message_payload(header : FrameHeader) : Bytes
         payload = consume_payload_exact(header.length)
-        Codec.decode_payload(header.compressed, payload, @encoding, @validate_encoding)
+        Codec.decode_payload(header.compressed, payload, @encoding, @validate_encoding, @limits)
       end
 
       private def skip_exact(n : Int32) : Nil

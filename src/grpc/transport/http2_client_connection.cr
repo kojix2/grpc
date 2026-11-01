@@ -20,8 +20,8 @@ module GRPC
       @terminal_state : StreamTerminalState
       getter inbound : FlowControlledBuffer
 
-      def initialize
-        @inbound = FlowControlledBuffer.new
+      def initialize(limits : ReceiveLimits = ReceiveLimits.new)
+        @inbound = FlowControlledBuffer.new(limits: limits)
         @messages = @inbound.messages
         @send_buf = nil
         @live_send_buf = nil
@@ -133,12 +133,16 @@ module GRPC
       property response_body : IO::Memory
       property done : ::Channel(Nil)
       property send_buf : SendBuffer? # GC anchor
+      property cancel_proc : (-> Nil)?
       @status_override : Status?
       @header_state : StreamHeaderState
       @terminal_state : StreamTerminalState
+      @reset_started = Atomic(Bool).new(false)
 
-      def initialize
-        @response_body = IO::Memory.new
+      def initialize(limits : ReceiveLimits = ReceiveLimits.new)
+        @message_buffer = UnaryMessageBuffer.new(limits)
+        @response_body = @message_buffer.io
+        @cancel_proc = nil
         @done = ::Channel(Nil).new(1)
         @send_buf = nil
         @status_override = nil
@@ -148,6 +152,22 @@ module GRPC
 
       def response_headers : Metadata
         @header_state.headers
+      end
+
+      def receive_data(chunk : Bytes) : Int32
+        return 0 if @terminal_state.finished?
+        @message_buffer.append(chunk)
+        chunk.size
+      rescue ex : StatusError
+        self.transport_error = ex.status
+        complete
+        spawn cancel
+        0
+      end
+
+      def cancel : Nil
+        return unless @reset_started.compare_and_set(false, true)[1]
+        @cancel_proc.try &.call
       end
 
       def trailers : Metadata
@@ -538,7 +558,7 @@ module GRPC
       private def submit_unary_request(service : String, method : String,
                                        framed_body : Bytes,
                                        metadata : Metadata) : ResponseEnvelope
-        call = PendingCall.new
+        call = PendingCall.new(@endpoint_config.receive_limits)
 
         @mutex.synchronize do
           sb = SendBuffer.new(framed_body)
@@ -560,12 +580,16 @@ module GRPC
           @pending[stream_id] = call
           @stream_boxes[stream_id] = boxed_call
           @data_source_boxes[stream_id] = boxed_src
+          call.cancel_proc = build_cancel_proc(stream_id)
           start_deadline_watcher(stream_id, metadata, call)
           flush_send
         end
 
         call.wait
         status = call.grpc_status
+        # A server may reject the request before its outbound body is complete.
+        # Release that half-open request without replacing the received status.
+        call.cancel unless status.ok?
         return ResponseEnvelope.new(
           CallInfo.new("/#{service}/#{method}", RPCKind::Unary),
           Bytes.empty,
@@ -575,7 +599,8 @@ module GRPC
         ) unless status.ok?
         begin
           body, consumed = Codec.decode(call.response_bytes,
-            call.response_headers.get("grpc-encoding"), validate_encoding: true)
+            call.response_headers.get("grpc-encoding"), validate_encoding: true,
+            limits: @endpoint_config.receive_limits)
           if consumed != call.response_bytes.size
             raise StatusError.new(StatusCode::INTERNAL, "unary response must contain exactly one complete gRPC frame")
           end
@@ -590,7 +615,7 @@ module GRPC
           ResponseEnvelope.new(
             CallInfo.new("/#{service}/#{method}", RPCKind::Unary),
             Bytes.empty,
-            Status.internal("failed to decode unary response: #{ex.message}"),
+            Status.new(ex.code, "failed to decode unary response: #{ex.message}"),
             call.grpc_headers,
             call.grpc_trailers
           )
@@ -610,7 +635,7 @@ module GRPC
       private def submit_streaming_request(service : String, method : String,
                                            framed_body : Bytes,
                                            metadata : Metadata) : PendingStream
-        ps = PendingStream.new
+        ps = PendingStream.new(@endpoint_config.receive_limits)
 
         @mutex.synchronize do
           sb = SendBuffer.new(framed_body)
@@ -659,7 +684,7 @@ module GRPC
       private def submit_bidi_stream_live(service : String, method : String,
                                           metadata : Metadata,
                                           send_queue_size : Int32 = 0) : PendingStream
-        ps = PendingStream.new
+        ps = PendingStream.new(@endpoint_config.receive_limits)
 
         @mutex.synchronize do
           lsb = LiveSendBuffer.new(send_queue_size)
@@ -782,8 +807,7 @@ module GRPC
       def on_data_chunk_cb(stream_id : Int32, data : UInt8*, len : LibC::SizeT) : Nil
         check LibNghttp2.session_consume_connection(@session, len)
         if call = @pending[stream_id]?
-          call.response_body.write(Slice.new(data, len))
-          consume_stream_bytes(stream_id, len.to_i, flush: false)
+          consume_stream_bytes(stream_id, call.receive_data(Slice.new(data, len)), flush: false)
         elsif ps = @pending_streams[stream_id]?
           consume_stream_bytes(stream_id, ps.receive_data(Slice.new(data, len)), flush: false)
         end

@@ -1,4 +1,5 @@
 require "./lib_nghttp2"
+require "./unary_message_buffer"
 require "base64"
 require "socket"
 require "openssl"
@@ -50,15 +51,20 @@ module GRPC
       property header_error : Status?
       property? closed : Bool
 
-      def initialize
+      def initialize(limits : ReceiveLimits = ReceiveLimits.new)
         @headers = Metadata.new
-        @body = IO::Memory.new
+        @message_buffer = UnaryMessageBuffer.new(limits)
+        @body = @message_buffer.io
         @header_error = nil
         @closed = false
       end
 
       def body_bytes : Bytes
         @body.to_slice
+      end
+
+      def receive_data(chunk : Bytes) : Nil
+        @message_buffer.append(chunk)
       end
     end
 

@@ -1,3 +1,5 @@
+require "./receive_limits"
+
 module GRPC
   # Endpoint describes where a client channel connects.
   # It encapsulates host/port/TLS derived from an address string.
@@ -121,6 +123,7 @@ module GRPC
     property concurrency_limit : Int32?
     property rate_limit : RateLimitConfig?
     property backoff : BackoffConfig
+    property receive_limits : ReceiveLimits
 
     def initialize(
       @connect_timeout : Time::Span? = nil,
@@ -129,6 +132,7 @@ module GRPC
       @concurrency_limit : Int32? = nil,
       @rate_limit : RateLimitConfig? = nil,
       @backoff : BackoffConfig = BackoffConfig.new,
+      @receive_limits : ReceiveLimits = ReceiveLimits.new,
     )
     end
   end

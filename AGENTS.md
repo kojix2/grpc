@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Native Crystal gRPC library built directly on **libnghttp2** via FFI. The library source lives in `grpc/` and examples in `grpc/examples/`. Design philosophy: low-level HTTP/2 details are internal only; the public API must be ergonomic Crystal.
+Native Crystal gRPC library built directly on **libnghttp2** via FFI. Library sources live in `src/grpc/` and examples in `examples/`. Low-level HTTP/2 details are internal; the public API is Crystal.
 
 ## Commands
 
@@ -56,7 +56,7 @@ Crystal stdlib TCPSocket
 ### Transport Layer
 
 - **`http2_connection.cr`** — Base class wrapping an nghttp2 session. Sets up C callbacks (on_begin_headers, on_header, on_data_chunk, on_frame_recv, on_stream_close) that delegate to Crystal methods. Manages `StreamData` accumulation and a `SendBuffer` for outgoing bytes.
-- **`http2_server_connection.cr`** — Handles inbound connections. On `END_STREAM`, spawns a fiber that routes the request path to the matching `Service`, runs interceptors, encodes the response via `Codec`, and submits HEADERS + DATA + trailer HEADERS frames.
+- **`http2_server_connection.cr`** — Handles inbound connections. Unary requests dispatch after `END_STREAM`; live client/bidirectional request streams dispatch while DATA arrives. Service handlers and interceptors run outside nghttp2 callbacks; responses use HEADERS + DATA + trailers.
 - **`http2_client_connection.cr`** — Manages outbound RPCs via `PendingCall` / `PendingStream`. Submits request HEADERS + DATA, then blocks a Crystal `::Channel` until the response trailers arrive.
 - **`lib_nghttp2.cr`** — Thin FFI bindings; declares C structs, enums, and function signatures for libnghttp2.
 
@@ -75,11 +75,9 @@ Crystal stdlib TCPSocket
 
 `src/protoc-gen-crystal-grpc.cr` is a standalone `protoc` plugin binary.  Given a proto file it emits a `.grpc.cr` file containing an abstract `GRPC::Service` subclass and a typed client stub for every service defined in the file.  All four RPC streaming variants are supported.
 
-The plugin is self-contained — it includes a minimal binary-format protobuf decoder/encoder with no external dependencies.  Key modules:
-
-- **`ProtobufWireDecoder`** — decodes varint-encoded fields from `CodeGeneratorRequest` / `FileDescriptorProto` / etc.
-- **`ProtobufWireEncoder`** — encodes `CodeGeneratorResponse` back to binary.
-- **`CrystalGrpcCodeGenerator`** — walks descriptors and emits Crystal source.
+The plugin uses the `proto` shard's `Proto::Bootstrap` request/response and
+descriptor types, plus its canonical/type-map name resolvers.
+`CrystalGrpcCodeGenerator` walks those descriptors and emits Crystal source.
 
 Generated code conventions:
 - Service class: `{ServiceName}Service < GRPC::Service`  (e.g. `GreeterService`)
@@ -88,10 +86,20 @@ Generated code conventions:
 - Package wrapping: `helloworld` → `module Helloworld`
 - Cross-package types: `.google.protobuf.Empty` → `Google::Protobuf::Empty`
 
-### Known Limitations
+### Streaming, compression and receive budgets
 
-- Bidirectional streaming is half-duplex (client sends all, then server streams)
-- No message compression support
+- All four RPC shapes are supported. Live client and bidirectional streams send
+  requests incrementally; live bidirectional streams support interleaved sends
+  and receives before `close_send`.
+- Clients can gzip-compress requests and decode gzip responses. Servers decode
+  gzip requests; production server responses are currently uncompressed.
+- `GRPC::ReceiveLimits` defaults to 64 MiB for each wire message, decoded message
+  and per-stream unconsumed decoded backlog. Configure clients through
+  `EndpointConfig#receive_limits` and default servers through
+  `Server.new(receive_limits: ...)`. Custom transports enforce their own policy.
+- Over-budget RPCs finish with `RESOURCE_EXHAUSTED`; do not work around them by
+  increasing message-count queues or HTTP/2 windows. Test header-only rejection,
+  bounded decompression, backlog accounting and connection reuse.
 
 ## nghttp2 Critical Rules
 

@@ -13,12 +13,14 @@ module GRPC
       @preconsumed = 0
       @delivering = false
       @finished = false
+      @buffered_bytes = 0_i64
 
-      def initialize(@consumed : Int32 -> Nil = ->(_bytes : Int32) { })
+      def initialize(@consumed : Int32 -> Nil = ->(_bytes : Int32) { },
+                     @limits : ReceiveLimits = ReceiveLimits.new)
         # An unbuffered handoff makes consumption observable even when a
         # generated RequestStream wraps requests.ch directly.
         @messages = ::Channel(Bytes?).new
-        @deframer = GrpcDeframer.new(validate_encoding: true)
+        @deframer = GrpcDeframer.new(validate_encoding: true, limits: @limits)
         @error_status = nil
         @closed = Atomic(Bool).new(false)
       end
@@ -27,14 +29,18 @@ module GRPC
         @state_mutex.synchronize do
           return 0 if @closed.get || @finished
           @deframer.append(chunk)
-          @deframer.drain_frames.each do |message, wire_size|
+          @deframer.each_frame do |message, wire_size|
+            if @buffered_bytes + message.size > @limits.max_buffered_bytes
+              raise StatusError.new(StatusCode::RESOURCE_EXHAUSTED, "unconsumed gRPC messages exceed receive buffer limit")
+            end
             @pending << {message, wire_size - @preconsumed}
+            @buffered_bytes += message.size
             @preconsumed = 0
             @outstanding += 1
-          end
-          unless @pending.empty? || @delivering
-            @delivering = true
-            spawn deliver
+            unless @delivering
+              @delivering = true
+              spawn deliver
+            end
           end
           # A message larger than the HTTP/2 window must be assembled before
           # it can be handed off. Credit its partial bytes only while no
@@ -78,6 +84,7 @@ module GRPC
           @messages.send(message)
           credit += @state_mutex.synchronize do
             @outstanding -= 1
+            @buffered_bytes -= message.size
             partial_credit
           end
           # Never call transport/window code while holding the state lock or

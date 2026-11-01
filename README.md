@@ -53,6 +53,29 @@ window while complete messages awaiting consumption apply backpressure.
 Connection credit is managed separately so a stalled stream does not block
 other RPCs. Consume or cancel streams to release their delivery resources.
 
+Receive budgets default to **64 MiB each** for an encoded message (excluding its
+5-byte header), a decoded message, and unconsumed decoded data in one stream.
+Oversized headers are rejected before waiting for their payloads. Gzip decoding
+stops after the decoded limit plus one detection byte; an over-budget RPC ends
+with `RESOURCE_EXHAUSTED` while other RPCs on the connection remain usable.
+
+```crystal
+limits = GRPC::ReceiveLimits.new(
+  max_wire_size: 16 * 1024 * 1024,
+  max_message_size: 8 * 1024 * 1024,
+  max_buffered_bytes: 32 * 1024 * 1024,
+)
+channel = GRPC::Channel.new("localhost:50051",
+  endpoint_config: GRPC::EndpointConfig.new(receive_limits: limits))
+server = GRPC::Server.new(receive_limits: limits)
+```
+
+The backlog budget is released as messages are consumed, so it does not limit
+the lifetime size of a stream. These are per-message/per-stream limits rather
+than a process-wide RAM cap: framed input, decoding workspace, and concurrent
+RPCs also use memory. Custom transport factories must enforce their own budgets.
+The default HTTP/2 window remains 65,535 bytes.
+
 grpcurl E2E entry point:
 
 ```sh

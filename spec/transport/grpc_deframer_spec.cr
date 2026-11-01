@@ -102,7 +102,8 @@ describe GRPC::Transport::GrpcDeframer do
 
   describe "frame header validation" do
     it "keeps a representable incomplete frame pending rather than inventing a message" do
-      deframer = GRPC::Transport::GrpcDeframer.new
+      limits = GRPC::ReceiveLimits.new(max_wire_size: 0x7ffffffa, max_message_size: 0x7ffffffa)
+      deframer = GRPC::Transport::GrpcDeframer.new(limits: limits)
       deframer.append(GrpcFrameSpec.frame_header(0_u8, 0x7ffffffa_u32))
       deframer.drain_messages.should be_empty
       deframer.remainder_size.should eq(5)

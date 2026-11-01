@@ -39,8 +39,9 @@ module GRPC
         getter requests : RawRequestStream
         getter kind : Symbol
 
-        def initialize(@kind : Symbol, consumed : Int32 -> Nil = ->(_bytes : Int32) { })
-          super(consumed)
+        def initialize(@kind : Symbol, consumed : Int32 -> Nil = ->(_bytes : Int32) { },
+                       limits : ReceiveLimits = ReceiveLimits.new)
+          super(consumed, limits)
           @requests = RawRequestStream.new(messages)
         end
       end
@@ -125,7 +126,8 @@ module GRPC
       def initialize(socket : IO, services : Hash(String, Service),
                      interceptors : Array(ServerInterceptor) = [] of ServerInterceptor,
                      peer_address : String = "unknown",
-                     tls_socket : OpenSSL::SSL::Socket::Server? = nil)
+                     tls_socket : OpenSSL::SSL::Socket::Server? = nil,
+                     @receive_limits : ReceiveLimits = ReceiveLimits.new)
         super(socket, peer_address)
         @services = services
         @interceptors = interceptors
@@ -152,7 +154,7 @@ module GRPC
         stream_id = frame_stream_id(frame)
         return if stream_id <= 0
 
-        sd = StreamData.new
+        sd = StreamData.new(@receive_limits)
         boxed = Box.box(sd)
         @stream_boxes[stream_id] = boxed
         LibNghttp2.session_set_stream_user_data(@session, stream_id, boxed)
@@ -188,7 +190,7 @@ module GRPC
           service, method_name, kind = target
           state = @live_request_states[stream_id]?
           unless state
-            state = LiveRequestState.new(kind, ->(bytes : Int32) { consume_stream_bytes(stream_id, bytes) })
+            state = LiveRequestState.new(kind, ->(bytes : Int32) { consume_stream_bytes(stream_id, bytes) }, @receive_limits)
             state.deframer.encoding = sd.headers.get("grpc-encoding")
             @live_request_states[stream_id] = state
             spawn dispatch_live_request_stream(stream_id, sd, service, method_name, state)
@@ -197,8 +199,14 @@ module GRPC
           return
         end
 
-        sd.body.write(chunk)
+        sd.receive_data(chunk)
         consume_stream_bytes(stream_id, chunk.size, flush: false)
+      rescue ex : StatusError
+        # Preserve the status and stop accumulating subsequent DATA while only
+        # this RPC is terminated; the connection remains available to others.
+        status = ex.code == StatusCode::INTERNAL ? Status.invalid_argument(ex.message) : ex.status
+        sd.try { |stream| stream.header_error = status }
+        send_error(stream_id, status.code, status.message)
       end
 
       def on_frame_recv_cb(frame : Void*) : Nil
@@ -222,7 +230,7 @@ module GRPC
 
         if target = request_stream_target(sd)
           service, method_name, kind = target
-          state = LiveRequestState.new(kind, ->(bytes : Int32) { consume_stream_bytes(stream_id, bytes) })
+          state = LiveRequestState.new(kind, ->(bytes : Int32) { consume_stream_bytes(stream_id, bytes) }, @receive_limits)
           state.deframer.encoding = sd.headers.get("grpc-encoding")
           @live_request_states[stream_id] = state
           spawn dispatch_live_request_stream(stream_id, sd, service, method_name, state)
@@ -664,7 +672,7 @@ module GRPC
       end
 
       private def decode_message(data : Bytes, encoding : String?) : {Bytes, Int32}
-        message, consumed = Codec.decode(data, encoding, validate_encoding: true)
+        message, consumed = Codec.decode(data, encoding, validate_encoding: true, limits: @receive_limits)
         if consumed != data.size
           raise StatusError.new(StatusCode::INVALID_ARGUMENT, "unary request must contain exactly one complete gRPC frame")
         end
@@ -689,6 +697,7 @@ module GRPC
       end
 
       private def immediate_stream_rejection(sd : StreamData) : Status?
+        return sd.header_error if sd.header_error
         begin
           Codec.validate_encoding!(sd.headers.get("grpc-encoding"))
         rescue ex : StatusError
