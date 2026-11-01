@@ -1,4 +1,4 @@
-require "./spec_helper"
+require "../spec_helper"
 
 class StreamingRegressionService < GRPC::Service
   def service_full_name : String
@@ -25,7 +25,7 @@ class StreamingRegressionService < GRPC::Service
   end
 end
 
-describe "GRPC streaming regressions" do
+describe "multi-frame HTTP/2 streaming" do
   ["LargeMessages", "RaiseAfterData"].each do |method|
     it "delivers complete multi-frame messages for #{method}" do
       server = GRPC::Server.new

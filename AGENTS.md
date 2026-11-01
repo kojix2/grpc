@@ -13,7 +13,7 @@ Native Crystal gRPC library built directly on **libnghttp2** via FFI. The librar
 crystal spec
 
 # Run a single spec file
-crystal spec spec/grpc_spec.cr
+crystal spec spec/api/codec_spec.cr
 
 # Build the protoc plugin
 crystal build src/protoc-gen-crystal-grpc_main.cr -o bin/protoc-gen-crystal-grpc
@@ -102,7 +102,14 @@ Two hard-won constraints (see memory files for full details):
 
 ## Testing
 
-- `spec/grpc_spec.cr` — Unit tests for `Status`, `Metadata`, `Codec`, context types
-- `spec/integration_spec.cr` — Full round-trip integration tests (spins up a real server on a random port); includes TLS round-trip tests using `spec/test.crt` + `spec/test.key` (self-signed)
-- `spec/protoc_gen_spec.cr` — Unit tests for the protoc plugin code generator
-- `spec/debug_spec.cr` — Low-level debugging helpers
+- `spec/api/` — Public API unit tests, grouped by component and behavior
+- `spec/transport/` — Framing, buffering, flow control, and RPC state tests
+- `spec/services/` — Health, reflection, and server registration/shutdown
+- `spec/generator/` — protoc plugin code-generation tests
+- `spec/integration/` — Real HTTP/2 round trips, TLS, deadlines, interceptors, and malformed peers
+- `spec/support/` — Explicitly required helpers without examples
+- `spec/README.md` — File boundaries, describe/it granularity, reading order, and focused test commands
+
+Keep every spec independently runnable. Order examples from ordinary operation
+through boundaries and invalid input to lifecycle checks; do not rely on that
+order for execution. Check shuffled execution with `crystal spec --order 20261101`.

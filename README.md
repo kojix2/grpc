@@ -42,6 +42,9 @@ Default suite:
 crystal spec
 ```
 
+See [the test layout](spec/README.md) for focused commands and conventions for
+file boundaries, example granularity and ordering.
+
 Streaming receivers return HTTP/2 stream-window credit as the consumer takes
 messages. Short bursts can contain more than 256 requests or 128 responses
 without being rejected merely because they arrived together. The initial

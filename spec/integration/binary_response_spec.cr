@@ -1,6 +1,5 @@
-require "./spec_helper"
+require "../spec_helper"
 
-# Debug spec to trace the HTTP/2 transport behavior
 class DebugService < GRPC::Service
   SERVICE_FULL_NAME = "debug.Test"
 
@@ -9,10 +8,8 @@ class DebugService < GRPC::Service
   end
 
   def dispatch(method : String, request_body : Bytes, ctx : GRPC::ServerContext) : {Bytes, GRPC::Status}
-    STDERR.puts "[SERVER] dispatch called: method=#{method} body_size=#{request_body.size}"
     case method
     when "Ping"
-      STDERR.puts "[SERVER] Ping handler, returning pong"
       {"\x00pong".to_slice, GRPC::Status.ok}
     else
       {Bytes.empty, GRPC::Status.unimplemented("unknown")}
@@ -20,8 +17,8 @@ class DebugService < GRPC::Service
   end
 end
 
-describe "GRPC debug" do
-  it "traces a full round trip" do
+describe "binary unary response" do
+  it "preserves a leading zero byte in the response body" do
     server = TCPServer.new("127.0.0.1", 0)
     port = server.local_address.port
     server.close
@@ -33,16 +30,14 @@ describe "GRPC debug" do
 
     sleep 10.milliseconds
 
-    STDERR.puts "[TEST] connecting to port #{port}"
     channel = GRPC::Channel.new("127.0.0.1:#{port}")
 
-    STDERR.puts "[TEST] calling unary_call"
     response = channel.unary_call("debug.Test", "Ping", Bytes.empty)
-    STDERR.puts "[TEST] got status=#{response.status.code} body_size=#{response.raw.size}"
 
     response.status.ok?.should be_true
-
-    channel.close
-    grpc_server.stop
+    response.raw.should eq("\x00pong".to_slice)
+  ensure
+    channel.try &.close
+    grpc_server.try &.stop
   end
 end
