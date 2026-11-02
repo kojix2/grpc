@@ -32,7 +32,7 @@ class ProtocolPeer < GRPC::Transport::Http2Connection
         return
       end
     end
-    return if @mode == "goaway"
+    return if @mode.in?("goaway", "controlled_reset")
     return unless frame_type(frame) == LibNghttp2::FRAME_DATA
     return unless @responded.add?(stream)
     respond_to_request(stream)
@@ -68,6 +68,13 @@ class ProtocolPeer < GRPC::Transport::Http2Connection
     end
   end
 
+  def reset_accepted_call : Nil
+    @mutex.synchronize do
+      check LibNghttp2.submit_rst_stream(@session, LibNghttp2::FLAG_NONE, 1, LibNghttp2::NGHTTP2_CANCEL)
+      flush_send
+    end
+  end
+
   private def respond(stream : Int32) : Nil
     headers = [make_nv(":status", "200"), make_nv("content-type", "application/grpc"), make_nv("grpc-status", "0")]
     check LibNghttp2.submit_headers(@session, LibNghttp2::FLAG_END_STREAM, stream, nil, headers.to_unsafe, headers.size, nil)
@@ -77,6 +84,15 @@ end
 class InspectableClientConnection < GRPC::Transport::Http2ClientConnection
   def pending_count : Int32
     @mutex.synchronize { @pending.size + @pending_streams.size + @stream_boxes.size + @data_source_boxes.size }
+  end
+
+  # Force only the recorded deadline into the past. The real timer remains far
+  # in the future, so the peer reset deterministically wins the callback race.
+  def expire_recorded_deadlines : Nil
+    @mutex.synchronize do
+      @pending.each_value(&.deadline=(Time.instant - 1.second))
+      @pending_streams.each_value(&.deadline=(Time.instant - 1.second))
+    end
   end
 end
 

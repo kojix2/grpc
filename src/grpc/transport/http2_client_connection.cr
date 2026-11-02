@@ -9,6 +9,7 @@ module GRPC
   module Transport
     # PendingStream holds state for an in-flight client server-streaming RPC.
     class PendingStream
+      property deadline : Time::Instant? = nil
       property messages : ::Channel(Bytes?)
       property send_buf : SendBuffer?          # GC anchor for request body (batch bidi)
       property live_send_buf : LiveSendBuffer? # GC anchor for live bidi
@@ -162,6 +163,7 @@ module GRPC
 
     # PendingCall holds state for an in-flight client RPC.
     class PendingCall
+      property deadline : Time::Instant? = nil
       property response_body : IO::Memory
       property done : ::Channel(Nil)
       property send_buf : SendBuffer? # GC anchor
@@ -900,12 +902,12 @@ module GRPC
         stop_deadline_watcher(stream_id)
         call = @pending.delete(stream_id)
         if call
-          call.transport_error = stream_close_status(error_code)
+          call.transport_error = stream_close_status(error_code, call.deadline)
         end
         call.complete if call # wake up waiter on error close
         ps = @pending_streams.delete(stream_id)
         if ps
-          ps.transport_error = stream_close_status(error_code)
+          ps.transport_error = stream_close_status(error_code, ps.deadline)
         end
         ps.finish if ps # wake up blocked reader on unexpected close
         @stream_boxes.delete(stream_id)
@@ -919,10 +921,16 @@ module GRPC
         spawn { close }
       end
 
-      private def stream_close_status(error_code : UInt32) : Status
+      private def stream_close_status(error_code : UInt32, deadline : Time::Instant?) : Status
         case error_code
         when LibNghttp2::NGHTTP2_CANCEL
-          Status.cancelled("stream reset by peer")
+          # Like grpc-go's handleRSTStream, distinguish a peer's deadline
+          # cancellation from cancellation before our own deadline expires.
+          if deadline && Time.instant >= deadline
+            Status.new(StatusCode::DEADLINE_EXCEEDED, "deadline exceeded")
+          else
+            Status.cancelled("stream reset by peer")
+          end
         when 7_u32
           Status.unavailable("stream refused by peer")
         when 11_u32
@@ -980,14 +988,18 @@ module GRPC
         duration = parse_timeout(timeout_value)
         return unless duration
 
+        deadline = Time.instant + duration
+        terminal.deadline = deadline
         stop = ::Channel(Nil).new(1)
         @deadline_watch_stops[stream_id] = stop
         spawn do
           expired = false
-          if duration > Time::Span.zero
+          # Scheduling this fiber must not extend the RPC's timeout.
+          remaining = deadline - Time.instant
+          if remaining > Time::Span.zero
             select
             when stop.receive
-            when timeout(duration)
+            when timeout(remaining)
               expired = true
             end
           else

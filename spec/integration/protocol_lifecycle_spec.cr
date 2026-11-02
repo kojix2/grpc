@@ -1,6 +1,36 @@
 require "../support/protocol_peer"
 
 describe "GRPC HTTP/2 client lifecycle" do
+  {false, true}.each do |expired|
+    {false, true}.each do |streaming|
+      it "maps peer CANCEL with expired=#{expired}, streaming=#{streaming} before the timer runs" do
+        with_protocol_peer("controlled_reset") do |connection, peer|
+          result = Channel(GRPC::Status).new(1)
+          metadata = GRPC::Metadata.new({"grpc-timeout" => "30S"})
+          spawn do
+            if streaming
+              call = connection.open_bidi_stream_live("test.Service", "Bidi", metadata)
+              call.to_a.should be_empty
+              result.send(call.status)
+            else
+              result.send(connection.unary_call("test.Service", "Unary", Bytes.empty, metadata).status)
+            end
+          end
+          wait_for_protocol_state { peer.requests == 1 }
+          connection.expire_recorded_deadlines if expired
+          peer.reset_accepted_call
+          select
+          when status = result.receive
+            status.code.should eq(expired ? GRPC::StatusCode::DEADLINE_EXCEEDED : GRPC::StatusCode::CANCELLED)
+          when timeout(2.seconds)
+            fail "peer reset did not finish the RPC"
+          end
+          wait_for_protocol_state { connection.pending_count == 0 }
+        end
+      end
+    end
+  end
+
   it "releases early-completed bidi requests before opening another call at stream limit one" do
     with_protocol_peer("early") do |connection, peer|
       2.times do
