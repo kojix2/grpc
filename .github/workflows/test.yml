@@ -75,7 +75,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: specs-${{ matrix.os }}-${{ matrix.crystal }}
           path: test-results
@@ -229,7 +229,7 @@ jobs:
         run: crystal spec spec/grpc_go.cr --order "$SPEC_SEED" --junit_output test-results
       - name: Upload interop results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: grpc-go-results
           path: test-results
