@@ -4,14 +4,48 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: '23 18 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  # Printed by Crystal on success and failure; pass the same seed to replay.
+  SPEC_SEED: ${{ github.run_id }}
+  GRPC_FUZZ_FIRST_SEED: ${{ github.run_id }}
+  GRPC_FUZZ_SEEDS: ${{ github.event_name == 'schedule' && '500' || '32' }}
 
 jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: crystal-lang/install-crystal@v1
+      - run: crystal tool format --check
+
   test:
+    needs: format
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        crystal: [latest]
+        include:
+          - os: ubuntu-latest
+            crystal: '1.19.1'
+          - os: ubuntu-latest
+            crystal: latest
+          - os: macos-latest
+            crystal: latest
 
     runs-on: ${{ matrix.os }}
 
@@ -37,7 +71,14 @@ jobs:
         run: shards install --without-development
 
       - name: Run specs
-        run: crystal spec
+        run: crystal spec --order "$SPEC_SEED" --junit_output test-results
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: specs-${{ matrix.os }}-${{ matrix.crystal }}
+          path: test-results
 
       - name: Build examples
         run: |
@@ -46,10 +87,9 @@ jobs:
             crystal build --no-codegen "$f"
           done
 
-      - name: Check formatting
-        run: crystal tool format --check
-
   e2e-grpcurl:
+    needs: format
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -79,7 +119,7 @@ jobs:
       - name: Install grpcurl (Ubuntu)
         if: runner.os == 'Linux'
         run: |
-          tag="$(basename "$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/fullstorydev/grpcurl/releases/latest)")"
+          tag=v1.9.4
           ver="${tag#v}"
           curl -fL -o /tmp/grpcurl.tgz \
             "https://github.com/fullstorydev/grpcurl/releases/download/${tag}/grpcurl_${ver}_linux_x86_64.tar.gz"
@@ -95,11 +135,13 @@ jobs:
         run: shards install --without-development
 
       - name: Run grpcurl E2E tests
-        run: crystal spec spec/grpcurl.cr
+        run: crystal spec spec/grpcurl.cr --order "$SPEC_SEED"
         env: 
           CRYSTAL_LOAD_DEBUG_INFO: "1"
 
   e2e-gripmock:
+    needs: format
+    timeout-minutes: 20
     runs-on: ubuntu-latest
 
     steps:
@@ -140,7 +182,7 @@ jobs:
         run: shards install --without-development
 
       - name: Run GripMock E2E tests
-        run: crystal spec spec/gripmock.cr
+        run: crystal spec spec/gripmock.cr --order "$SPEC_SEED"
 
       - name: Print GripMock logs on failure
         if: failure()
@@ -149,3 +191,75 @@ jobs:
       - name: Stop GripMock
         if: always()
         run: docker rm -f gripmock || true
+
+  generated:
+    needs: format
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: crystal-lang/install-crystal@v1
+      - run: sudo apt-get update && sudo apt-get install -y libnghttp2-dev protobuf-compiler
+      - run: shards install --without-development
+      - name: Rebuild protoc plugins and check committed fixtures
+        run: bash script/check_generated.sh
+
+  grpc-go:
+    needs: format
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: crystal-lang/install-crystal@v1
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: spec/interop/go/go.mod
+          cache-dependency-path: spec/interop/go/go.sum
+      - run: sudo apt-get update && sudo apt-get install -y libnghttp2-dev
+      - run: shards install --without-development
+      - name: Check and build the pinned grpc-go reference server
+        working-directory: spec/interop/go
+        run: |
+          test -z "$(gofmt -l .)"
+          go vet ./...
+          go mod verify
+          mkdir -p ../../../bin
+          go build -mod=readonly -o ../../../bin/grpc-go-peer .
+      - name: Run client interop with plaintext and TLS
+        run: crystal spec spec/grpc_go.cr --order "$SPEC_SEED" --junit_output test-results
+      - name: Upload interop results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grpc-go-results
+          path: test-results
+
+  minknow:
+    needs: format
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: grpc
+      - uses: actions/checkout@v7
+        with:
+          repository: kojix2/minknow.cr
+          # Update deliberately when adopting a new MinKNOW API/schema fixture.
+          ref: 72f8f7caf4fe475018cd83c12a0206d0c9c4629e
+          path: minknow
+          submodules: true
+      - uses: crystal-lang/install-crystal@v1
+      - run: sudo apt-get update && sudo apt-get install -y libnghttp2-dev protobuf-compiler
+      - name: Test the candidate gRPC source against MinKNOW
+        working-directory: minknow
+        run: |
+          printf 'dependencies:\n  grpc:\n    path: ../grpc\n' > shard.override.yml
+          shards install --without-development
+          make gen
+          git diff --exit-code -- src/generated
+          test -z "$(git ls-files --others --exclude-standard src/generated)"
+          crystal spec --order "$SPEC_SEED"
+          while IFS= read -r example; do
+            crystal build --no-codegen "$example"
+          done < <(find examples -name '*.cr' | sort)

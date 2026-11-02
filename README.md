@@ -87,8 +87,15 @@ requests and currently send uncompressed responses.
 
 ```sh
 crystal spec
+crystal spec --order 20261102  # replay a shuffled CI run
 crystal spec spec/grpcurl.cr  # requires grpcurl
 ```
+
+CI checks the minimum supported Crystal version and latest Crystal, runs seeded
+fragmentation campaigns, regenerates and checks protoc fixtures, and tests the
+client against a pinned grpc-go server over plaintext and TLS. A separate job
+regenerates and tests a pinned MinKNOW client checkout against the candidate
+gRPC source. Nightly runs expand fragmentation coverage.
 
 See [test layout](spec/README.md) for focused tests and GripMock setup.
 License: [MIT](LICENSE).

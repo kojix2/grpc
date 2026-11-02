@@ -1,0 +1,16 @@
+syntax = "proto3";
+package interop;
+
+import "google/protobuf/wrappers.proto";
+
+// Small client conformance fixture. The Go peer uses the official wrapperspb
+// messages; Crystal messages and clients are generated from this schema.
+service Peer {
+  rpc Echo(google.protobuf.BytesValue) returns (google.protobuf.BytesValue);
+  rpc Fail(google.protobuf.BytesValue) returns (google.protobuf.BytesValue);
+  rpc Wait(google.protobuf.BytesValue) returns (google.protobuf.BytesValue);
+  rpc Watch(google.protobuf.BytesValue) returns (stream google.protobuf.BytesValue);
+  rpc Upload(stream google.protobuf.BytesValue) returns (google.protobuf.BytesValue);
+  rpc Chat(stream google.protobuf.BytesValue) returns (stream google.protobuf.BytesValue);
+  rpc Finish(stream google.protobuf.BytesValue) returns (stream google.protobuf.BytesValue);
+}
