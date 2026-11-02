@@ -684,7 +684,7 @@ always release @lsb_mutex before the caller acquires the connection @mutex
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/transport/http2_client_connection.cr#L254" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/transport/http2_client_connection.cr#L263" target="_blank">
         grpc/transport/http2_client_connection.cr
       </a>
     
@@ -728,6 +728,13 @@ always release @lsb_mutex before the caller acquires the connection @mutex
     Instance Method Summary
   </h2>
   <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#abort%3ANil-instance-method" class="signature"><strong>#abort</strong> : Nil</a>
+        
+          <div class="summary"><p>Terminal responses discard unsent data; close_send still drains it.</p></div>
+        
+      </li>
     
       <li class="entry-summary">
         <a href="#close%3ANil-instance-method" class="signature"><strong>#close</strong> : Nil</a>
@@ -811,7 +818,7 @@ always release @lsb_mutex before the caller acquires the connection @mutex
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/transport/http2_client_connection.cr#L265" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/transport/http2_client_connection.cr#L274" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -832,6 +839,27 @@ always release @lsb_mutex before the caller acquires the connection @mutex
     Instance Method Detail
   </h2>
   
+    <div class="entry-detail" id="abort:Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>abort</strong> : Nil
+
+        <a class="method-permalink" href="#abort%3ANil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Terminal responses discard unsent data; close_send still drains it.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/transport/http2_client_connection.cr#L322" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="close:Nil-instance-method">
       <div class="signature">
         
@@ -843,7 +871,7 @@ always release @lsb_mutex before the caller acquires the connection @mutex
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/transport/http2_client_connection.cr#L297" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/transport/http2_client_connection.cr#L306" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -859,7 +887,7 @@ always release @lsb_mutex before the caller acquires the connection @mutex
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/transport/http2_client_connection.cr#L308" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/transport/http2_client_connection.cr#L317" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -875,7 +903,7 @@ always release @lsb_mutex before the caller acquires the connection @mutex
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/transport/http2_client_connection.cr#L281" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/transport/http2_client_connection.cr#L290" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -899,7 +927,7 @@ Called from DATA_READ_CB_LIVE while the connection @mutex is held.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/transport/http2_client_connection.cr#L324" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/transport/http2_client_connection.cr#L342" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -915,7 +943,7 @@ Called from DATA_READ_CB_LIVE while the connection @mutex is held.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/transport/http2_client_connection.cr#L312" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/transport/http2_client_connection.cr#L330" target="_blank">View source</a>]
         
       </div>
     </div>

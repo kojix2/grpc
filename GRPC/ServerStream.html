@@ -695,7 +695,7 @@ puts stream.status</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L103" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L103" target="_blank">
         grpc/stream.cr
       </a>
     
@@ -726,6 +726,13 @@ puts stream.status</p>
   <span class="t">Metadata</span>.new
 <span class="k">end</span>, cancel_proc :  -> Nil = <span class="o">-&gt;</span> <span class="k">do</span>
 <span class="k">end</span>)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#new%28raw%3ARawServerStream%2Cmarshaller%3AMarshaller%28T%29%3DProtoMarshaller%28T%29.new%29-class-method" class="signature"><strong>.new</strong>(raw : RawServerStream, marshaller : Marshaller(T) = <span class="t">ProtoMarshaller</span>(<span class="t">T</span>).new)</a>
+        
+          <div class="summary"><p>Decode at the application handoff so the transport's byte budget covers every queued response, without an extra forwarding fiber or typed queue.</p></div>
         
       </li>
     
@@ -868,7 +875,29 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L113" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L115" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="new(raw:RawServerStream,marshaller:Marshaller(T)=ProtoMarshaller(T).new)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(raw : <a href="../GRPC/RawServerStream.html">RawServerStream</a>, marshaller : <a href="../GRPC/Marshaller.html">Marshaller</a>(T) = <span class="t">ProtoMarshaller</span>(<span class="t">T</span>).new)
+
+        <a class="method-permalink" href="#new%28raw%3ARawServerStream%2Cmarshaller%3AMarshaller%28T%29%3DProtoMarshaller%28T%29.new%29-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Decode at the application handoff so the transport's byte budget covers
+every queued response, without an extra forwarding fiber or typed queue.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L129" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -900,7 +929,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L147" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L170" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -925,7 +954,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L125" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L135" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -947,7 +976,7 @@ cases; on the normal path status comes from the transport via @status_proc.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L160" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L184" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -963,7 +992,7 @@ cases; on the normal path status comes from the transport via @status_proc.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L139" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L162" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -979,7 +1008,7 @@ cases; on the normal path status comes from the transport via @status_proc.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L154" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L178" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -995,7 +1024,7 @@ cases; on the normal path status comes from the transport via @status_proc.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L135" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L158" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1011,7 +1040,7 @@ cases; on the normal path status comes from the transport via @status_proc.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L143" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L166" target="_blank">View source</a>]
         
       </div>
     </div>

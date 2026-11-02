@@ -671,10 +671,17 @@ protoc --plugin=protoc-gen-crystal=bin/protoc-gen-crystal \
 <p>Replace the schema path with your own. In the consuming application, require
 <code>grpc</code> first, then the generated <code>.pb.cr</code> and <code>.grpc.cr</code> files. Unary methods
 return the decoded message or raise <code><a href="GRPC/StatusError.html">GRPC::StatusError</a></code>; the corresponding
-<code>*_response</code> method returns status and metadata. Consume or cancel streams.</p>
+<code>*_response</code> method returns status and metadata. Consume or cancel streams.
+If an RPC already uses a helper's name, the generator adds a numeric suffix
+to the helper (for example <code>foo_response_2</code>). Message types and <code>type_map</code>
+targets are emitted as absolute Crystal names.</p>
 <p>Live bidi calls expose <code>final_status</code> (nil until RPC completion, independent of
 reply consumption). <code>SendClosedError</code> means the message was not enqueued; its
 <code>final_status</code> is nil for a request half-close. Drain remaining replies on completion.</p>
+<p>After GOAWAY, new RPCs use a replacement connection while accepted RPCs finish
+on the old connection. Calls are not automatically retried.</p>
+<p>TLS configures <code>h2</code> ALPN on supplied client and server contexts as well as
+default contexts. The client requires the peer to negotiate <code>h2</code>.</p>
 <h2><a id="receive-limits" class="anchor" href="#receive-limits">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -686,6 +693,9 @@ and unconsumed decoded data per stream. Set it through
 <code>Server.new(receive_limits: limits)</code> on default servers.
 Excess data ends that RPC with <code>RESOURCE_EXHAUSTED</code>; these are not process-wide
 RAM limits. Custom transports enforce their own budgets.</p>
+<p>Regenerate existing <code>.grpc.cr</code> clients to use on-demand typed response decoding.
+Responses are decoded when iterated, so unread data stays in the transport's
+byte budget.</p>
 <p>Clients can send gzip requests and decode gzip responses. Servers decode gzip
 requests and currently send uncompressed responses.</p>
 <h2><a id="test" class="anchor" href="#test">

@@ -696,7 +696,7 @@ call.each { |reply| pp reply }</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L255" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L280" target="_blank">
         grpc/stream.cr
       </a>
     
@@ -717,6 +717,11 @@ call.each { |reply| pp reply }</p>
     Constructors
   </h2>
   <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#new%28raw%3ARawBidiCall%2Crequest_marshaller%3AMarshaller%28Req%29%3DProtoMarshaller%28Req%29.new%2Cresponse_marshaller%3AMarshaller%28Res%29%3DProtoMarshaller%28Res%29.new%29-class-method" class="signature"><strong>.new</strong>(raw : RawBidiCall, request_marshaller : Marshaller(Req) = <span class="t">ProtoMarshaller</span>(<span class="t">Req</span>).new, response_marshaller : Marshaller(Res) = <span class="t">ProtoMarshaller</span>(<span class="t">Res</span>).new)</a>
+        
+      </li>
     
       <li class="entry-summary">
         <a href="#new%28send_proc%3AReq-%3E_%2Cclose_proc%3A-%3E_%2Crecv_chan%3A%3A%3AChannel%28Exception%7CRes%29%2Cheaders_proc%3A-%3EMetadata%3D-%3Edo%0AMetadata.new%0Aend%2Cstatus_proc%3A-%3EStatus%3D-%3Edo%0AStatus.ok%0Aend%2Ctrailers_proc%3A-%3EMetadata%3D-%3Edo%0AMetadata.new%0Aend%2Ccancel_proc%3A-%3ENil%3D-%3Edo%0Aend%2C%2A%2Cfinal_status_proc%3A-%3EStatus%7CNil%3D-%3Edo%0Anil.as%28Status%7C%3A%3ANil%29%0Aend%29-class-method" class="signature"><strong>.new</strong>(send_proc : Req -> _, close_proc :  -> _, recv_chan : ::Channel(Exception | Res), headers_proc :  -> Metadata = <span class="o">-&gt;</span> <span class="k">do</span>
@@ -855,6 +860,22 @@ call.each { |reply| pp reply }</p>
     Constructor Detail
   </h2>
   
+    <div class="entry-detail" id="new(raw:RawBidiCall,request_marshaller:Marshaller(Req)=ProtoMarshaller(Req).new,response_marshaller:Marshaller(Res)=ProtoMarshaller(Res).new)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(raw : <a href="../GRPC/RawBidiCall.html">RawBidiCall</a>, request_marshaller : <a href="../GRPC/Marshaller.html">Marshaller</a>(Req) = <span class="t">ProtoMarshaller</span>(<span class="t">Req</span>).new, response_marshaller : <a href="../GRPC/Marshaller.html">Marshaller</a>(Res) = <span class="t">ProtoMarshaller</span>(<span class="t">Res</span>).new)
+
+        <a class="method-permalink" href="#new%28raw%3ARawBidiCall%2Crequest_marshaller%3AMarshaller%28Req%29%3DProtoMarshaller%28Req%29.new%2Cresponse_marshaller%3AMarshaller%28Res%29%3DProtoMarshaller%28Res%29.new%29-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L305" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="new(send_proc:Req-&gt;_,close_proc:-&gt;_,recv_chan:::Channel(Exception|Res),headers_proc:-&gt;Metadata=-&gt;do
 Metadata.new
 end,status_proc:-&gt;Status=-&gt;do
@@ -884,7 +905,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L267" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L294" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -916,7 +937,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L306" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L357" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -937,7 +958,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L290" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L329" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -962,7 +983,7 @@ end)-class-method">
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L296" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L335" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -984,7 +1005,7 @@ Nil means the RPC has not finished; close_send alone does not finish it.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L285" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L324" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1000,7 +1021,7 @@ Nil means the RPC has not finished; close_send alone does not finish it.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L311" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L363" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1021,7 +1042,7 @@ Nil means the RPC has not finished; close_send alone does not finish it.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L279" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L318" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1037,7 +1058,7 @@ Nil means the RPC has not finished; close_send alone does not finish it.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L315" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L367" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1053,7 +1074,7 @@ Nil means the RPC has not finished; close_send alone does not finish it.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/stream.cr#L319" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/stream.cr#L371" target="_blank">View source</a>]
         
       </div>
     </div>

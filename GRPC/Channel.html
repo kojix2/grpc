@@ -683,7 +683,7 @@ channel = GRPC::Channel.new(&quot;https://localhost:50051&quot;, tls_context: ct
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/channel.cr#L17" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/channel.cr#L17" target="_blank">
         grpc/channel.cr
       </a>
     
@@ -844,13 +844,14 @@ channel = GRPC::Channel.new(&quot;https://localhost:50051&quot;, tls_context: ct
           <p>Create a channel to <em>address</em>.</p>
 <p>Address formats: &quot;host:port&quot;, &quot;http://host:port&quot;, &quot;https://host:port&quot;.
 HTTPS triggers TLS; use <em>tls_context</em> to supply a custom OpenSSL context
-(e.g. to disable certificate verification for testing).</p>
+(e.g. to disable certificate verification for testing). Its ALPN protocol
+is set to h2 when a connection is established.</p>
         </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/channel.cr#L39" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/channel.cr#L41" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -871,7 +872,7 @@ HTTPS triggers TLS; use <em>tls_context</em> to supply a custom OpenSSL context
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/channel.cr#L54" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/channel.cr#L56" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -903,7 +904,7 @@ HTTPS triggers TLS; use <em>tls_context</em> to supply a custom OpenSSL context
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/channel.cr#L269" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/channel.cr#L271" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -919,7 +920,7 @@ HTTPS triggers TLS; use <em>tls_context</em> to supply a custom OpenSSL context
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/channel.cr#L31" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/channel.cr#L32" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -935,7 +936,7 @@ HTTPS triggers TLS; use <em>tls_context</em> to supply a custom OpenSSL context
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/channel.cr#L32" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/channel.cr#L33" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -960,7 +961,7 @@ send_raw blocks the calling fiber (0 = unbounded).</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/channel.cr#L188" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/channel.cr#L190" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -985,7 +986,7 @@ send_raw blocks the calling fiber (0 = unbounded).</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/channel.cr#L231" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/channel.cr#L233" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1008,7 +1009,7 @@ This is the internal API used by generated client stubs.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/channel.cr#L143" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/channel.cr#L145" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1032,7 +1033,7 @@ If client interceptors are registered they wrap this call outermost-first.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/channel.cr#L78" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/channel.cr#L80" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1054,7 +1055,7 @@ Interceptors are NOT applied on this low-level overload.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/d3b02c38fc9d623ba8839efb884a709fff53aa82/src/grpc/channel.cr#L125" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/55ea7975e7bac61b3458d3eda5c4c4e5f67bfe42/src/grpc/channel.cr#L127" target="_blank">View source</a>]
         
       </div>
     </div>
