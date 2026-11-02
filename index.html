@@ -302,6 +302,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/SendClosedError" data-name="grpc::sendclosederror">
+      <a href="GRPC/SendClosedError.html">SendClosedError</a>
+      
+    </li>
+  
   <li class="parent " data-id="grpc/GRPC/Server" data-name="grpc::server">
       <a href="GRPC/Server.html">Server</a>
       
@@ -667,6 +672,9 @@ protoc --plugin=protoc-gen-crystal=bin/protoc-gen-crystal \
 <code>grpc</code> first, then the generated <code>.pb.cr</code> and <code>.grpc.cr</code> files. Unary methods
 return the decoded message or raise <code><a href="GRPC/StatusError.html">GRPC::StatusError</a></code>; the corresponding
 <code>*_response</code> method returns status and metadata. Consume or cancel streams.</p>
+<p>Live bidi calls expose <code>final_status</code> (nil until RPC completion, independent of
+reply consumption). <code>SendClosedError</code> means the message was not enqueued; its
+<code>final_status</code> is nil for a request half-close. Drain remaining replies on completion.</p>
 <h2><a id="receive-limits" class="anchor" href="#receive-limits">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
