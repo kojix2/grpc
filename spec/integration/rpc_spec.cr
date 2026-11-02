@@ -170,11 +170,9 @@ describe "HTTP/2 RPCs" do
         done = ::Channel(Nil).new(1)
 
         spawn do
-          begin
-            call.each { |bytes| replies.send(TestProto.decode_string(bytes)) }
-          ensure
-            done.send(nil) rescue nil
-          end
+          call.each { |bytes| replies.send(TestProto.decode_string(bytes)) }
+        ensure
+          done.send(nil) rescue nil
         end
 
         call.send_raw(TestProto.encode_string("x"))

@@ -110,7 +110,7 @@ module ReflectionSpecWire
       field_number = (tag >> 3).to_i32
       wire_type = (tag & 0x7_u64).to_i32
       if field_number == response_field_number && wire_type == 2
-        payload, cursor = GRPC::Reflection::Wire.read_bytes(bytes, cursor)
+        payload, _ = GRPC::Reflection::Wire.read_bytes(bytes, cursor)
         return yield payload
       end
       cursor = GRPC::Reflection::Wire.skip_field(bytes, cursor, wire_type)
@@ -126,7 +126,7 @@ module ReflectionSpecWire
       field_number = (tag >> 3).to_i32
       wire_type = (tag & 0x7_u64).to_i32
       if field_number == 1 && wire_type == 2
-        name, cursor = GRPC::Reflection::Wire.read_string(bytes, cursor)
+        name, _ = GRPC::Reflection::Wire.read_string(bytes, cursor)
         return name
       end
       cursor = GRPC::Reflection::Wire.skip_field(bytes, cursor, wire_type)

@@ -10,7 +10,7 @@ describe GRPC::Transport::FlowControlledBuffer do
     Fiber.yield
     credits.should be_empty
     buffer.finish
-    512.times { |i| String.new(buffer.messages.receive.not_nil!).should eq(i.to_s) }
+    512.times { |i| String.new(buffer.messages.receive.should_not be_nil).should eq(i.to_s) }
     buffer.messages.receive?.should be_nil
     credits.sum.should eq(wire.size)
   ensure

@@ -59,12 +59,10 @@ describe GRPC::Transport::LiveSendBuffer do
     result = ::Channel(Exception?).new(1)
 
     spawn do
-      begin
-        buf.push(Bytes[2_u8])
-        result.send(nil)
-      rescue ex
-        result.send(ex)
-      end
+      buf.push(Bytes[2_u8])
+      result.send(nil)
+    rescue ex
+      result.send(ex)
     end
     Fiber.yield
     buf.close

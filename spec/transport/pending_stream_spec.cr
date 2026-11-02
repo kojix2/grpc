@@ -187,7 +187,7 @@ describe GRPC::Transport::PendingStream do
       stream = GRPC::Transport::PendingStream.new
       stream.final_status.should be_nil
       stream.finish
-      stream.final_status.not_nil!.code.should eq(GRPC::StatusCode::UNKNOWN)
+      stream.final_status.should_not(be_nil).code.should eq(GRPC::StatusCode::UNKNOWN)
     end
 
     it "keeps the peer failure on a rejected send" do
@@ -198,8 +198,8 @@ describe GRPC::Transport::PendingStream do
       stream.finish
 
       ex = expect_raises(GRPC::SendClosedError) { stream.send_outgoing(Bytes[1_u8]) }
-      ex.final_status.not_nil!.code.should eq(GRPC::StatusCode::UNAVAILABLE)
-      ex.final_status.not_nil!.message.should eq("peer unavailable")
+      ex.final_status.should_not(be_nil).code.should eq(GRPC::StatusCode::UNAVAILABLE)
+      ex.final_status.should_not(be_nil).message.should eq("peer unavailable")
     end
 
     it "does not treat a request half-close as RPC completion" do
@@ -247,14 +247,14 @@ describe GRPC::Transport::PendingStream do
       # Completion discards both the unsent message and the blocked send.
       buffer = Bytes.new(8)
       flags = 0_u32
-      stream.live_send_buf.not_nil!.read_into(buffer.to_unsafe, 8_u64, pointerof(flags)).should eq(0)
+      stream.live_send_buf.should_not(be_nil).read_into(buffer.to_unsafe, 8_u64, pointerof(flags)).should eq(0)
       (flags & LibNghttp2::DATA_FLAG_EOF).should_not eq(0)
     end
 
     it "does not classify a failure after enqueueing as an unsent message" do
       stream = GRPC::Transport::PendingStream.new
       stream.live_send_buf = GRPC::Transport::LiveSendBuffer.new
-      stream.send_resume_proc = -> { raise IO::Error.new("resume failed"); nil }
+      stream.send_resume_proc = -> : Nil { raise IO::Error.new("resume failed") }
       expect_raises(IO::Error, "resume failed") { stream.send_outgoing(Bytes[1_u8]) }
     end
 
@@ -262,9 +262,9 @@ describe GRPC::Transport::PendingStream do
       stream = GRPC::Transport::PendingStream.new
       stream.live_send_buf = GRPC::Transport::LiveSendBuffer.new
       stream.cancel
-      stream.final_status.not_nil!.code.should eq(GRPC::StatusCode::CANCELLED)
+      stream.final_status.should_not(be_nil).code.should eq(GRPC::StatusCode::CANCELLED)
       ex = expect_raises(GRPC::SendClosedError) { stream.send_outgoing(Bytes[1_u8]) }
-      ex.final_status.not_nil!.code.should eq(GRPC::StatusCode::CANCELLED)
+      ex.final_status.should_not(be_nil).code.should eq(GRPC::StatusCode::CANCELLED)
 
       completed = GRPC::Transport::PendingStream.new
       completed.trailers.add("grpc-status", "0")

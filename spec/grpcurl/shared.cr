@@ -751,14 +751,12 @@ end
 def wait_for_server(port : Int32, timeout : Time::Span = 2.seconds) : Nil
   deadline = Time.instant + timeout
   loop do
-    begin
-      socket = TCPSocket.new("127.0.0.1", port)
-      socket.close
-      return
-    rescue
-      raise "server did not start listening in time" if Time.instant >= deadline
-      sleep 50.milliseconds
-    end
+    socket = TCPSocket.new("127.0.0.1", port)
+    socket.close
+    return
+  rescue
+    raise "server did not start listening in time" if Time.instant >= deadline
+    sleep 50.milliseconds
   end
 end
 

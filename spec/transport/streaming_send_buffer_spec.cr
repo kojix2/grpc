@@ -94,12 +94,10 @@ describe "GRPC streaming send buffers" do
     8.times { connection.send_chunk }
     result = ::Channel(Exception?).new(1)
     spawn do
-      begin
-        connection.send_chunk
-        result.send(nil)
-      rescue ex
-        result.send(ex)
-      end
+      connection.send_chunk
+      result.send(nil)
+    rescue ex
+      result.send(ex)
     end
     Fiber.yield
     connection.close

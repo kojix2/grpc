@@ -226,17 +226,15 @@ module Numbers
         send_proc = Proc(Number, Nil).new { |msg| raw.send_raw(msg.encode) }
         close_proc = Proc(Nil).new do
           spawn do
-            begin
-              body = raw.close_and_recv
-              st = raw.status
-              if st.ok?
-                result_chan.send(Number.decode(body)) rescue nil
-              else
-                result_chan.send(GRPC::StatusError.new(st, raw.trailers)) rescue nil
-              end
-            rescue ex
-              result_chan.send(ex) rescue nil
+            body = raw.close_and_recv
+            st = raw.status
+            if st.ok?
+              result_chan.send(Number.decode(body)) rescue nil
+            else
+              result_chan.send(GRPC::StatusError.new(st, raw.trailers)) rescue nil
             end
+          rescue ex
+            result_chan.send(ex) rescue nil
           end
         end
         GRPC::ClientStream(Number, Number).new(send_proc, close_proc, result_chan, -> { raw.headers }, -> { raw.status }, -> { raw.trailers }, -> { raw.cancel })

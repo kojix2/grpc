@@ -123,13 +123,11 @@ describe GRPC::Channel do
       2.times do
         done = ::Channel(Nil).new(1)
         spawn do
-          begin
-            channel.unary_call("test.Echo", "Echo", Bytes[1])
-            fail "expected interceptor to raise"
-          rescue ex : GRPC::StatusError
-            ex.code.should eq(GRPC::StatusCode::INTERNAL)
-            done.send(nil)
-          end
+          channel.unary_call("test.Echo", "Echo", Bytes[1])
+          fail "expected interceptor to raise"
+        rescue ex : GRPC::StatusError
+          ex.code.should eq(GRPC::StatusCode::INTERNAL)
+          done.send(nil)
         end
 
         select

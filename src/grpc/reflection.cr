@@ -279,7 +279,7 @@ module GRPC
           wire_type = (tag & 0x7_u64).to_i32
 
           if field_number == 1 && wire_type == 2
-            name, cursor = Wire.read_string(bytes, cursor)
+            name, _ = Wire.read_string(bytes, cursor)
             return name
           end
 
