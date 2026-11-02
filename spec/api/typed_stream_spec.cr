@@ -64,6 +64,21 @@ describe GRPC::ClientStream(Int32, Int32) do
 end
 
 describe GRPC::BidiCall(Int32, Int32) do
+  it "exposes transport completion while decoded replies are still queued" do
+    recv = Channel(Int32 | Exception).new(1)
+    recv.send(7)
+    final = nil.as(GRPC::Status?)
+    call = GRPC::BidiCall(Int32, Int32).new(
+      ->(_msg : Int32) { nil }, -> { nil }, recv,
+      final_status_proc: -> { final })
+
+    call.final_status.should be_nil
+    final = GRPC::Status.ok
+    call.final_status.should eq(GRPC::Status.ok)
+    recv.close
+    call.to_a.should eq([7])
+  end
+
   describe "metadata" do
     it "returns empty headers and trailers in initial state" do
       recv = ::Channel(Int32 | Exception).new(1)

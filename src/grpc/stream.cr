@@ -268,7 +268,8 @@ module GRPC
                    @headers_proc : -> Metadata = -> { Metadata.new },
                    @status_proc : -> Status = -> { Status.ok },
                    @trailers_proc : -> Metadata = -> { Metadata.new },
-                   @cancel_proc : -> Nil = -> { })
+                   @cancel_proc : -> Nil = -> { },
+                   *, @final_status_proc : -> Status? = -> { nil.as(Status?) })
       @closed = false
       @cancelled = false
       @cancel_mutex = Mutex.new
@@ -277,6 +278,12 @@ module GRPC
     # send transmits a request message to the server.
     def send(message : Req) : Nil
       @send_proc.call(message)
+    end
+
+    # The transport's terminal RPC status, even while replies remain queued.
+    # Nil means the RPC has not finished; close_send alone does not finish it.
+    def final_status : Status?
+      @final_status_proc.call
     end
 
     # close_send signals the end of the client's request stream.
@@ -453,6 +460,8 @@ module GRPC
       @trailers_proc : -> Metadata,
       @cancel_proc : -> Nil,
       @on_finish : -> Nil = -> { },
+      *,
+      @final_status_proc : -> Status? = -> { nil.as(Status?) },
     )
       @finished = false
       @finish_mutex = Mutex.new
@@ -463,6 +472,11 @@ module GRPC
     # send_raw passes *message_bytes* (raw protobuf, no gRPC framing) to the transport.
     def send_raw(message_bytes : Bytes) : Nil
       @send_proc.call(message_bytes)
+    end
+
+    # Independent of iteration completion: replies may still need draining.
+    def final_status : Status?
+      @final_status_proc.call
     end
 
     # close_send signals the end of the client request stream.

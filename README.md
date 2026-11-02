@@ -54,6 +54,10 @@ Replace the schema path with your own. In the consuming application, require
 return the decoded message or raise `GRPC::StatusError`; the corresponding
 `*_response` method returns status and metadata. Consume or cancel streams.
 
+Live bidi calls expose `final_status` (nil until RPC completion, independent of
+reply consumption). `SendClosedError` means the message was not enqueued; its
+`final_status` is nil for a request half-close. Drain remaining replies on completion.
+
 ## Receive limits
 
 `GRPC::ReceiveLimits` defaults to 64 MiB each for wire payload, decoded message

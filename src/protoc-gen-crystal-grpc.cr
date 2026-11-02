@@ -384,7 +384,7 @@ class CrystalGrpcCodeGenerator
         str << "#{indent}    end\n"
         str << "#{indent}    send_proc = Proc(#{input}, Nil).new { |msg| raw.send_raw(req_marshaller.encode(msg)) }\n"
         str << "#{indent}    close_proc = Proc(Nil).new { raw.close_send }\n"
-        str << "#{indent}    GRPC::BidiCall(#{input}, #{output}).new(send_proc, close_proc, recv_chan, -> { raw.headers }, -> { raw.status }, -> { raw.trailers }, -> { raw.cancel })\n"
+        str << "#{indent}    GRPC::BidiCall(#{input}, #{output}).new(send_proc, close_proc, recv_chan, -> { raw.headers }, -> { raw.status }, -> { raw.trailers }, -> { raw.cancel }, final_status_proc: -> { raw.final_status })\n"
         str << "#{indent}  end\n"
       end
     end

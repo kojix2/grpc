@@ -95,6 +95,27 @@ describe GRPC::RawClientCall do
 end
 
 describe GRPC::RawBidiCall do
+  it "exposes transport completion independently of its iteration finish hook" do
+    messages = Channel(Bytes?).new(1)
+    messages.send(Bytes[7_u8])
+    final = nil.as(GRPC::Status?)
+    finishes = 0
+    call = GRPC::RawBidiCall.new(
+      ->(_bytes : Bytes) { nil }, -> { nil }, messages,
+      -> { GRPC::Metadata.new }, -> { GRPC::Status.ok },
+      -> { GRPC::Metadata.new }, -> { nil },
+      final_status_proc: -> { final }
+    ).with_on_finish(-> { finishes += 1; nil })
+
+    call.final_status.should be_nil
+    final = GRPC::Status.ok
+    call.final_status.should eq(GRPC::Status.ok)
+    finishes.should eq(0)
+    messages.close
+    call.to_a.should eq([Bytes[7_u8]])
+    finishes.should eq(1)
+  end
+
   describe "metadata" do
     it "returns empty headers and trailers in initial state" do
       ch = ::Channel(Bytes?).new

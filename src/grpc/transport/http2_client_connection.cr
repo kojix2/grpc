@@ -18,6 +18,8 @@ module GRPC
       @status_override : Status?
       @header_state : StreamHeaderState
       @terminal_state : StreamTerminalState
+      @final_status : Status? = nil
+      @completion_mutex = Mutex.new
       getter inbound : FlowControlledBuffer
 
       def initialize(limits : ReceiveLimits = ReceiveLimits.new)
@@ -75,23 +77,37 @@ module GRPC
       end
 
       def finish : Nil
-        return unless @terminal_state.mark_finished
-        if @inbound.deframer.remainder_size > 0 && @status_override.nil?
-          @status_override = Status.internal("incomplete gRPC response frame")
+        @completion_mutex.synchronize do
+          return unless @terminal_state.mark_finished
+          if @inbound.deframer.remainder_size > 0 && @status_override.nil?
+            @status_override = Status.internal("incomplete gRPC response frame")
+          end
+          # Publish the terminal status before waking a blocked sender.
+          @final_status = grpc_status
+          @live_send_buf.try &.close
         end
-        @live_send_buf.try &.close
         @inbound.finish
       end
 
+      def final_status : Status?
+        @completion_mutex.synchronize { @final_status }
+      end
+
       def transport_error=(status : Status) : Nil
-        return if @terminal_state.finished?
-        @status_override ||= status
+        @completion_mutex.synchronize do
+          return if @terminal_state.finished?
+          @status_override ||= status
+        end
       end
 
       # send_outgoing enqueues a pre-framed gRPC message for live bidi streaming
       # and signals nghttp2 to resume data transmission.
       def send_outgoing(framed_bytes : Bytes) : Nil
-        @live_send_buf.try &.push(framed_bytes)
+        begin
+          @live_send_buf.try &.push(framed_bytes)
+        rescue SendClosedError
+          raise SendClosedError.new(final_status)
+        end
         @send_resume_proc.try &.call
       end
 
@@ -104,8 +120,15 @@ module GRPC
       # cancel sends an HTTP/2 RST_STREAM with error code CANCEL and closes the
       # message channel so waiting iterators unblock.
       def cancel : Nil
-        return unless @terminal_state.mark_cancelled
-        @live_send_buf.try &.close
+        @completion_mutex.synchronize do
+          return unless @terminal_state.mark_cancelled
+          unless @terminal_state.finished?
+            @status_override ||= Status.cancelled("call cancelled")
+            @terminal_state.mark_finished
+            @final_status = grpc_status
+          end
+          @live_send_buf.try &.close
+        end
         @cancel_proc.try &.call
         @inbound.close
       end
@@ -257,15 +280,15 @@ module GRPC
 
       def push(bytes : Bytes) : Nil
         @lsb_mutex.synchronize do
-          raise StatusError.new(StatusCode::CANCELLED, "send buffer is closed") if @closed
+          raise SendClosedError.new if @closed
         end
         if permits = @permits
           unless permits.receive?
-            raise StatusError.new(StatusCode::CANCELLED, "send buffer is closed")
+            raise SendClosedError.new
           end
         end
         @lsb_mutex.synchronize do
-          raise StatusError.new(StatusCode::CANCELLED, "send buffer is closed") if @closed
+          raise SendClosedError.new if @closed
           @deque.push(bytes)
           @resume_requested = true
         end
@@ -529,7 +552,8 @@ module GRPC
           stream_headers_proc(ps),
           stream_status_proc(ps),
           stream_trailers_proc(ps),
-          stream_cancel_proc(ps)
+          stream_cancel_proc(ps),
+          final_status_proc: -> { ps.final_status }
         )
       end
 
@@ -881,7 +905,6 @@ module GRPC
 
         streams.each do |stream|
           stream.transport_error = status
-          stream.live_send_buf.try &.close
           stream.finish
         end
 
@@ -920,7 +943,6 @@ module GRPC
               terminal.complete
             when PendingStream
               terminal.transport_error = status
-              terminal.live_send_buf.try &.close
               terminal.finish
             end
             unless @closed || @session.null?

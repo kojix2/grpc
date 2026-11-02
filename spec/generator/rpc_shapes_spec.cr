@@ -105,6 +105,7 @@ describe CrystalGrpcCodeGenerator do
       content.should contain("res_marshaller = marshaller_for(Number)")
       content.should contain("recv_chan.send(res_marshaller.decode(bytes))")
       content.should_not contain("recv_chan.send(res_marshaller.decode(bytes)) rescue nil")
+      content.should contain("final_status_proc: -> { raw.final_status }")
       content.should contain("raw.send_raw(req_marshaller.encode(msg))")
     end
 

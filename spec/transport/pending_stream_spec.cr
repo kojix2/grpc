@@ -166,6 +166,114 @@ describe GRPC::Transport::PendingStream do
   end
 
   describe "completion and cancellation" do
+    it "publishes completion before the last response is consumed" do
+      stream = GRPC::Transport::PendingStream.new
+      stream.live_send_buf = GRPC::Transport::LiveSendBuffer.new
+      stream.final_status.should be_nil
+      stream.receive_data(GRPC::Codec.encode(Bytes[42_u8]))
+      stream.trailers.add("grpc-status", "0")
+      # Seeing grpc-status while parsing headers is not itself completion.
+      stream.final_status.should be_nil
+      stream.finish
+
+      stream.final_status.should eq(GRPC::Status.ok)
+      ex = expect_raises(GRPC::SendClosedError) { stream.send_outgoing(Bytes[1_u8]) }
+      ex.final_status.should eq(GRPC::Status.ok)
+      stream.messages.receive.should eq(Bytes[42_u8])
+      stream.messages.receive?.should be_nil
+    end
+
+    it "distinguishes an active RPC from a completed RPC without grpc-status" do
+      stream = GRPC::Transport::PendingStream.new
+      stream.final_status.should be_nil
+      stream.finish
+      stream.final_status.not_nil!.code.should eq(GRPC::StatusCode::UNKNOWN)
+    end
+
+    it "keeps the peer failure on a rejected send" do
+      stream = GRPC::Transport::PendingStream.new
+      stream.live_send_buf = GRPC::Transport::LiveSendBuffer.new
+      stream.trailers.add("grpc-status", "14")
+      stream.trailers.add("grpc-message", "peer unavailable")
+      stream.finish
+
+      ex = expect_raises(GRPC::SendClosedError) { stream.send_outgoing(Bytes[1_u8]) }
+      ex.final_status.not_nil!.code.should eq(GRPC::StatusCode::UNAVAILABLE)
+      ex.final_status.not_nil!.message.should eq("peer unavailable")
+    end
+
+    it "does not treat a request half-close as RPC completion" do
+      stream = GRPC::Transport::PendingStream.new
+      stream.live_send_buf = GRPC::Transport::LiveSendBuffer.new
+      stream.close_send
+
+      stream.final_status.should be_nil
+      ex = expect_raises(GRPC::SendClosedError) { stream.send_outgoing(Bytes[1_u8]) }
+      ex.final_status.should be_nil
+      stream.receive_data(GRPC::Codec.encode(Bytes[2_u8]))
+      stream.trailers.add("grpc-status", "0")
+      stream.finish
+      stream.messages.receive.should eq(Bytes[2_u8])
+      stream.messages.receive?.should be_nil
+    end
+
+    it "wakes a sender blocked on capacity with the completed RPC status" do
+      stream = GRPC::Transport::PendingStream.new
+      stream.live_send_buf = GRPC::Transport::LiveSendBuffer.new(1)
+      stream.send_outgoing(Bytes[1_u8])
+      result = Channel(Exception?).new(1)
+      spawn do
+        stream.send_outgoing(Bytes[2_u8])
+        result.send(nil)
+      rescue ex
+        result.send(ex)
+      end
+      Fiber.yield
+      select
+      when result.receive
+        fail "sender did not wait for capacity"
+      else
+      end
+      stream.trailers.add("grpc-status", "0")
+      stream.finish
+
+      select
+      when ex = result.receive
+        ex.should be_a(GRPC::SendClosedError)
+        ex.as(GRPC::SendClosedError).final_status.should eq(GRPC::Status.ok)
+      when timeout(1.second)
+        fail "completion did not wake the blocked sender"
+      end
+      # The failed second message never entered the queue.
+      buffer = Bytes.new(8)
+      flags = 0_u32
+      stream.live_send_buf.not_nil!.read_into(buffer.to_unsafe, 8_u64, pointerof(flags)).should eq(1)
+      buffer[0].should eq(1)
+      (flags & LibNghttp2::DATA_FLAG_EOF).should_not eq(0)
+    end
+
+    it "does not classify a failure after enqueueing as an unsent message" do
+      stream = GRPC::Transport::PendingStream.new
+      stream.live_send_buf = GRPC::Transport::LiveSendBuffer.new
+      stream.send_resume_proc = -> { raise IO::Error.new("resume failed"); nil }
+      expect_raises(IO::Error, "resume failed") { stream.send_outgoing(Bytes[1_u8]) }
+    end
+
+    it "publishes local cancellation without replacing an earlier completion" do
+      stream = GRPC::Transport::PendingStream.new
+      stream.live_send_buf = GRPC::Transport::LiveSendBuffer.new
+      stream.cancel
+      stream.final_status.not_nil!.code.should eq(GRPC::StatusCode::CANCELLED)
+      ex = expect_raises(GRPC::SendClosedError) { stream.send_outgoing(Bytes[1_u8]) }
+      ex.final_status.not_nil!.code.should eq(GRPC::StatusCode::CANCELLED)
+
+      completed = GRPC::Transport::PendingStream.new
+      completed.trailers.add("grpc-status", "0")
+      completed.finish
+      completed.cancel
+      completed.final_status.should eq(GRPC::Status.ok)
+    end
+
     it "finishes only once" do
       stream = GRPC::Transport::PendingStream.new
 

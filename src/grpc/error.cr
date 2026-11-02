@@ -32,6 +32,18 @@ module GRPC
     end
   end
 
+  # The request was rejected before entering the send queue. A nil final_status
+  # means only the request side is closed; an RPC can still be receiving replies.
+  # This remains a StatusError for compatibility with existing send error handlers.
+  # Other send exceptions may occur after enqueueing and do not prove non-delivery.
+  class SendClosedError < StatusError
+    getter final_status : Status?
+
+    def initialize(@final_status : Status? = nil)
+      super(StatusCode::CANCELLED, "send buffer is closed")
+    end
+  end
+
   # ConnectionError is raised when transport connectivity fails.
   # It surfaces to callers as StatusCode::UNAVAILABLE.
   class ConnectionError < Exception
