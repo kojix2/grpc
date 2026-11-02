@@ -211,7 +211,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: crystal-lang/install-crystal@v1
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: spec/interop/go/go.mod
           cache-dependency-path: spec/interop/go/go.sum
