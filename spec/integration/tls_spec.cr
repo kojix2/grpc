@@ -81,18 +81,38 @@ describe "GRPC TLS ALPN" do
     context = OpenSSL::SSL::Context::Server.new
     context.certificate_chain = TLS_CERT
     context.private_key = TLS_KEY
-    done = Channel(Nil).new(1)
+    done = Channel(Exception?).new(1)
     spawn do
-      socket = OpenSSL::SSL::Socket::Server.new(listener.accept, context, sync_close: true)
-      socket.close
-      done.send(nil)
+      tcp = nil.as(TCPSocket?)
+      socket = nil.as(OpenSSL::SSL::Socket::Server?)
+      error = nil.as(Exception?)
+      begin
+        tcp = listener.accept
+        tcp.read_timeout = 2.seconds
+        tcp.write_timeout = 2.seconds
+        socket = OpenSSL::SSL::Socket::Server.new(tcp, context, sync_close: true)
+      rescue IO::Error
+        # The client rejects ALPN and can disconnect while this peer is still
+        # finishing its TLS handshake (Broken pipe on Linux/OpenSSL).
+      rescue ex
+        error = ex
+      ensure
+        socket.try(&.close) rescue nil
+        tcp.try(&.close) rescue nil
+        done.send(error)
+      end
     end
     client_context = OpenSSL::SSL::Context::Client.new
     client_context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
     expect_raises(GRPC::ConnectionError, "TLS peer did not negotiate h2 ALPN") do
       GRPC::Transport::Http2ClientConnection.new("127.0.0.1", listener.local_address.port, true, client_context)
     end
-    done.receive
+    select
+    when error = done.receive
+      raise error if error
+    when timeout(3.seconds)
+      fail "TLS peer did not finish after the client rejected missing h2 ALPN"
+    end
   ensure
     listener.try &.close
   end
