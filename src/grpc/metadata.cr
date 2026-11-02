@@ -48,7 +48,9 @@ module GRPC
     def add_wire(key : String, value : String) : Nil
       normalized = normalize_key(key)
       if binary_key?(normalized)
-        add_bin(normalized, decode_binary_wire_value(value))
+        # Intermediaries may join repeated binary headers with commas.
+        decoded = value.split(',').map { |part| decode_binary_wire_value(part.strip) }
+        decoded.each { |part| add_bin(normalized, part) }
       else
         add(normalized, value)
       end

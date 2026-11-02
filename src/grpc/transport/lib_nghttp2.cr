@@ -252,6 +252,10 @@ lib LibNghttp2
     session : Session*, stream_id : Int32,
   ) : Void*
 
+  fun session_get_stream_local_close = nghttp2_session_get_stream_local_close(
+    session : Session*, stream_id : Int32,
+  ) : Int32
+
   # ---- Utilities ----
 
   fun strerror = nghttp2_strerror(error_code : Int32) : UInt8*

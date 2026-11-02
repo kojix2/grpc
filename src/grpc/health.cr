@@ -42,7 +42,7 @@ module GRPC
         normalized = normalize_service_name(service)
 
         @mutex.synchronize do
-          channel = ::Channel(::Grpc::Health::V1::HealthCheckResponse::ServingStatus).new(8)
+          channel = ::Channel(::Grpc::Health::V1::HealthCheckResponse::ServingStatus).new(1)
           watchers = @watchers[normalized]? || begin
             created = [] of ::Channel(::Grpc::Health::V1::HealthCheckResponse::ServingStatus)
             @watchers[normalized] = created
@@ -58,62 +58,58 @@ module GRPC
         @mutex.synchronize do
           return unless watchers = @watchers[normalized]?
           watchers.delete(channel)
+          channel.close
           @watchers.delete(normalized) if watchers.empty?
         end
       end
 
       def set_status(service : String, status : ::Grpc::Health::V1::HealthCheckResponse::ServingStatus) : Nil
         normalized = normalize_service_name(service)
-        watchers = [] of ::Channel(::Grpc::Health::V1::HealthCheckResponse::ServingStatus)
-
-        changed = @mutex.synchronize do
-          previous = @statuses[normalized]?
-          next false if previous == status
-
+        @mutex.synchronize do
+          return if @statuses[normalized]? == status
           @statuses[normalized] = status
-          watchers = (@watchers[normalized]? || [] of ::Channel(::Grpc::Health::V1::HealthCheckResponse::ServingStatus)).dup
-          true
+          notify_watchers(@watchers[normalized]?, status)
         end
-
-        notify_watchers(watchers, status) if changed
       end
 
       def clear_status(service : String) : Nil
         normalized = normalize_service_name(service)
         return set_status("", @overall_default_status) if normalized.empty?
-
-        watchers = [] of ::Channel(::Grpc::Health::V1::HealthCheckResponse::ServingStatus)
-        cleared = @mutex.synchronize do
-          removed = @statuses.delete(normalized)
-          watchers = (@watchers[normalized]? || [] of ::Channel(::Grpc::Health::V1::HealthCheckResponse::ServingStatus)).dup
-          !removed.nil?
+        @mutex.synchronize do
+          if @statuses.delete(normalized)
+            notify_watchers(@watchers[normalized]?, ::Grpc::Health::V1::HealthCheckResponse::ServingStatus::SERVICE_UNKNOWN)
+          end
         end
-
-        notify_watchers(watchers, ::Grpc::Health::V1::HealthCheckResponse::ServingStatus::SERVICE_UNKNOWN) if cleared
       end
 
       def set_all_not_serving : Nil
-        notifications = [] of {Array(::Channel(::Grpc::Health::V1::HealthCheckResponse::ServingStatus)), ::Grpc::Health::V1::HealthCheckResponse::ServingStatus}
-
         @mutex.synchronize do
           @statuses.each do |service, current|
-            next if current == ::Grpc::Health::V1::HealthCheckResponse::ServingStatus::NOT_SERVING
-
-            @statuses[service] = ::Grpc::Health::V1::HealthCheckResponse::ServingStatus::NOT_SERVING
-            watchers = (@watchers[service]? || [] of ::Channel(::Grpc::Health::V1::HealthCheckResponse::ServingStatus)).dup
-            notifications << {watchers, ::Grpc::Health::V1::HealthCheckResponse::ServingStatus::NOT_SERVING}
+            status = ::Grpc::Health::V1::HealthCheckResponse::ServingStatus::NOT_SERVING
+            next if current == status
+            @statuses[service] = status
+            notify_watchers(@watchers[service]?, status)
           end
-        end
-
-        notifications.each do |watchers, status|
-          notify_watchers(watchers, status)
         end
       end
 
-      private def notify_watchers(watchers : Array(::Channel(::Grpc::Health::V1::HealthCheckResponse::ServingStatus)), status : ::Grpc::Health::V1::HealthCheckResponse::ServingStatus) : Nil
+      # Called under the registry mutex, serializing publishers with unsubscribe.
+      # A slow watcher needs the latest state, not a backlog of stale states.
+      private def notify_watchers(watchers : Array(::Channel(::Grpc::Health::V1::HealthCheckResponse::ServingStatus))?, status : ::Grpc::Health::V1::HealthCheckResponse::ServingStatus) : Nil
+        return unless watchers
         watchers.each do |watcher|
-          watcher.send(status)
-        rescue
+          loop do
+            select
+            when watcher.send(status)
+              break
+            else
+              select
+              when watcher.receive
+              else
+              end
+            end
+          end
+        rescue ::Channel::ClosedError
         end
       end
 

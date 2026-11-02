@@ -109,6 +109,8 @@ module GRPC
     @trailers_proc : -> Metadata
     @cancel_proc : -> Nil
     @status_override : Status?
+    @raw : RawServerStream? = nil
+    @marshaller : Marshaller(T)? = nil
 
     def initialize(
       @headers_proc : -> Metadata = -> { Metadata.new },
@@ -122,7 +124,28 @@ module GRPC
       @cancel_mutex = Mutex.new
     end
 
+    # Decode at the application handoff so the transport's byte budget covers
+    # every queued response, without an extra forwarding fiber or typed queue.
+    def initialize(raw : RawServerStream, marshaller : Marshaller(T) = ProtoMarshaller(T).new)
+      initialize(-> { raw.headers }, -> { raw.status }, -> { raw.trailers }, -> { raw.cancel })
+      @raw = raw
+      @marshaller = marshaller
+    end
+
     def each(& : T ->) : Nil
+      if (raw = @raw) && (marshaller = @marshaller)
+        raw.each do |bytes|
+          message = begin
+            marshaller.decode(bytes)
+          rescue ex
+            @status_override = Status.internal(ex.message || "failed to decode response")
+            raw.cancel
+            return
+          end
+          yield message
+        end
+        return
+      end
       loop do
         msg = @messages.receive? || break
         case msg
@@ -146,6 +169,7 @@ module GRPC
 
     def cancel : Nil
       return unless mark_cancelled_once
+      @messages.close
       @cancel_proc.call
     end
 
@@ -158,6 +182,7 @@ module GRPC
     # finish signals end of stream.  Pass a status_override only for error
     # cases; on the normal path status comes from the transport via @status_proc.
     def finish(status_override : Status? = nil) : Nil
+      return if @cancelled
       @status_override = status_override
       @messages.close
     end
@@ -263,6 +288,8 @@ module GRPC
     @status_proc : -> Status
     @trailers_proc : -> Metadata
     @cancel_proc : -> Nil
+    @raw : RawBidiCall? = nil
+    @marshaller : Marshaller(Res)? = nil
 
     def initialize(@send_proc, @close_proc, @recv_chan,
                    @headers_proc : -> Metadata = -> { Metadata.new },
@@ -273,6 +300,18 @@ module GRPC
       @closed = false
       @cancelled = false
       @cancel_mutex = Mutex.new
+    end
+
+    def initialize(raw : RawBidiCall,
+                   request_marshaller : Marshaller(Req) = ProtoMarshaller(Req).new,
+                   response_marshaller : Marshaller(Res) = ProtoMarshaller(Res).new)
+      initialize(
+        ->(message : Req) { raw.send_raw(request_marshaller.encode(message)) },
+        -> { raw.close_send }, ::Channel(Res | Exception).new,
+        -> { raw.headers }, -> { raw.status }, -> { raw.trailers }, -> { raw.cancel },
+        final_status_proc: -> { raw.final_status })
+      @raw = raw
+      @marshaller = response_marshaller
     end
 
     # send transmits a request message to the server.
@@ -294,6 +333,18 @@ module GRPC
     end
 
     def each(& : Res ->) : Nil
+      if (raw = @raw) && (marshaller = @marshaller)
+        raw.each do |bytes|
+          message = begin
+            marshaller.decode(bytes)
+          rescue ex
+            raw.cancel
+            raise ex
+          end
+          yield message
+        end
+        return
+      end
       loop do
         msg = @recv_chan.receive? || break
         case msg
@@ -305,6 +356,7 @@ module GRPC
 
     def cancel : Nil
       return unless mark_cancelled_once
+      @recv_chan.close
       @cancel_proc.call
     end
 

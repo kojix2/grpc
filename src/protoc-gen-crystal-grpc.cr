@@ -105,6 +105,7 @@ class CrystalGrpcCodeGenerator
   # Emit both the abstract service class and the client stub for one service.
   private def generate_service_pair(str : String::Builder, svc : ServiceDescriptor,
                                     fd : ProtoFileDescriptor, indent : String) : Nil
+    validate_rpc_names!(svc)
     full_name = full_service_name(fd, svc)
 
     str << "\n"
@@ -307,14 +308,15 @@ class CrystalGrpcCodeGenerator
       output = resolve_type(meth.output_type, fd.package)
       mname = to_snake_case(meth.name)
       sname = "FULL_NAME"
+      response_name = meth.rpc_type == :unary ? response_helper_name(svc, meth) : ""
       str << "\n"
       case meth.rpc_type
       when :unary
         str << "#{indent}  def #{mname}(request : #{input}, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : #{output}\n"
-        str << "#{indent}    #{mname}_response(request, ctx).ok!\n"
+        str << "#{indent}    #{response_name}(request, ctx).ok!\n"
         str << "#{indent}  end\n"
         str << "\n"
-        str << "#{indent}  def #{mname}_response(request : #{input}, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::UnaryResponse(#{output})\n"
+        str << "#{indent}  def #{response_name}(request : #{input}, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::UnaryResponse(#{output})\n"
         str << "#{indent}    req_marshaller = marshaller_for(#{input})\n"
         str << "#{indent}    res_marshaller = marshaller_for(#{output})\n"
         str << "#{indent}    response = @channel.unary_call(#{sname}, #{meth.name.inspect}, req_marshaller.encode(request), ctx)\n"
@@ -326,16 +328,7 @@ class CrystalGrpcCodeGenerator
         str << "#{indent}    req_marshaller = marshaller_for(#{input})\n"
         str << "#{indent}    res_marshaller = marshaller_for(#{output})\n"
         str << "#{indent}    raw    = @channel.open_server_stream(#{sname}, #{meth.name.inspect}, req_marshaller.encode(request), ctx)\n"
-        str << "#{indent}    stream = GRPC::ServerStream(#{output}).new(-> { raw.headers }, -> { raw.status }, -> { raw.trailers }, -> { raw.cancel })\n"
-        str << "#{indent}    spawn do\n"
-        str << "#{indent}      begin\n"
-        str << "#{indent}        raw.each { |bytes| stream.push(res_marshaller.decode(bytes)) }\n"
-        str << "#{indent}        stream.finish\n"
-        str << "#{indent}      rescue ex\n"
-        str << "#{indent}        stream.finish(GRPC::Status.internal(ex.message || \"error\"))\n"
-        str << "#{indent}      end\n"
-        str << "#{indent}    end\n"
-        str << "#{indent}    stream\n"
+        str << "#{indent}    GRPC::ServerStream(#{output}).new(raw, res_marshaller)\n"
         str << "#{indent}  end\n"
       when :client_streaming
         str << "#{indent}  # #{mname} opens a client-streaming RPC.\n"
@@ -347,21 +340,19 @@ class CrystalGrpcCodeGenerator
         str << "#{indent}    res_marshaller = marshaller_for(#{output})\n"
         str << "#{indent}    result_chan = ::Channel(#{output} | Exception).new(1)\n"
         str << "#{indent}    send_proc = Proc(#{input}, Nil).new { |msg| raw.send_raw(req_marshaller.encode(msg)) }\n"
-        str << "#{indent}    close_proc = Proc(Nil).new {\n"
+        str << "#{indent}    close_proc = Proc(Nil).new do\n"
         str << "#{indent}      spawn do\n"
-        str << "#{indent}        begin\n"
-        str << "#{indent}          body = raw.close_and_recv\n"
-        str << "#{indent}          st = raw.status\n"
-        str << "#{indent}          if st.ok?\n"
-        str << "#{indent}            result_chan.send(res_marshaller.decode(body))\n"
-        str << "#{indent}          else\n"
-        str << "#{indent}            result_chan.send(GRPC::StatusError.new(st, raw.trailers)) rescue nil\n"
-        str << "#{indent}          end\n"
-        str << "#{indent}        rescue ex\n"
-        str << "#{indent}          result_chan.send(ex) rescue nil\n"
+        str << "#{indent}        body = raw.close_and_recv\n"
+        str << "#{indent}        st = raw.status\n"
+        str << "#{indent}        if st.ok?\n"
+        str << "#{indent}          result_chan.send(res_marshaller.decode(body))\n"
+        str << "#{indent}        else\n"
+        str << "#{indent}          result_chan.send(GRPC::StatusError.new(st, raw.trailers)) rescue nil\n"
         str << "#{indent}        end\n"
+        str << "#{indent}      rescue ex\n"
+        str << "#{indent}        result_chan.send(ex) rescue nil\n"
         str << "#{indent}      end\n"
-        str << "#{indent}    }\n"
+        str << "#{indent}    end\n"
         str << "#{indent}    GRPC::ClientStream(#{input}, #{output}).new(send_proc, close_proc, result_chan, -> { raw.headers }, -> { raw.status }, -> { raw.trailers }, -> { raw.cancel })\n"
         str << "#{indent}  end\n"
       when :bidi
@@ -372,19 +363,7 @@ class CrystalGrpcCodeGenerator
         str << "#{indent}    raw = @channel.open_bidi_stream_live(#{sname}, #{meth.name.inspect}, ctx)\n"
         str << "#{indent}    req_marshaller = marshaller_for(#{input})\n"
         str << "#{indent}    res_marshaller = marshaller_for(#{output})\n"
-        str << "#{indent}    recv_chan = ::Channel(#{output} | Exception).new(128)\n"
-        str << "#{indent}    spawn do\n"
-        str << "#{indent}      begin\n"
-        str << "#{indent}        raw.each { |bytes| recv_chan.send(res_marshaller.decode(bytes)) }\n"
-        str << "#{indent}        recv_chan.close\n"
-        str << "#{indent}      rescue ex\n"
-        str << "#{indent}        recv_chan.send(ex) rescue nil\n"
-        str << "#{indent}        recv_chan.close rescue nil\n"
-        str << "#{indent}      end\n"
-        str << "#{indent}    end\n"
-        str << "#{indent}    send_proc = Proc(#{input}, Nil).new { |msg| raw.send_raw(req_marshaller.encode(msg)) }\n"
-        str << "#{indent}    close_proc = Proc(Nil).new { raw.close_send }\n"
-        str << "#{indent}    GRPC::BidiCall(#{input}, #{output}).new(send_proc, close_proc, recv_chan, -> { raw.headers }, -> { raw.status }, -> { raw.trailers }, -> { raw.cancel }, final_status_proc: -> { raw.final_status })\n"
+        str << "#{indent}    GRPC::BidiCall(#{input}, #{output}).new(raw, req_marshaller, res_marshaller)\n"
         str << "#{indent}  end\n"
       end
     end
@@ -415,9 +394,41 @@ class CrystalGrpcCodeGenerator
   end
 
   # Convert a proto full type name like ".helloworld.HelloRequest" to a
-  # Crystal type expression relative to *current_package*.
-  private def resolve_type(proto_type : String, current_package : String) : String
-    @resolver.resolve(proto_type, current_package)
+  # Absolute Crystal type expression, including explicit type_map entries.
+  private def resolve_type(proto_type : String, _current_package : String) : String
+    resolved = @resolver.resolve(proto_type, "")
+    resolved.starts_with?("::") ? resolved : "::#{resolved}"
+  end
+
+  # RPC methods and infrastructure share a Crystal method namespace.
+  private def validate_rpc_names!(svc : ServiceDescriptor) : Nil
+    used = Set(String).new
+    reserved = {"initialize", "marshaller_for", "service_full_name", "dispatch",
+                "dispatch_server_stream", "dispatch_client_stream", "dispatch_bidi_stream",
+                "server_streaming?", "client_streaming?", "bidi_streaming?"}
+    svc.method.each do |meth|
+      name = to_snake_case(meth.name)
+      if reserved.includes?(name) || !used.add?(name)
+        raise ArgumentError.new("RPC #{svc.name}.#{meth.name} collides with generated method #{name}")
+      end
+    end
+  end
+
+  private def response_helper_name(svc : ServiceDescriptor, method : MethodDescriptor) : String
+    used = svc.method.map { |meth| to_snake_case(meth.name) }.to_set
+    svc.method.each do |meth|
+      next unless meth.rpc_type == :unary
+      base = "#{to_snake_case(meth.name)}_response"
+      name = base
+      suffix = 2
+      while used.includes?(name)
+        name = "#{base}_#{suffix}"
+        suffix += 1
+      end
+      return name if meth.same?(method)
+      used.add(name)
+    end
+    raise ArgumentError.new("missing unary RPC #{method.name}")
   end
 
   # "SayHello" → "say_hello", "GetFooBarBaz" → "get_foo_bar_baz"

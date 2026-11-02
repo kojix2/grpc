@@ -296,21 +296,21 @@ module Grpc::Health::V1
         GRPC::ProtoMarshaller(T).new
       end
 
-      abstract def check(request : HealthCheckRequest, ctx : GRPC::ServerContext) : HealthCheckResponse
-      abstract def list(request : HealthListRequest, ctx : GRPC::ServerContext) : HealthListResponse
-      abstract def watch(request : HealthCheckRequest, writer : GRPC::ResponseStream(HealthCheckResponse), ctx : GRPC::ServerContext) : GRPC::Status
+      abstract def check(request : ::Grpc::Health::V1::HealthCheckRequest, ctx : GRPC::ServerContext) : ::Grpc::Health::V1::HealthCheckResponse
+      abstract def list(request : ::Grpc::Health::V1::HealthListRequest, ctx : GRPC::ServerContext) : ::Grpc::Health::V1::HealthListResponse
+      abstract def watch(request : ::Grpc::Health::V1::HealthCheckRequest, writer : GRPC::ResponseStream(::Grpc::Health::V1::HealthCheckResponse), ctx : GRPC::ServerContext) : GRPC::Status
 
       def dispatch(method : String, body : Bytes, ctx : GRPC::ServerContext) : {Bytes, GRPC::Status}
         case method
         when "Check"
-          req_marshaller = marshaller_for(HealthCheckRequest)
-          res_marshaller = marshaller_for(HealthCheckResponse)
+          req_marshaller = marshaller_for(::Grpc::Health::V1::HealthCheckRequest)
+          res_marshaller = marshaller_for(::Grpc::Health::V1::HealthCheckResponse)
           req = req_marshaller.decode(body)
           resp = check(req, ctx)
           {res_marshaller.encode(resp), GRPC::Status.ok}
         when "List"
-          req_marshaller = marshaller_for(HealthListRequest)
-          res_marshaller = marshaller_for(HealthListResponse)
+          req_marshaller = marshaller_for(::Grpc::Health::V1::HealthListRequest)
+          res_marshaller = marshaller_for(::Grpc::Health::V1::HealthListResponse)
           req = req_marshaller.decode(body)
           resp = list(req, ctx)
           {res_marshaller.encode(resp), GRPC::Status.ok}
@@ -335,9 +335,9 @@ module Grpc::Health::V1
                                  writer : GRPC::RawResponseStream) : GRPC::Status
         case method
         when "Watch"
-          req_marshaller = marshaller_for(HealthCheckRequest)
-          res_marshaller = marshaller_for(HealthCheckResponse)
-          typed_writer = GRPC::ResponseStream(HealthCheckResponse).new(writer, res_marshaller)
+          req_marshaller = marshaller_for(::Grpc::Health::V1::HealthCheckRequest)
+          res_marshaller = marshaller_for(::Grpc::Health::V1::HealthCheckResponse)
+          typed_writer = GRPC::ResponseStream(::Grpc::Health::V1::HealthCheckResponse).new(writer, res_marshaller)
           watch(req_marshaller.decode(body), typed_writer, ctx)
         else
           GRPC::Status.unimplemented("method #{method} not found")
@@ -360,44 +360,35 @@ module Grpc::Health::V1
         GRPC::ProtoMarshaller(T).new
       end
 
-      def check(request : HealthCheckRequest, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : HealthCheckResponse
+      def check(request : ::Grpc::Health::V1::HealthCheckRequest, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : ::Grpc::Health::V1::HealthCheckResponse
         check_response(request, ctx).ok!
       end
 
-      def check_response(request : HealthCheckRequest, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::UnaryResponse(HealthCheckResponse)
-        req_marshaller = marshaller_for(HealthCheckRequest)
-        res_marshaller = marshaller_for(HealthCheckResponse)
+      def check_response(request : ::Grpc::Health::V1::HealthCheckRequest, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::UnaryResponse(::Grpc::Health::V1::HealthCheckResponse)
+        req_marshaller = marshaller_for(::Grpc::Health::V1::HealthCheckRequest)
+        res_marshaller = marshaller_for(::Grpc::Health::V1::HealthCheckResponse)
         response = @channel.unary_call(FULL_NAME, "Check", req_marshaller.encode(request), ctx)
         message = response.status.ok? ? res_marshaller.decode(response.raw) : nil
-        GRPC::UnaryResponse(HealthCheckResponse).new(message, response.initial_metadata, response.trailing_metadata, response.status)
+        GRPC::UnaryResponse(::Grpc::Health::V1::HealthCheckResponse).new(message, response.initial_metadata, response.trailing_metadata, response.status)
       end
 
-      def list(request : HealthListRequest, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : HealthListResponse
+      def list(request : ::Grpc::Health::V1::HealthListRequest, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : ::Grpc::Health::V1::HealthListResponse
         list_response(request, ctx).ok!
       end
 
-      def list_response(request : HealthListRequest, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::UnaryResponse(HealthListResponse)
-        req_marshaller = marshaller_for(HealthListRequest)
-        res_marshaller = marshaller_for(HealthListResponse)
+      def list_response(request : ::Grpc::Health::V1::HealthListRequest, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::UnaryResponse(::Grpc::Health::V1::HealthListResponse)
+        req_marshaller = marshaller_for(::Grpc::Health::V1::HealthListRequest)
+        res_marshaller = marshaller_for(::Grpc::Health::V1::HealthListResponse)
         response = @channel.unary_call(FULL_NAME, "List", req_marshaller.encode(request), ctx)
         message = response.status.ok? ? res_marshaller.decode(response.raw) : nil
-        GRPC::UnaryResponse(HealthListResponse).new(message, response.initial_metadata, response.trailing_metadata, response.status)
+        GRPC::UnaryResponse(::Grpc::Health::V1::HealthListResponse).new(message, response.initial_metadata, response.trailing_metadata, response.status)
       end
 
-      def watch(request : HealthCheckRequest, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::ServerStream(HealthCheckResponse)
-        req_marshaller = marshaller_for(HealthCheckRequest)
-        res_marshaller = marshaller_for(HealthCheckResponse)
+      def watch(request : ::Grpc::Health::V1::HealthCheckRequest, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::ServerStream(::Grpc::Health::V1::HealthCheckResponse)
+        req_marshaller = marshaller_for(::Grpc::Health::V1::HealthCheckRequest)
+        res_marshaller = marshaller_for(::Grpc::Health::V1::HealthCheckResponse)
         raw = @channel.open_server_stream(FULL_NAME, "Watch", req_marshaller.encode(request), ctx)
-        stream = GRPC::ServerStream(HealthCheckResponse).new(-> { raw.headers }, -> { raw.status }, -> { raw.trailers }, -> { raw.cancel })
-        spawn do
-          begin
-            raw.each { |bytes| stream.push(res_marshaller.decode(bytes)) }
-            stream.finish
-          rescue ex
-            stream.finish(GRPC::Status.internal(ex.message || "error"))
-          end
-        end
-        stream
+        GRPC::ServerStream(::Grpc::Health::V1::HealthCheckResponse).new(raw, res_marshaller)
       end
     end
   end

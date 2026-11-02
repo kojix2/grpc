@@ -1,0 +1,12 @@
+syntax = "proto3";
+package generator_collisions;
+message Service { int32 value = 1; }
+message Client { int32 value = 1; }
+service Echo {
+  rpc Foo(Service) returns (Client);
+  rpc FooResponse(Service) returns (Client);
+  rpc FooResponse_2(Service) returns (Client);
+  rpc Watch(Service) returns (stream Client);
+  rpc Upload(stream Service) returns (Client);
+  rpc Chat(stream Service) returns (stream Client);
+}

@@ -84,7 +84,7 @@ module GRPC
           end
           # Publish the terminal status before waking a blocked sender.
           @final_status = grpc_status
-          @live_send_buf.try &.close
+          @live_send_buf.try &.abort
         end
         @inbound.finish
       end
@@ -127,7 +127,7 @@ module GRPC
             @terminal_state.mark_finished
             @final_status = grpc_status
           end
-          @live_send_buf.try &.close
+          @live_send_buf.try &.abort
         end
         @cancel_proc.try &.call
         @inbound.close
@@ -135,6 +135,15 @@ module GRPC
 
       def cancelled? : Bool
         @terminal_state.cancelled?
+      end
+
+      def validate_single_response(count : Int32) : Nil
+        @completion_mutex.synchronize do
+          if count != 1 && grpc_status.ok?
+            @status_override = Status.internal("client-streaming RPC must receive exactly one response message")
+            @final_status = grpc_status
+          end
+        end
       end
 
       def grpc_headers : Metadata
@@ -309,6 +318,15 @@ module GRPC
         @lsb_mutex.synchronize { @closed }
       end
 
+      # Terminal responses discard unsent data; close_send still drains it.
+      def abort : Nil
+        close
+        @lsb_mutex.synchronize do
+          @deque.clear
+          @current = nil
+        end
+      end
+
       def take_resume_request : Bool
         @lsb_mutex.synchronize do
           should_resume = @resume_requested && @deferred
@@ -413,6 +431,11 @@ module GRPC
       @use_tls : Bool
       @endpoint_config : EndpointConfig
       @target_authority : String
+      @draining = false
+
+      def accepting_new_calls? : Bool
+        !closed? && !@draining
+      end
 
       def initialize(host : String, port : Int32, use_tls : Bool = false,
                      tls_context : OpenSSL::SSL::Context::Client? = nil,
@@ -434,12 +457,13 @@ module GRPC
 
         io : IO
         if use_tls
-          ctx = tls_context || begin
-            c = OpenSSL::SSL::Context::Client.new
-            c.alpn_protocol = "h2"
-            c
-          end
+          ctx = tls_context || OpenSSL::SSL::Context::Client.new
+          ctx.alpn_protocol = "h2"
           ssl_socket = OpenSSL::SSL::Socket::Client.new(tcp, ctx, sync_close: true, hostname: host)
+          unless ssl_socket.alpn_protocol == "h2"
+            ssl_socket.close
+            raise ConnectionError.new("TLS peer did not negotiate h2 ALPN")
+          end
           @tls_context_anchor = ctx
           @tls_socket_anchor = ssl_socket
           io = ssl_socket
@@ -530,11 +554,14 @@ module GRPC
             # Client-streaming servers send exactly one response message, but we
             # must consume through the sentinel so the channel is fully drained.
             result = Bytes.empty
+            count = 0
             loop do
               msg = ps.messages.receive?
               break if msg.nil?
+              count += 1
               result = msg
             end
+            ps.validate_single_response(count)
             result
           },
           stream_headers_proc(ps),
@@ -585,6 +612,7 @@ module GRPC
         call = PendingCall.new(@endpoint_config.receive_limits)
 
         @mutex.synchronize do
+          ensure_accepting_calls!
           sb = SendBuffer.new(framed_body)
           call.send_buf = sb
 
@@ -662,6 +690,7 @@ module GRPC
         ps = PendingStream.new(@endpoint_config.receive_limits)
 
         @mutex.synchronize do
+          ensure_accepting_calls!
           sb = SendBuffer.new(framed_body)
           ps.send_buf = sb
 
@@ -711,6 +740,7 @@ module GRPC
         ps = PendingStream.new(@endpoint_config.receive_limits)
 
         @mutex.synchronize do
+          ensure_accepting_calls!
           lsb = LiveSendBuffer.new(send_queue_size)
           ps.live_send_buf = lsb
           ps.outbound_compression = request_compression?(metadata)
@@ -804,6 +834,12 @@ module GRPC
 
       # ---- Callbacks ----
 
+      private def ensure_accepting_calls! : Nil
+        unless accepting_new_calls?
+          raise StatusError.new(StatusCode::UNAVAILABLE, "connection is closed or draining")
+        end
+      end
+
       def on_begin_headers_cb(frame : Void*) : Nil
         return unless frame_type(frame) == LibNghttp2::FRAME_HEADERS
         stream_id = frame_stream_id(frame)
@@ -838,9 +874,13 @@ module GRPC
       end
 
       def on_frame_recv_cb(frame : Void*) : Nil
+        if frame_type(frame) == LibNghttp2::FRAME_GOAWAY
+          @draining = true
+          close_if_drained
+          return
+        end
         return unless frame_end_stream?(frame)
-        # Ignore SETTINGS ACK: FLAG_ACK == FLAG_END_STREAM == 0x01
-        return if frame_type(frame) == LibNghttp2::FRAME_SETTINGS
+        return unless frame_type(frame).in?(LibNghttp2::FRAME_HEADERS, LibNghttp2::FRAME_DATA)
         stream_id = frame_stream_id(frame)
         stop_deadline_watcher(stream_id)
         if call = @pending[stream_id]?
@@ -848,28 +888,49 @@ module GRPC
         elsif ps = @pending_streams[stream_id]?
           ps.finish
         end
+        # A remote END_STREAM may leave our deferred request DATA provider open.
+        # Reset after publishing the final status; nghttp2 releases the stream
+        # and its concurrency slot without converting successful RPCs to CANCELLED.
+        if LibNghttp2.session_get_stream_local_close(@session, stream_id) == 0
+          LibNghttp2.submit_rst_stream(@session, LibNghttp2::FLAG_NONE, stream_id, LibNghttp2::NO_ERROR)
+        end
       end
 
       def on_stream_close_cb(stream_id : Int32, error_code : UInt32) : Nil
         stop_deadline_watcher(stream_id)
         call = @pending.delete(stream_id)
-        if call && error_code != LibNghttp2::NO_ERROR
+        if call
           call.transport_error = stream_close_status(error_code)
         end
         call.complete if call # wake up waiter on error close
         ps = @pending_streams.delete(stream_id)
-        if ps && error_code != LibNghttp2::NO_ERROR
+        if ps
           ps.transport_error = stream_close_status(error_code)
         end
         ps.finish if ps # wake up blocked reader on unexpected close
         @stream_boxes.delete(stream_id)
         @data_source_boxes.delete(stream_id)
+        close_if_drained
+      end
+
+      private def close_if_drained : Nil
+        return unless @draining && @pending.empty? && @pending_streams.empty?
+        # Never destroy a session from one of its callbacks.
+        spawn { close }
       end
 
       private def stream_close_status(error_code : UInt32) : Status
         case error_code
         when LibNghttp2::NGHTTP2_CANCEL
           Status.cancelled("stream reset by peer")
+        when 7_u32
+          Status.unavailable("stream refused by peer")
+        when 11_u32
+          Status.new(StatusCode::RESOURCE_EXHAUSTED, "peer exhausted HTTP/2 resources")
+        when 12_u32
+          Status.new(StatusCode::PERMISSION_DENIED, "inadequate HTTP/2 security")
+        when 0_u32, 1_u32, 2_u32, 3_u32, 4_u32, 5_u32, 6_u32, 9_u32, 10_u32
+          Status.internal("stream closed without valid grpc-status (http2 error code #{error_code})")
         else
           Status.unknown("stream closed without valid grpc-status (http2 error code #{error_code})")
         end

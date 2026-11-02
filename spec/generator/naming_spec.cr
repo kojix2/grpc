@@ -58,3 +58,28 @@ describe CrystalGrpcCodeGenerator do
     end
   end
 end
+
+describe CrystalGrpcCodeGenerator do
+  it "allocates unary response helpers around all public RPC names" do
+    methods = {"Foo", "FooResponse", "FooResponse_2"}.map do |name|
+      GrpcGeneratorSpec::TestProtoEncode.method_proto(name, ".audit.Request", ".audit.Reply")
+    end.to_a
+    service = GrpcGeneratorSpec::TestProtoEncode.service_proto("Echo", methods)
+    file = GrpcGeneratorSpec::TestProtoEncode.file_proto("collision.proto", "audit", [service])
+    content = GrpcGeneratorSpec.run_generator(GrpcGeneratorSpec::TestProtoEncode.request(["collision.proto"], [file]), "collision.grpc.cr")
+    content.should contain("foo_response_3(request, ctx).ok!")
+    content.should contain("def foo_response_3(request")
+    content.should contain("def foo_response(request")
+    content.should contain("def foo_response_2(request")
+  end
+
+  [{"FooBar", "Foo_Bar"}, {"Dispatch", "Ping"}, {"MarshallerFor", "Ping"}].each do |names|
+    it "diagnoses RPC method name collisions for #{names.join(", ")}" do
+      methods = names.map { |name| GrpcGeneratorSpec::TestProtoEncode.method_proto(name, ".audit.Request", ".audit.Reply") }.to_a
+      service = GrpcGeneratorSpec::TestProtoEncode.service_proto("Echo", methods)
+      file = GrpcGeneratorSpec::TestProtoEncode.file_proto("collision.proto", "audit", [service])
+      request = GrpcGeneratorSpec.parse_request(GrpcGeneratorSpec::TestProtoEncode.request(["collision.proto"], [file]))
+      expect_raises(ArgumentError, /collides with generated method/) { CrystalGrpcCodeGenerator.new.run(request) }
+    end
+  end
+end

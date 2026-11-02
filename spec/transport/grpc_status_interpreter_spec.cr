@@ -61,4 +61,23 @@ describe GRPC::Transport::GrpcStatusInterpreter do
     status = GRPC::Transport::GrpcStatusInterpreter.grpc_status(headers, trailers, override)
     status.should eq(override)
   end
+  {400 => GRPC::StatusCode::INTERNAL,
+   401 => GRPC::StatusCode::UNAUTHENTICATED,
+   403 => GRPC::StatusCode::PERMISSION_DENIED,
+   404 => GRPC::StatusCode::UNIMPLEMENTED,
+   429 => GRPC::StatusCode::UNAVAILABLE,
+   502 => GRPC::StatusCode::UNAVAILABLE,
+   503 => GRPC::StatusCode::UNAVAILABLE,
+   504 => GRPC::StatusCode::UNAVAILABLE,
+   200 => GRPC::StatusCode::UNKNOWN}.each do |http, expected|
+    it "maps HTTP #{http} when grpc-status is absent" do
+      headers = GRPC::Metadata.new({":status" => http.to_s})
+      GRPC::Transport::GrpcStatusInterpreter.grpc_status(headers, GRPC::Metadata.new, nil).code.should eq(expected)
+    end
+  end
+
+  it "prefers a valid gRPC status over the HTTP fallback" do
+    headers = GRPC::Metadata.new({":status" => "503", "grpc-status" => "7"})
+    GRPC::Transport::GrpcStatusInterpreter.grpc_status(headers, GRPC::Metadata.new, nil).code.should eq(GRPC::StatusCode::PERMISSION_DENIED)
+  end
 end

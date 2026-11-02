@@ -13,6 +13,10 @@ module GRPC
       end
 
       def begin_header_block : Nil
+        # Informational responses do not establish the initial gRPC headers.
+        if status = @headers.get(":status").try(&.to_i?)
+          @headers = Metadata.new if 100 <= status < 200
+        end
         @receiving_trailers = !@headers.empty?
       end
 

@@ -17,8 +17,8 @@ describe CrystalGrpcCodeGenerator do
       )
       # .google.protobuf.Empty → Google::Protobuf::Empty (different package)
       content.should contain("Google::Protobuf::Empty")
-      # .mypkg.Reply in the mypkg package → just Reply
-      content.should contain(": Reply")
+      # Local types remain absolute inside generated Service/Client scopes.
+      content.should contain(": ::Mypkg::Reply")
     end
 
     it "uses canonical resolution when type_map is not provided" do
@@ -116,5 +116,16 @@ describe CrystalGrpcCodeGenerator do
         generator.run(request)
       end
     end
+  end
+end
+
+describe CrystalGrpcCodeGenerator do
+  it "qualifies message names that shadow generated Service and Client classes" do
+    method = GrpcGeneratorSpec::TestProtoEncode.method_proto("Call", ".audit.Service", ".audit.Client")
+    service = GrpcGeneratorSpec::TestProtoEncode.service_proto("Echo", [method])
+    file = GrpcGeneratorSpec::TestProtoEncode.file_proto("shadow.proto", "audit", [service])
+    content = GrpcGeneratorSpec.run_generator(GrpcGeneratorSpec::TestProtoEncode.request(["shadow.proto"], [file]), "shadow.grpc.cr")
+    content.should contain("request : ::Audit::Service")
+    content.should contain(") : ::Audit::Client")
   end
 end

@@ -3,6 +3,7 @@ require "../spec_helper"
 class StreamingBufferProbe < GRPC::Transport::Http2ServerConnection
   def initialize
     super(IO::Memory.new, {} of String => GRPC::Service)
+    @stream_boxes[1] = Box.box(GRPC::Transport::StreamData.new)
   end
 
   def stage_buffer : GRPC::Transport::SendBuffer

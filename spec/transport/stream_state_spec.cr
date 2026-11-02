@@ -26,3 +26,17 @@ describe GRPC::Transport::StreamTerminalState do
     lifecycle.mark_cancelled.should be_false
   end
 end
+
+describe GRPC::Transport::StreamHeaderState do
+  it "skips informational headers before the final response headers" do
+    state = GRPC::Transport::StreamHeaderState.new
+    state.begin_header_block
+    state.add_header(":status", "103")
+    state.add_header("link", "ignored")
+    state.begin_header_block
+    state.add_header(":status", "503")
+    state.headers.get(":status").should eq("503")
+    state.headers.get("link").should be_nil
+    state.trailers.should be_empty
+  end
+end

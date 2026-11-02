@@ -172,3 +172,63 @@ describe GRPC::Channel do
     end
   end
 end
+
+describe GRPC::Channel do
+  {"unary", "server streaming", "client streaming", "bidirectional"}.each do |shape|
+    it "honors the #{shape} deadline while waiting for a concurrency permit" do
+      transport = BlockingUnaryTransport.new
+      factory = ->(_host : String, _port : Int32, _tls : Bool, _ctx : OpenSSL::SSL::Context::Client?, _config : GRPC::EndpointConfig) { transport.as(GRPC::Transport::ClientTransport) }
+      channel = GRPC::Channel.new("127.0.0.1:12345", endpoint_config: GRPC::EndpointConfig.new(concurrency_limit: 1), transport_factory: factory)
+      finished = Channel(Nil).new(1)
+      spawn do
+        channel.unary_call("test", "Block", Bytes.empty)
+        finished.send(nil)
+      end
+      transport.started.receive
+      result = Channel(Exception?).new(1)
+      spawn do
+        ctx = GRPC::ClientContext.new(deadline: 20.milliseconds)
+        case shape
+        when "unary"            then channel.unary_call("test", "Next", Bytes.empty, ctx)
+        when "server streaming" then channel.open_server_stream("test", "Next", Bytes.empty, ctx)
+        when "client streaming" then channel.open_client_stream_live("test", "Next", ctx)
+        else                         channel.open_bidi_stream_live("test", "Next", ctx)
+        end
+        result.send(nil)
+      rescue ex
+        result.send(ex)
+      end
+      select
+      when error = result.receive
+        error.should be_a(GRPC::StatusError)
+        error.as(GRPC::StatusError).code.should eq(GRPC::StatusCode::DEADLINE_EXCEEDED)
+      when timeout(500.milliseconds)
+        fail "permit wait ignored the deadline"
+      end
+      transport.releases.send(nil)
+      finished.receive
+      # A timed out waiter must not consume or duplicate the permit.
+      transport.releases.send(nil)
+      channel.unary_call("test", "After", Bytes.empty).status.ok?.should be_true
+    ensure
+      transport.try &.releases.send(nil)
+      channel.try &.close
+    end
+  end
+
+  it "honors deadlines while waiting for the rate limit" do
+    transport = TimestampUnaryTransport.new
+    factory = ->(_host : String, _port : Int32, _tls : Bool, _ctx : OpenSSL::SSL::Context::Client?, _config : GRPC::EndpointConfig) { transport.as(GRPC::Transport::ClientTransport) }
+    channel = GRPC::Channel.new("127.0.0.1:12345", endpoint_config: GRPC::EndpointConfig.new(rate_limit: GRPC::RateLimitConfig.new(1_u64, 1.second)), transport_factory: factory)
+    channel.unary_call("test", "First", Bytes.empty)
+    started = Time.instant
+    error = expect_raises(GRPC::StatusError) do
+      channel.unary_call("test", "Next", Bytes.empty, GRPC::ClientContext.new(deadline: 20.milliseconds))
+    end
+    error.code.should eq(GRPC::StatusCode::DEADLINE_EXCEEDED)
+    (Time.instant - started).should be < 500.milliseconds
+    transport.starts.size.should eq(1)
+  ensure
+    channel.try &.close
+  end
+end

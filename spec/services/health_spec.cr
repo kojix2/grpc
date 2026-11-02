@@ -98,3 +98,36 @@ describe GRPC::Health::Service do
     end
   end
 end
+
+describe GRPC::Health::Registry do
+  it "keeps the latest state for a slow watcher without blocking other watchers" do
+    registry = GRPC::Health::Registry.new
+    slow, _ = registry.subscribe("test")
+    fast, _ = registry.subscribe("test")
+    completed = Channel(Nil).new(1)
+    spawn do
+      20.times do |i|
+        status = i.even? ? Grpc::Health::V1::HealthCheckResponse::ServingStatus::SERVING : Grpc::Health::V1::HealthCheckResponse::ServingStatus::NOT_SERVING
+        registry.set_status("test", status)
+        fast.receive.should eq(status)
+      end
+      completed.send(nil)
+    end
+    select
+    when completed.receive
+    when timeout(1.second)
+      fail "slow watcher blocked health updates"
+    end
+    slow.receive.should eq(Grpc::Health::V1::HealthCheckResponse::ServingStatus::NOT_SERVING)
+  ensure
+    registry.try &.unsubscribe("test", slow) if slow
+    registry.try &.unsubscribe("test", fast) if fast
+  end
+
+  it "closes subscriptions on unsubscribe" do
+    registry = GRPC::Health::Registry.new
+    subscription, _ = registry.subscribe("test")
+    registry.unsubscribe("test", subscription)
+    subscription.closed?.should be_true
+  end
+end

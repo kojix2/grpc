@@ -244,11 +244,10 @@ describe GRPC::Transport::PendingStream do
       when timeout(1.second)
         fail "completion did not wake the blocked sender"
       end
-      # The failed second message never entered the queue.
+      # Completion discards both the unsent message and the blocked send.
       buffer = Bytes.new(8)
       flags = 0_u32
-      stream.live_send_buf.not_nil!.read_into(buffer.to_unsafe, 8_u64, pointerof(flags)).should eq(1)
-      buffer[0].should eq(1)
+      stream.live_send_buf.not_nil!.read_into(buffer.to_unsafe, 8_u64, pointerof(flags)).should eq(0)
       (flags & LibNghttp2::DATA_FLAG_EOF).should_not eq(0)
     end
 

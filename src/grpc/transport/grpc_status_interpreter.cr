@@ -8,7 +8,7 @@ module GRPC
 
         code_str = trailers.get("grpc-status") || headers.get("grpc-status")
         unless code_str
-          return override || Status.unknown("missing grpc-status trailer")
+          return Status.new(http_status_code(headers), "missing grpc-status trailer")
         end
 
         code_int = code_str.to_i?
@@ -21,6 +21,17 @@ module GRPC
         return Status.unknown("invalid grpc-status: #{code_str}") unless code
 
         Status.new(code, message, details)
+      end
+
+      private def http_status_code(headers : Metadata) : StatusCode
+        case headers.get(":status").try(&.to_i?)
+        when 400                then StatusCode::INTERNAL
+        when 401                then StatusCode::UNAUTHENTICATED
+        when 403                then StatusCode::PERMISSION_DENIED
+        when 404                then StatusCode::UNIMPLEMENTED
+        when 429, 502, 503, 504 then StatusCode::UNAVAILABLE
+        else                         StatusCode::UNKNOWN
+        end
       end
 
       def application_headers(headers : Metadata) : Metadata

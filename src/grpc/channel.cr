@@ -21,6 +21,7 @@ module GRPC
     @endpoint_config : EndpointConfig
     @tls_context : OpenSSL::SSL::Context::Client?
     @conn : Transport::ClientTransport?
+    @draining_connections = [] of Transport::ClientTransport
     @transport_factory : ClientTransportFactory
     @mutex : Mutex
     @interceptors : Array(ClientInterceptor)
@@ -35,7 +36,8 @@ module GRPC
     #
     # Address formats: "host:port", "http://host:port", "https://host:port".
     # HTTPS triggers TLS; use *tls_context* to supply a custom OpenSSL context
-    # (e.g. to disable certificate verification for testing).
+    # (e.g. to disable certificate verification for testing). Its ALPN protocol
+    # is set to h2 when a connection is established.
     def initialize(address : String,
                    interceptors : Array(ClientInterceptor) = [] of ClientInterceptor,
                    tls_context : OpenSSL::SSL::Context::Client? = nil,
@@ -82,8 +84,8 @@ module GRPC
       ctx : ClientContext = ClientContext.new,
     ) : ResponseEnvelope
       ctx.check_active!
-      wait_for_rate_limit_slot
-      release = acquire_concurrency_slot
+      wait_for_rate_limit_slot(ctx)
+      release = acquire_concurrency_slot(ctx)
 
       if @interceptors.empty?
         begin
@@ -147,8 +149,8 @@ module GRPC
       ctx : ClientContext = ClientContext.new,
     ) : RawServerStream
       ctx.check_active!
-      wait_for_rate_limit_slot
-      release = acquire_concurrency_slot
+      wait_for_rate_limit_slot(ctx)
+      release = acquire_concurrency_slot(ctx)
 
       if @interceptors.empty?
         begin
@@ -192,8 +194,8 @@ module GRPC
       send_queue_size : Int32 = 0,
     ) : RawBidiCall
       ctx.check_active!
-      wait_for_rate_limit_slot
-      release = acquire_concurrency_slot
+      wait_for_rate_limit_slot(ctx)
+      release = acquire_concurrency_slot(ctx)
 
       method_path = "/#{service}/#{method}"
       if @interceptors.empty?
@@ -235,8 +237,8 @@ module GRPC
       send_queue_size : Int32 = 0,
     ) : RawClientCall
       ctx.check_active!
-      wait_for_rate_limit_slot
-      release = acquire_concurrency_slot
+      wait_for_rate_limit_slot(ctx)
+      release = acquire_concurrency_slot(ctx)
 
       method_path = "/#{service}/#{method}"
       if @interceptors.empty?
@@ -267,13 +269,19 @@ module GRPC
     end
 
     def close : Nil
-      @mutex.synchronize { @conn.try &.close }
+      @mutex.synchronize do
+        @conn.try &.close
+        @draining_connections.each(&.close)
+        @draining_connections.clear
+      end
     end
 
     private def get_or_create_connection : Transport::ClientTransport
       @mutex.synchronize do
         c = @conn
-        if c.nil? || c.closed?
+        @draining_connections.reject!(&.closed?)
+        if c.nil? || !c.accepting_new_calls?
+          @draining_connections << c if c && !c.closed?
           c = @transport_factory.call(@endpoint.host, @endpoint.port, @endpoint.tls?, @tls_context, @endpoint_config)
           @conn = c
         end
@@ -320,7 +328,7 @@ module GRPC
       permits
     end
 
-    private def wait_for_rate_limit_slot : Nil
+    private def wait_for_rate_limit_slot(ctx : ClientContext? = nil) : Nil
       cfg = @endpoint_config.rate_limit
       return unless cfg
 
@@ -328,6 +336,7 @@ module GRPC
       period = cfg.period
 
       loop do
+        ctx.try &.check_active!
         wait_for = Time::Span.zero
         acquired = false
 
@@ -347,20 +356,31 @@ module GRPC
         end
 
         return if acquired
+        if remaining = ctx.try(&.remaining)
+          wait_for = Math.min(wait_for, remaining)
+        end
         sleep(wait_for) if wait_for > Time::Span.zero
       end
     end
 
-    private def acquire_concurrency_slot : -> Nil
+    private def acquire_concurrency_slot(ctx : ClientContext? = nil) : -> Nil
       permits = @concurrency_permits
       return -> { } unless permits
 
-      permits.receive
-      released = false
+      ctx.try &.check_active!
+      if remaining = ctx.try(&.remaining)
+        select
+        when permits.receive
+        when timeout(remaining)
+          raise StatusError.new(StatusCode::DEADLINE_EXCEEDED, "deadline exceeded waiting for concurrency slot")
+        end
+      else
+        permits.receive
+      end
+      released = Atomic(Bool).new(false)
 
       -> {
-        unless released
-          released = true
+        if released.compare_and_set(false, true)[1]
           permits.send(nil)
         end
       }

@@ -215,16 +215,7 @@ module Numbers
       # Server streaming: returns a typed stream of Number replies.
       def range(req : Number, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::ServerStream(Number)
         raw = @channel.open_server_stream(FULL_NAME, "Range", req.encode, ctx)
-        stream = GRPC::ServerStream(Number).new(-> { raw.headers }, -> { raw.status }, -> { raw.trailers }, -> { raw.cancel })
-        spawn do
-          begin
-            raw.each { |bytes| stream.push(Number.decode(bytes)) }
-            stream.finish
-          rescue ex
-            stream.finish(GRPC::Status.internal(ex.message || "error"))
-          end
-        end
-        stream
+        GRPC::ServerStream(Number).new(raw)
       end
 
       # Client streaming: opens a streaming call; send numbers via the handle,
@@ -255,19 +246,7 @@ module Numbers
       # then call close_send and iterate replies with #each.
       def transform(ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::BidiCall(Number, Number)
         raw = @channel.open_bidi_stream_live(FULL_NAME, "Transform", ctx)
-        recv_chan = ::Channel(Number | Exception).new(128)
-        spawn do
-          begin
-            raw.each { |bytes| recv_chan.send(Number.decode(bytes)) rescue nil }
-            recv_chan.close
-          rescue ex
-            recv_chan.send(ex) rescue nil
-            recv_chan.close rescue nil
-          end
-        end
-        send_proc = Proc(Number, Nil).new { |msg| raw.send_raw(msg.encode) }
-        close_proc = Proc(Nil).new { raw.close_send }
-        GRPC::BidiCall(Number, Number).new(send_proc, close_proc, recv_chan, -> { raw.headers }, -> { raw.status }, -> { raw.trailers }, -> { raw.cancel })
+        GRPC::BidiCall(Number, Number).new(raw)
       end
     end
   end

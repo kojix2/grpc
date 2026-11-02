@@ -20,6 +20,12 @@ module GRPC
                                            send_queue_size : Int32) : RawClientCall
 
       abstract def closed? : Bool
+
+      # Draining transports may still serve accepted RPCs.
+      def accepting_new_calls? : Bool
+        !closed?
+      end
+
       abstract def close : Nil
     end
 

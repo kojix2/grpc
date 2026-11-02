@@ -70,8 +70,9 @@ module GRPC
       self
     end
 
-    # use_tls with a pre-built OpenSSL context for full control over TLS settings.
+    # use_tls with a pre-built OpenSSL context; sets its ALPN protocol to h2.
     def use_tls(context : OpenSSL::SSL::Context::Server) : self
+      context.alpn_protocol = "h2"
       @tls_context = context
       self
     end

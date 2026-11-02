@@ -154,6 +154,7 @@ module GRPC
         stream_id = frame_stream_id(frame)
         return if stream_id <= 0
 
+        return if @stream_boxes.has_key?(stream_id)
         sd = StreamData.new(@receive_limits)
         boxed = Box.box(sd)
         @stream_boxes[stream_id] = boxed
@@ -180,6 +181,8 @@ module GRPC
         sd = stream_data_for(stream_id)
         return unless sd
 
+        return if stream_terminated?(stream_id)
+
         if status = immediate_stream_rejection(sd)
           send_error(stream_id, status.code, status.message)
           return
@@ -205,23 +208,27 @@ module GRPC
         # Preserve the status and stop accumulating subsequent DATA while only
         # this RPC is terminated; the connection remains available to others.
         status = ex.code == StatusCode::INTERNAL ? Status.invalid_argument(ex.message) : ex.status
-        sd.try { |stream| stream.header_error = status }
+        sd.try(&.header_error=(status))
         send_error(stream_id, status.code, status.message)
       end
 
       def on_frame_recv_cb(frame : Void*) : Nil
-        return unless frame_end_stream?(frame)
-        # Ignore SETTINGS ACK: FLAG_ACK == FLAG_END_STREAM == 0x01.
-        return if frame_type(frame) == LibNghttp2::FRAME_SETTINGS
+        type = frame_type(frame)
+        return unless type.in?(LibNghttp2::FRAME_HEADERS, LibNghttp2::FRAME_DATA)
         stream_id = frame_stream_id(frame)
         return if stream_id <= 0
         sd = stream_data_for(stream_id)
         return unless sd
 
+        prepare_request_context(stream_id, sd) if type == LibNghttp2::FRAME_HEADERS
+
         if status = immediate_stream_rejection(sd)
           send_error(stream_id, status.code, status.message)
           return
         end
+
+        return unless frame_end_stream?(frame)
+        return if stream_terminated?(stream_id)
 
         if state = @live_request_states[stream_id]?
           finish_live_request_stream(stream_id, state)
@@ -250,19 +257,10 @@ module GRPC
         @stream_pending_chunks.delete(stream_id)
         @stream_pending_trailers.delete(stream_id)
         @stream_data_in_flight.delete(stream_id)
-        live_state = @live_request_states[stream_id]?
-        if error_code != 0
-          if state = @live_request_states.delete(stream_id)
-            state.close
-          end
-          if ctx = @stream_contexts.delete(stream_id)
-            ctx.cancel
-          end
-        elsif live_state.nil?
-          if ctx = @stream_contexts.delete(stream_id)
-            ctx.cancel
-          end
-        end
+        @stream_headers_sent.delete(stream_id)
+        @stream_terminated.delete(stream_id)
+        @live_request_states.delete(stream_id).try &.close
+        @stream_contexts.delete(stream_id).try &.cancel
         if stop = @deadline_watch_stops.delete(stream_id)
           stop.send(nil) rescue nil
         end
@@ -295,19 +293,25 @@ module GRPC
         end
       end
 
+      private def prepare_request_context(stream_id : Int32, sd : StreamData) : Nil
+        return if @stream_contexts.has_key?(stream_id) || stream_terminated?(stream_id)
+        ctx = ServerContext.new(@peer_address, build_metadata(sd.headers), parse_deadline(sd.headers, sd.received_at))
+        register_stream_context(stream_id, ctx)
+      rescue ex : StatusError
+        sd.header_error = ex.status
+      end
+
       # ---- Dispatch ----
 
       private def dispatch_request(stream_id : Int32, sd : StreamData) : Nil
-        ctx : ServerContext? = nil
+        ctx = @mutex.synchronize { @stream_contexts[stream_id]? }
         if error = sd.header_error
           send_error(stream_id, error.code, error.message)
           return
         end
 
         path = sd.headers.get(":path") || ""
-        meta = build_metadata(sd.headers)
-        ctx = ServerContext.new(@peer_address, meta, parse_deadline(sd.headers))
-        register_stream_context(stream_id, ctx)
+        return unless ctx
 
         if deadline_exceeded?(ctx)
           send_error(stream_id, StatusCode::DEADLINE_EXCEEDED, "deadline exceeded")
@@ -338,15 +342,13 @@ module GRPC
       private def dispatch_live_request_stream(stream_id : Int32, sd : StreamData,
                                                service : Service, method_name : String,
                                                state : LiveRequestState) : Nil
-        ctx : ServerContext? = nil
+        ctx = @mutex.synchronize { @stream_contexts[stream_id]? }
         if error = sd.header_error
           send_error(stream_id, error.code, error.message)
           return
         end
 
-        meta = build_metadata(sd.headers)
-        ctx = ServerContext.new(@peer_address, meta, parse_deadline(sd.headers))
-        register_stream_context(stream_id, ctx)
+        return unless ctx
 
         if deadline_exceeded?(ctx)
           send_error(stream_id, StatusCode::DEADLINE_EXCEEDED, "deadline exceeded")
@@ -797,7 +799,7 @@ module GRPC
       end
 
       private def stream_terminated?(stream_id : Int32) : Bool
-        @stream_terminated.includes?(stream_id)
+        !@stream_boxes.has_key?(stream_id) || @stream_terminated.includes?(stream_id)
       end
 
       private def mark_stream_terminated(stream_id : Int32) : Nil
@@ -823,7 +825,7 @@ module GRPC
       end
 
       # parse_deadline reads grpc-timeout from headers and returns an absolute deadline.
-      private def parse_deadline(headers : Metadata) : Time?
+      private def parse_deadline(headers : Metadata, received_at : Time) : Time?
         timeout_str = headers.get("grpc-timeout")
         return if timeout_str.nil? || timeout_str.empty?
 
@@ -837,7 +839,7 @@ module GRPC
 
         span = timeout_unit_to_span(unit, value)
         raise StatusError.new(StatusCode::INVALID_ARGUMENT, "invalid grpc-timeout") unless span
-        Time.utc + span
+        received_at + span
       end
 
       private def timeout_unit_to_span(unit : Char, value : Int64) : Time::Span?
@@ -851,18 +853,8 @@ module GRPC
         end
       end
 
-      # percent_encode applies RFC-3986 percent-encoding for the grpc-message trailer.
       private def percent_encode(s : String) : String
-        String.build do |io|
-          s.each_byte do |byte|
-            c = byte.chr
-            if c.alphanumeric? || "-_.~".includes?(c)
-              io << c
-            else
-              io << '%' << byte.to_s(16, upcase: true).rjust(2, '0')
-            end
-          end
-        end
+        TrailerCodec.percent_encode(s)
       end
     end
   end

@@ -110,3 +110,17 @@ describe GRPC::Metadata do
     end
   end
 end
+
+describe GRPC::Metadata do
+  it "decodes comma-joined binary values with optional whitespace and padding" do
+    metadata = GRPC::Metadata.new
+    metadata.add_wire("sample-bin", "YQ==, Yg,  , Yw==")
+    metadata.get_all_bin("sample-bin").should eq([Bytes[97], Bytes[98], Bytes.empty, Bytes[99]])
+  end
+
+  it "rejects a malformed joined binary value without storing a partial header" do
+    metadata = GRPC::Metadata.new
+    expect_raises(ArgumentError) { metadata.add_wire("sample-bin", "YQ==,invalid!") }
+    metadata.get_all_bin("sample-bin").should be_empty
+  end
+end

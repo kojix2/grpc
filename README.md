@@ -53,10 +53,19 @@ Replace the schema path with your own. In the consuming application, require
 `grpc` first, then the generated `.pb.cr` and `.grpc.cr` files. Unary methods
 return the decoded message or raise `GRPC::StatusError`; the corresponding
 `*_response` method returns status and metadata. Consume or cancel streams.
+If an RPC already uses a helper's name, the generator adds a numeric suffix
+to the helper (for example `foo_response_2`). Message types and `type_map`
+targets are emitted as absolute Crystal names.
 
 Live bidi calls expose `final_status` (nil until RPC completion, independent of
 reply consumption). `SendClosedError` means the message was not enqueued; its
 `final_status` is nil for a request half-close. Drain remaining replies on completion.
+
+After GOAWAY, new RPCs use a replacement connection while accepted RPCs finish
+on the old connection. Calls are not automatically retried.
+
+TLS configures `h2` ALPN on supplied client and server contexts as well as
+default contexts. The client requires the peer to negotiate `h2`.
 
 ## Receive limits
 
@@ -66,6 +75,10 @@ and unconsumed decoded data per stream. Set it through
 `Server.new(receive_limits: limits)` on default servers.
 Excess data ends that RPC with `RESOURCE_EXHAUSTED`; these are not process-wide
 RAM limits. Custom transports enforce their own budgets.
+
+Regenerate existing `.grpc.cr` clients to use on-demand typed response decoding.
+Responses are decoded when iterated, so unread data stays in the transport's
+byte budget.
 
 Clients can send gzip requests and decode gzip responses. Servers decode gzip
 requests and currently send uncompressed responses.

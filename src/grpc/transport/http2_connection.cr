@@ -12,12 +12,12 @@ module GRPC
       def percent_decode(s : String) : String
         result = IO::Memory.new
         i = 0
-        while i < s.size
-          if s[i] == '%' && i + 2 < s.size
-            hex = s[i + 1, 2]
-            byte = hex.to_u8?(16)
-            if byte
-              result.write_byte(byte)
+        while i < s.bytesize
+          if s.byte_at(i) == 0x25 && i + 2 < s.bytesize
+            high = hex_value(s.byte_at(i + 1))
+            low = hex_value(s.byte_at(i + 2))
+            if high && low
+              result.write_byte((high << 4) | low)
               i += 3
               next
             end
@@ -26,6 +26,26 @@ module GRPC
           i += 1
         end
         String.new(result.to_slice)
+      end
+
+      private def hex_value(byte : UInt8) : UInt8?
+        case byte
+        when 0x30_u8..0x39_u8 then byte - 0x30_u8
+        when 0x41_u8..0x46_u8 then byte - 0x41_u8 + 10_u8
+        when 0x61_u8..0x66_u8 then byte - 0x61_u8 + 10_u8
+        end
+      end
+
+      def percent_encode(s : String) : String
+        String.build do |io|
+          s.each_byte do |byte|
+            if 0x20 <= byte <= 0x7e && byte != 0x25
+              io.write_byte(byte)
+            else
+              io << '%' << byte.to_s(16, upcase: true).rjust(2, '0')
+            end
+          end
+        end
       end
 
       def encode_bin(data : Bytes?) : String?
@@ -50,6 +70,7 @@ module GRPC
       property body : IO::Memory
       property header_error : Status?
       property? closed : Bool
+      getter received_at = Time.utc
 
       def initialize(limits : ReceiveLimits = ReceiveLimits.new)
         @headers = Metadata.new
