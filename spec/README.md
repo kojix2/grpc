@@ -62,8 +62,8 @@ mkdir -p bin
 crystal spec spec/grpc_go.cr --order 20261102
 ```
 
-The peer uses grpc-go v1.85.0 and the official Protobuf wrappers, with module
-checksums committed in `spec/interop/go/go.sum`. Crystal clients and messages
+The local peer uses the grpc-go and official Protobuf versions recorded in
+`spec/interop/go/go.mod`, with checksums in `go.sum`. Crystal clients and messages
 are generated from `interop/peer.proto`. Tests cover all four RPC shapes, TLS
 with h2 ALPN, gzip in both directions, binary metadata, empty messages, payloads
 larger than an HTTP/2 window, Unicode statuses, deadlines and cancellation.
@@ -74,6 +74,15 @@ certificate; it exercises TLS negotiation, not CA or hostname verification.
 This is client-focused. It does not claim official full gRPC conformance,
 server interoperability, real-device MinKNOW compatibility or multithreaded
 transport support.
+
+CI runs this suite against both the committed Go dependencies (`locked`) and
+the latest released grpc-go/Protobuf dependencies (`latest`), using stable Go.
+The latest job resolves updates in its temporary checkout, so it needs no
+version edits to detect upstream changes. Both jobs log their Go/module
+versions and upload their resolved `go.mod` and `go.sum` with the test results;
+use those files to replay a failure against the same dependencies. The existing
+Renovate configuration also discovers the committed Go module for update PRs.
+grpcurl follows its latest GitHub release on Linux and Homebrew on macOS.
 
 ## Seeded framing campaigns and CI replay
 
@@ -99,10 +108,12 @@ Run `bash script/check_generated.sh --write` when intentionally refreshing
 fixtures. The normal CI suite actually calls all four generated RPC methods,
 so code-generation checks cover Crystal's lazily instantiated method bodies.
 
-The MinKNOW job checks a pinned consumer commit with a local shard override
-pointing at this checkout, runs `make gen`, checks generation drift, runs its
-specs and type-checks every example. Update that pin deliberately when adopting
-a new consumer/schema fixture. No MinKNOW device is contacted.
+The MinKNOW job checks the consumer's current default branch with a local shard
+override pointing at this checkout, runs `make gen`, checks generation drift,
+runs its specs and type-checks every example. It logs the resolved consumer and
+API submodule commits so a failure can be replayed at the same revision.
+No MinKNOW device is contacted. The minimum Crystal version remains fixed to
+check the library's declared support floor, alongside latest Crystal.
 
 Engineering references:
 
