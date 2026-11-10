@@ -240,6 +240,8 @@ jobs:
           go build -mod=readonly -o ../../../bin/grpc-go-peer .
       - name: Run client interop with plaintext and TLS
         run: crystal spec spec/grpc_go.cr --order "$SPEC_SEED" --junit_output test-results
+      - name: Run grpc-go client against the Crystal server
+        run: crystal spec spec/grpc_go_server.cr --order "$SPEC_SEED"
       - name: Upload interop results
         if: always()
         uses: actions/upload-artifact@v7
@@ -249,6 +251,26 @@ jobs:
             test-results
             spec/interop/go/go.mod
             spec/interop/go/go.sum
+
+  proto-interop:
+    needs: format
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: grpc
+      - uses: actions/checkout@v7
+        with:
+          repository: kojix2/proto
+          path: proto
+      - uses: crystal-lang/install-crystal@v1
+      - run: sudo apt-get update && sudo apt-get install -y libnghttp2-dev
+      - name: Test generated protobuf options against proto.cr
+        working-directory: grpc
+        run: |
+          export CRYSTAL_PATH="$GITHUB_WORKSPACE/proto/src:$(crystal env CRYSTAL_PATH)"
+          crystal spec spec/protobuf_options.cr --order "$SPEC_SEED"
 
   minknow:
     needs: format
@@ -263,6 +285,10 @@ jobs:
           repository: kojix2/minknow.cr
           path: minknow
           submodules: true
+      - uses: actions/checkout@v7
+        with:
+          repository: kojix2/proto
+          path: proto
       - uses: crystal-lang/install-crystal@v1
       - run: sudo apt-get update && sudo apt-get install -y libnghttp2-dev protobuf-compiler
       - name: Test the candidate gRPC source against MinKNOW
@@ -270,12 +296,20 @@ jobs:
         run: |
           git log -1 --format='%H %s'
           git submodule status
-          printf 'dependencies:\n  grpc:\n    path: ../grpc\n' > shard.override.yml
+          printf 'dependencies:\n  grpc:\n    path: ../grpc\n  proto:\n    path: ../proto\n' > shard.override.yml
           shards install --without-development
           make gen
-          git diff --exit-code -- src/generated
-          test -z "$(git ls-files --others --exclude-standard src/generated)"
+          # A generator change intentionally updates downstream checked-in stubs.
+          # Report that difference and verify a second generation is stable.
+          git diff --stat -- src/generated
+          find src/generated -type f -print0 | sort -z | xargs -0 sha256sum > "$RUNNER_TEMP/generated-before"
+          make gen
+          find src/generated -type f -print0 | sort -z | xargs -0 sha256sum > "$RUNNER_TEMP/generated-after"
+          diff -u "$RUNNER_TEMP/generated-before" "$RUNNER_TEMP/generated-after"
           crystal spec --order "$SPEC_SEED"
+          if [[ -f spec/live_reads_large.cr ]]; then
+            crystal spec spec/live_reads_large.cr --order "$SPEC_SEED"
+          fi
           while IFS= read -r example; do
             crystal build --no-codegen "$example"
           done < <(find examples -name '*.cr' | sort)
