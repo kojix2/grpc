@@ -88,7 +88,14 @@ func stream(_ interface{}, stream grpc.ServerStream) error {
 func main() {
 	cert := flag.String("cert", "", "TLS certificate (empty for plaintext)")
 	key := flag.String("key", "", "TLS private key")
+	clientTarget := flag.String("client-target", "", "run the server interoperability client")
 	flag.Parse()
+	if *clientTarget != "" {
+		if err := runClient(*clientTarget); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 	options := []grpc.ServerOption{grpc.MaxConcurrentStreams(1)}
 	if *cert != "" {
 		creds, err := credentials.NewServerTLSFromFile(*cert, *key)
