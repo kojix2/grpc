@@ -82,8 +82,6 @@ module GRPC
         @closed = false
         @routed = false
         @request_streaming = false
-        @session_active = false
-        @close_requested = false
       end
 
       def body_bytes : Bytes
@@ -114,6 +112,8 @@ module GRPC
     abstract class Http2Connection
       HTTP2_CLIENT_PREFACE = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
       RECV_BUFFER_SIZE     = 65536
+      MAX_PENDING_OUTPUT   = 256 * 1024
+      CLOSE_DRAIN_TIMEOUT  = 100.milliseconds
 
       @session : LibNghttp2::Session*
       @socket : IO
@@ -121,20 +121,31 @@ module GRPC
       @mutex : Mutex
       @user_data : Void* # GC anchor for Box.box(self)
       @closed : Bool
+      @closing : Bool
       @session_active : Bool
       @close_requested : Bool
+      @write_queue : Deque(Bytes)
+      @write_bytes : Int64
+      @write_wake : ::Channel(Nil)
+      @write_changed : ::Channel(Nil)
 
       def closed? : Bool
-        @closed
+        @closed || @closing
       end
 
       def initialize(@socket : IO, @peer_address : String = "unknown")
         @mutex = Mutex.new(:reentrant)
         @closed = false
+        @closing = false
         @session_active = false
         @close_requested = false
+        @write_queue = Deque(Bytes).new
+        @write_bytes = 0_i64
+        @write_wake = ::Channel(Nil).new(1)
+        @write_changed = ::Channel(Nil).new
         @user_data = Pointer(Void).null              # filled in subclass after Box.box(self)
         @session = Pointer(LibNghttp2::Session).null # filled in setup_session
+        spawn write_loop
       end
 
       # Subclasses call this inside their own initialize after all fields are set.
@@ -174,6 +185,10 @@ module GRPC
         check LibNghttp2.submit_settings(@session, LibNghttp2::FLAG_NONE,
           settings.to_unsafe, settings.size)
         flush_send
+      rescue ex
+        @mutex.synchronize { teardown_session }
+        @socket.close rescue nil
+        raise ex
       end
 
       private def install_callbacks(callbacks : LibNghttp2::SessionCallbacks*) : Nil
@@ -259,43 +274,93 @@ module GRPC
         end
       end
 
-      # flush_send writes all pending nghttp2 outbound data to the socket.
+      # Copy nghttp2 output into a bounded queue. Socket writes run without the
+      # session mutex, so a stalled peer cannot block deadlines or cancellation.
       protected def flush_send : Nil
-        return if @closed || @session_active
-        empty_send_count = 0
-        loop do
-          data_ptr = Pointer(UInt8).null
-          @session_active = true
-          begin
-            n = session_mem_send(pointerof(data_ptr))
-          ensure
-            @session_active = false
-          end
-          if @close_requested
-            close
-            return
-          end
-          raise ConnectionError.new("session_mem_send failed: #{String.new(LibNghttp2.strerror(n.to_i32))} (#{n})") if n < 0
-          if n == 0
-            break if LibNghttp2.session_want_write(@session) == 0
-            empty_send_count += 1
-            raise ConnectionError.new("session_mem_send made no progress while write work remained") if empty_send_count > 16
-            next
-          end
+        @mutex.synchronize do
+          # A callback may submit frames, but cannot reenter session I/O.
+          return if @closed || @session_active
           empty_send_count = 0
-          @socket.write(Slice.new(data_ptr, n))
+          while @write_bytes < MAX_PENDING_OUTPUT
+            data_ptr = Pointer(UInt8).null
+            @session_active = true
+            begin
+              n = session_mem_send(pointerof(data_ptr))
+            ensure
+              @session_active = false
+            end
+            if @close_requested
+              @closed = true
+              teardown_session
+              @socket.close rescue nil
+              return
+            end
+            raise ConnectionError.new("session_mem_send failed: #{String.new(LibNghttp2.strerror(n.to_i32))} (#{n})") if n < 0
+            if n == 0
+              break if LibNghttp2.session_want_write(@session) == 0
+              empty_send_count += 1
+              raise ConnectionError.new("session_mem_send made no progress while write work remained") if empty_send_count > 16
+              next
+            end
+            empty_send_count = 0
+            bytes = Slice.new(data_ptr, n).dup
+            @write_queue << bytes
+            @write_bytes += bytes.size
+            wake_writer
+          end
         end
-        @socket.flush
       rescue ex
-        @closed = true
-        teardown_session
+        @mutex.synchronize do
+          @closed = true
+          teardown_session
+        end
         @socket.close rescue nil
         raise ex if ex.is_a?(ConnectionError)
-        raise ConnectionError.new("HTTP/2 socket write failed: #{ex.message}")
+        raise ConnectionError.new("HTTP/2 send failed: #{ex.message}")
       end
 
       protected def session_mem_send(data_ptr : UInt8**) : LibC::SSizeT
         LibNghttp2.session_mem_send(@session, data_ptr)
+      end
+
+      private def wake_writer : Nil
+        select
+        when @write_wake.send(nil)
+        else
+        end
+      end
+
+      private def output_changed : Nil
+        previous = @write_changed
+        @write_changed = ::Channel(Nil).new
+        previous.close
+      end
+
+      private def write_loop : Nil
+        loop do
+          bytes, stopped = @mutex.synchronize { {@write_queue.shift?, @closed} }
+          if data = bytes
+            @socket.write(data)
+            @socket.flush
+            @mutex.synchronize do
+              unless @closed
+                @write_bytes -= data.size
+                output_changed
+                flush_send
+              end
+            end
+          elsif stopped
+            break
+          else
+            @write_wake.receive
+          end
+        end
+      rescue
+        @mutex.synchronize do
+          @closed = true
+          teardown_session
+        end
+        @socket.close rescue nil
       end
 
       # run_recv_loop reads from the socket and feeds data to nghttp2.
@@ -328,35 +393,57 @@ module GRPC
       end
 
       def close : Nil
-        @mutex.synchronize do
-          return if @session.null?
+        should_drain = @mutex.synchronize do
+          return if @session.null? || @closing
           if @session_active
             @close_requested = true
             return
           end
           @close_requested = false
+          @closing = true
 
-          begin
-            unless @closed
-              rc = LibNghttp2.submit_goaway(@session, LibNghttp2::FLAG_NONE, 0, LibNghttp2::NO_ERROR, nil, 0)
-              if rc >= 0
-                flush_send rescue nil
-              end
+          unless @closed
+            rc = LibNghttp2.submit_goaway(@session, LibNghttp2::FLAG_NONE, 0, LibNghttp2::NO_ERROR, nil, 0)
+            if rc >= 0
+              flush_send rescue nil
             end
-          ensure
-            teardown_session
           end
+          !@closed
         end
 
+        wait_for_output_drain if should_drain
+        @mutex.synchronize { teardown_session }
         @socket.close rescue nil
       end
 
+      private def wait_for_output_drain : Nil
+        deadline = Time.instant + CLOSE_DRAIN_TIMEOUT
+        loop do
+          signal = @mutex.synchronize do
+            return if @closed || @write_bytes == 0
+            @write_changed
+          end
+          remaining = deadline - Time.instant
+          return if remaining <= Time::Span.zero
+          select
+          when signal.receive?
+          when timeout(remaining)
+            return
+          end
+        end
+      end
+
       private def teardown_session : Nil
-        return if @session.null?
         @closed = true
-        shutdown_local_state
-        LibNghttp2.session_del(@session)
-        @session = Pointer(LibNghttp2::Session).null
+        unless @session.null?
+          shutdown_local_state
+          LibNghttp2.session_del(@session)
+          @session = Pointer(LibNghttp2::Session).null
+        end
+        @write_queue.clear
+        @write_bytes = 0_i64
+        output_changed
+        wake_writer
       end
 
       # --- Helpers ---
