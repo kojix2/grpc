@@ -96,6 +96,11 @@ module GeneratorCollisions
         GRPC::ProtoMarshaller(T).new
       end
 
+      protected def marshaller_for(type : T.class, ctx : GRPC::ServerContext) : GRPC::Marshaller(T) forall T
+        options = ctx.protobuf_options
+        options ? GRPC::ProtoMarshaller(T).new(options: options) : marshaller_for(type)
+      end
+
       abstract def foo(request : ::GeneratorCollisions::Service, ctx : GRPC::ServerContext) : ::GeneratorCollisions::Client
       abstract def foo_response(request : ::GeneratorCollisions::Service, ctx : GRPC::ServerContext) : ::GeneratorCollisions::Client
       abstract def foo_response_2(request : ::GeneratorCollisions::Service, ctx : GRPC::ServerContext) : ::GeneratorCollisions::Client
@@ -106,20 +111,20 @@ module GeneratorCollisions
       def dispatch(method : String, body : Bytes, ctx : GRPC::ServerContext) : {Bytes, GRPC::Status}
         case method
         when "Foo"
-          req_marshaller = marshaller_for(::GeneratorCollisions::Service)
-          res_marshaller = marshaller_for(::GeneratorCollisions::Client)
+          req_marshaller = marshaller_for(::GeneratorCollisions::Service, ctx)
+          res_marshaller = marshaller_for(::GeneratorCollisions::Client, ctx)
           req = req_marshaller.decode(body)
           resp = foo(req, ctx)
           {res_marshaller.encode(resp), GRPC::Status.ok}
         when "FooResponse"
-          req_marshaller = marshaller_for(::GeneratorCollisions::Service)
-          res_marshaller = marshaller_for(::GeneratorCollisions::Client)
+          req_marshaller = marshaller_for(::GeneratorCollisions::Service, ctx)
+          res_marshaller = marshaller_for(::GeneratorCollisions::Client, ctx)
           req = req_marshaller.decode(body)
           resp = foo_response(req, ctx)
           {res_marshaller.encode(resp), GRPC::Status.ok}
         when "FooResponse_2"
-          req_marshaller = marshaller_for(::GeneratorCollisions::Service)
-          res_marshaller = marshaller_for(::GeneratorCollisions::Client)
+          req_marshaller = marshaller_for(::GeneratorCollisions::Service, ctx)
+          res_marshaller = marshaller_for(::GeneratorCollisions::Client, ctx)
           req = req_marshaller.decode(body)
           resp = foo_response_2(req, ctx)
           {res_marshaller.encode(resp), GRPC::Status.ok}
@@ -144,8 +149,8 @@ module GeneratorCollisions
                                  writer : GRPC::RawResponseStream) : GRPC::Status
         case method
         when "Watch"
-          req_marshaller = marshaller_for(::GeneratorCollisions::Service)
-          res_marshaller = marshaller_for(::GeneratorCollisions::Client)
+          req_marshaller = marshaller_for(::GeneratorCollisions::Service, ctx)
+          res_marshaller = marshaller_for(::GeneratorCollisions::Client, ctx)
           typed_writer = GRPC::ResponseStream(::GeneratorCollisions::Client).new(writer, res_marshaller)
           watch(req_marshaller.decode(body), typed_writer, ctx)
         else
@@ -168,8 +173,8 @@ module GeneratorCollisions
                                  ctx : GRPC::ServerContext) : {Bytes, GRPC::Status}
         case method
         when "Upload"
-          req_marshaller = marshaller_for(::GeneratorCollisions::Service)
-          res_marshaller = marshaller_for(::GeneratorCollisions::Client)
+          req_marshaller = marshaller_for(::GeneratorCollisions::Service, ctx)
+          res_marshaller = marshaller_for(::GeneratorCollisions::Client, ctx)
           reqs = GRPC::RequestStream(::GeneratorCollisions::Service).new(requests.ch, req_marshaller)
           resp = upload(reqs, ctx)
           {res_marshaller.encode(resp), GRPC::Status.ok}
@@ -194,8 +199,8 @@ module GeneratorCollisions
                                writer : GRPC::RawResponseStream) : GRPC::Status
         case method
         when "Chat"
-          req_marshaller = marshaller_for(::GeneratorCollisions::Service)
-          res_marshaller = marshaller_for(::GeneratorCollisions::Client)
+          req_marshaller = marshaller_for(::GeneratorCollisions::Service, ctx)
+          res_marshaller = marshaller_for(::GeneratorCollisions::Client, ctx)
           reqs = GRPC::RequestStream(::GeneratorCollisions::Service).new(requests.ch, req_marshaller)
           typed_writer = GRPC::ResponseStream(::GeneratorCollisions::Client).new(writer, res_marshaller)
           chat(reqs, typed_writer, ctx)
@@ -220,13 +225,18 @@ module GeneratorCollisions
         GRPC::ProtoMarshaller(T).new
       end
 
+      protected def marshaller_for(type : T.class, ctx : GRPC::ClientContext) : GRPC::Marshaller(T) forall T
+        options = ctx.protobuf_options
+        options ? GRPC::ProtoMarshaller(T).new(options: options) : marshaller_for(type)
+      end
+
       def foo(request : ::GeneratorCollisions::Service, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : ::GeneratorCollisions::Client
         foo_response_3(request, ctx).ok!
       end
 
       def foo_response_3(request : ::GeneratorCollisions::Service, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::UnaryResponse(::GeneratorCollisions::Client)
-        req_marshaller = marshaller_for(::GeneratorCollisions::Service)
-        res_marshaller = marshaller_for(::GeneratorCollisions::Client)
+        req_marshaller = marshaller_for(::GeneratorCollisions::Service, ctx)
+        res_marshaller = marshaller_for(::GeneratorCollisions::Client, ctx)
         response = @channel.unary_call(FULL_NAME, "Foo", req_marshaller.encode(request), ctx)
         message = response.status.ok? ? res_marshaller.decode(response.raw) : nil
         GRPC::UnaryResponse(::GeneratorCollisions::Client).new(message, response.initial_metadata, response.trailing_metadata, response.status)
@@ -237,8 +247,8 @@ module GeneratorCollisions
       end
 
       def foo_response_response(request : ::GeneratorCollisions::Service, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::UnaryResponse(::GeneratorCollisions::Client)
-        req_marshaller = marshaller_for(::GeneratorCollisions::Service)
-        res_marshaller = marshaller_for(::GeneratorCollisions::Client)
+        req_marshaller = marshaller_for(::GeneratorCollisions::Service, ctx)
+        res_marshaller = marshaller_for(::GeneratorCollisions::Client, ctx)
         response = @channel.unary_call(FULL_NAME, "FooResponse", req_marshaller.encode(request), ctx)
         message = response.status.ok? ? res_marshaller.decode(response.raw) : nil
         GRPC::UnaryResponse(::GeneratorCollisions::Client).new(message, response.initial_metadata, response.trailing_metadata, response.status)
@@ -249,16 +259,16 @@ module GeneratorCollisions
       end
 
       def foo_response_2_response(request : ::GeneratorCollisions::Service, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::UnaryResponse(::GeneratorCollisions::Client)
-        req_marshaller = marshaller_for(::GeneratorCollisions::Service)
-        res_marshaller = marshaller_for(::GeneratorCollisions::Client)
+        req_marshaller = marshaller_for(::GeneratorCollisions::Service, ctx)
+        res_marshaller = marshaller_for(::GeneratorCollisions::Client, ctx)
         response = @channel.unary_call(FULL_NAME, "FooResponse_2", req_marshaller.encode(request), ctx)
         message = response.status.ok? ? res_marshaller.decode(response.raw) : nil
         GRPC::UnaryResponse(::GeneratorCollisions::Client).new(message, response.initial_metadata, response.trailing_metadata, response.status)
       end
 
       def watch(request : ::GeneratorCollisions::Service, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::ServerStream(::GeneratorCollisions::Client)
-        req_marshaller = marshaller_for(::GeneratorCollisions::Service)
-        res_marshaller = marshaller_for(::GeneratorCollisions::Client)
+        req_marshaller = marshaller_for(::GeneratorCollisions::Service, ctx)
+        res_marshaller = marshaller_for(::GeneratorCollisions::Client, ctx)
         raw = @channel.open_server_stream(FULL_NAME, "Watch", req_marshaller.encode(request), ctx)
         GRPC::ServerStream(::GeneratorCollisions::Client).new(raw, res_marshaller)
       end
@@ -268,8 +278,8 @@ module GeneratorCollisions
       # to flush and receive the server's single response.
       def upload(ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::ClientStream(::GeneratorCollisions::Service, ::GeneratorCollisions::Client)
         raw = @channel.open_client_stream_live(FULL_NAME, "Upload", ctx)
-        req_marshaller = marshaller_for(::GeneratorCollisions::Service)
-        res_marshaller = marshaller_for(::GeneratorCollisions::Client)
+        req_marshaller = marshaller_for(::GeneratorCollisions::Service, ctx)
+        res_marshaller = marshaller_for(::GeneratorCollisions::Client, ctx)
         result_chan = ::Channel(::GeneratorCollisions::Client | Exception).new(1)
         send_proc = Proc(::GeneratorCollisions::Service, Nil).new { |msg| raw.send_raw(req_marshaller.encode(msg)) }
         close_proc = Proc(Nil).new do
@@ -293,8 +303,8 @@ module GeneratorCollisions
       # signal end-of-input and iterate the replies with #each.
       def chat(ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::BidiCall(::GeneratorCollisions::Service, ::GeneratorCollisions::Client)
         raw = @channel.open_bidi_stream_live(FULL_NAME, "Chat", ctx)
-        req_marshaller = marshaller_for(::GeneratorCollisions::Service)
-        res_marshaller = marshaller_for(::GeneratorCollisions::Client)
+        req_marshaller = marshaller_for(::GeneratorCollisions::Service, ctx)
+        res_marshaller = marshaller_for(::GeneratorCollisions::Client, ctx)
         GRPC::BidiCall(::GeneratorCollisions::Service, ::GeneratorCollisions::Client).new(raw, req_marshaller, res_marshaller)
       end
     end

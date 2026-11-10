@@ -1,7 +1,38 @@
 require "../spec_helper"
 require "../support/messages"
 
+private class OptionsMessage
+  getter value : Int32
+
+  def initialize(@value : Int32)
+  end
+
+  def encode : Bytes
+    Bytes[@value.to_u8]
+  end
+
+  def encode(*, options : Int32) : Bytes
+    Bytes[(@value + options).to_u8]
+  end
+
+  def self.decode(bytes : Bytes) : self
+    new(bytes[0].to_i32)
+  end
+
+  def self.decode(bytes : Bytes, *, options : Int32) : self
+    new(bytes[0].to_i32 - options)
+  end
+end
+
 describe GRPC::Marshaller do
+  it "passes serialization options to a configured proto marshaller" do
+    marshaller = GRPC::ProtoMarshaller(OptionsMessage).new(encode_options: 2, decode_options: 2)
+    bytes = marshaller.encode(OptionsMessage.new(40))
+    bytes.should eq(Bytes[42])
+    marshaller.decode(bytes).value.should eq(40)
+    GRPC::ProtoMarshaller(OptionsMessage).new.encode(OptionsMessage.new(40)).should eq(Bytes[40])
+  end
+
   it "decodes request stream messages via a custom marshaller" do
     ch = ::Channel(Bytes?).new(2)
     ch.send("A".to_slice)

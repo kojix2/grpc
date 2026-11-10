@@ -1,0 +1,5 @@
+syntax = "proto3";
+package options_test;
+
+message Blob { bytes value = 1; }
+service Large { rpc Echo(Blob) returns (Blob); }

@@ -1,4 +1,5 @@
 require "./send_limits"
+require "./protobuf_options"
 
 module GRPC
   # ServerContext holds per-call state accessible to server-side RPC handlers.
@@ -16,6 +17,7 @@ module GRPC
     getter initial_metadata : Metadata
     getter cancellation_signal : ::Channel(Nil)
     property deadline : Time?
+    property protobuf_options : ProtobufOptions? = nil
 
     @cancelled : Atomic(Bool)
 
@@ -67,15 +69,17 @@ module GRPC
   #   )
   #   reply = client.say_hello(req, ctx: ctx)
   class ClientContext
-    getter send_limits : SendLimits?
     getter metadata : Metadata
     property deadline : Time?
+    getter send_limits : SendLimits?
+    getter protobuf_options : ProtobufOptions?
     getter cancellation_signal : ::Channel(Nil)
 
     def initialize(
       metadata : Hash(String, String) | Metadata = Metadata.new,
       deadline : Time::Span | Time? = nil,
       @send_limits : SendLimits? = nil,
+      @protobuf_options : ProtobufOptions? = nil,
     )
       @metadata = case metadata
                   when Metadata then metadata

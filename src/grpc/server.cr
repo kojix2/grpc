@@ -33,7 +33,8 @@ module GRPC
 
     def initialize(transport_factory : ServerTransportFactory? = nil,
                    receive_limits : ReceiveLimits = ReceiveLimits.new,
-                   send_limits : SendLimits = SendLimits.new)
+                   send_limits : SendLimits = SendLimits.new,
+                   protobuf_options : ProtobufOptions? = nil)
       @services = {} of String => Service
       @tcp_server = nil
       @interceptors = [] of ServerInterceptor
@@ -44,7 +45,7 @@ module GRPC
       @active_transports = {} of UInt64 => Transport::ServerTransport
       @transport_mutex = Mutex.new
       @transport_factory = transport_factory || ->(io : IO, services : Hash(String, Service), interceptors : Array(ServerInterceptor), peer : String, tls_sock : OpenSSL::SSL::Socket::Server?) {
-        Transport::Http2ServerConnection.new(io, services, interceptors, peer, tls_sock, receive_limits, send_limits).as(Transport::ServerTransport)
+        Transport::Http2ServerConnection.new(io, services, interceptors, peer, tls_sock, receive_limits, send_limits, protobuf_options: protobuf_options).as(Transport::ServerTransport)
       }
     end
 

@@ -101,6 +101,11 @@ module Interop
         GRPC::ProtoMarshaller(T).new
       end
 
+      protected def marshaller_for(type : T.class, ctx : GRPC::ServerContext) : GRPC::Marshaller(T) forall T
+        options = ctx.protobuf_options
+        options ? GRPC::ProtoMarshaller(T).new(options: options) : marshaller_for(type)
+      end
+
       abstract def echo(request : ::Google::Protobuf::BytesValue, ctx : GRPC::ServerContext) : ::Google::Protobuf::BytesValue
       abstract def fail(request : ::Google::Protobuf::BytesValue, ctx : GRPC::ServerContext) : ::Google::Protobuf::BytesValue
       abstract def wait(request : ::Google::Protobuf::BytesValue, ctx : GRPC::ServerContext) : ::Google::Protobuf::BytesValue
@@ -112,20 +117,20 @@ module Interop
       def dispatch(method : String, body : Bytes, ctx : GRPC::ServerContext) : {Bytes, GRPC::Status}
         case method
         when "Echo"
-          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
           req = req_marshaller.decode(body)
           resp = echo(req, ctx)
           {res_marshaller.encode(resp), GRPC::Status.ok}
         when "Fail"
-          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
           req = req_marshaller.decode(body)
           resp = fail(req, ctx)
           {res_marshaller.encode(resp), GRPC::Status.ok}
         when "Wait"
-          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
           req = req_marshaller.decode(body)
           resp = wait(req, ctx)
           {res_marshaller.encode(resp), GRPC::Status.ok}
@@ -150,8 +155,8 @@ module Interop
                                  writer : GRPC::RawResponseStream) : GRPC::Status
         case method
         when "Watch"
-          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
           typed_writer = GRPC::ResponseStream(::Google::Protobuf::BytesValue).new(writer, res_marshaller)
           watch(req_marshaller.decode(body), typed_writer, ctx)
         else
@@ -174,8 +179,8 @@ module Interop
                                  ctx : GRPC::ServerContext) : {Bytes, GRPC::Status}
         case method
         when "Upload"
-          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
           reqs = GRPC::RequestStream(::Google::Protobuf::BytesValue).new(requests.ch, req_marshaller)
           resp = upload(reqs, ctx)
           {res_marshaller.encode(resp), GRPC::Status.ok}
@@ -201,14 +206,14 @@ module Interop
                                writer : GRPC::RawResponseStream) : GRPC::Status
         case method
         when "Chat"
-          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
           reqs = GRPC::RequestStream(::Google::Protobuf::BytesValue).new(requests.ch, req_marshaller)
           typed_writer = GRPC::ResponseStream(::Google::Protobuf::BytesValue).new(writer, res_marshaller)
           chat(reqs, typed_writer, ctx)
         when "Finish"
-          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+          req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+          res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
           reqs = GRPC::RequestStream(::Google::Protobuf::BytesValue).new(requests.ch, req_marshaller)
           typed_writer = GRPC::ResponseStream(::Google::Protobuf::BytesValue).new(writer, res_marshaller)
           finish(reqs, typed_writer, ctx)
@@ -233,13 +238,18 @@ module Interop
         GRPC::ProtoMarshaller(T).new
       end
 
+      protected def marshaller_for(type : T.class, ctx : GRPC::ClientContext) : GRPC::Marshaller(T) forall T
+        options = ctx.protobuf_options
+        options ? GRPC::ProtoMarshaller(T).new(options: options) : marshaller_for(type)
+      end
+
       def echo(request : ::Google::Protobuf::BytesValue, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : ::Google::Protobuf::BytesValue
         echo_response(request, ctx).ok!
       end
 
       def echo_response(request : ::Google::Protobuf::BytesValue, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::UnaryResponse(::Google::Protobuf::BytesValue)
-        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
         response = @channel.unary_call(FULL_NAME, "Echo", req_marshaller.encode(request), ctx)
         message = response.status.ok? ? res_marshaller.decode(response.raw) : nil
         GRPC::UnaryResponse(::Google::Protobuf::BytesValue).new(message, response.initial_metadata, response.trailing_metadata, response.status)
@@ -250,8 +260,8 @@ module Interop
       end
 
       def fail_response(request : ::Google::Protobuf::BytesValue, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::UnaryResponse(::Google::Protobuf::BytesValue)
-        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
         response = @channel.unary_call(FULL_NAME, "Fail", req_marshaller.encode(request), ctx)
         message = response.status.ok? ? res_marshaller.decode(response.raw) : nil
         GRPC::UnaryResponse(::Google::Protobuf::BytesValue).new(message, response.initial_metadata, response.trailing_metadata, response.status)
@@ -262,16 +272,16 @@ module Interop
       end
 
       def wait_response(request : ::Google::Protobuf::BytesValue, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::UnaryResponse(::Google::Protobuf::BytesValue)
-        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
         response = @channel.unary_call(FULL_NAME, "Wait", req_marshaller.encode(request), ctx)
         message = response.status.ok? ? res_marshaller.decode(response.raw) : nil
         GRPC::UnaryResponse(::Google::Protobuf::BytesValue).new(message, response.initial_metadata, response.trailing_metadata, response.status)
       end
 
       def watch(request : ::Google::Protobuf::BytesValue, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::ServerStream(::Google::Protobuf::BytesValue)
-        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
         raw = @channel.open_server_stream(FULL_NAME, "Watch", req_marshaller.encode(request), ctx)
         GRPC::ServerStream(::Google::Protobuf::BytesValue).new(raw, res_marshaller)
       end
@@ -281,8 +291,8 @@ module Interop
       # to flush and receive the server's single response.
       def upload(ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::ClientStream(::Google::Protobuf::BytesValue, ::Google::Protobuf::BytesValue)
         raw = @channel.open_client_stream_live(FULL_NAME, "Upload", ctx)
-        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
         result_chan = ::Channel(::Google::Protobuf::BytesValue | Exception).new(1)
         send_proc = Proc(::Google::Protobuf::BytesValue, Nil).new { |msg| raw.send_raw(req_marshaller.encode(msg)) }
         close_proc = Proc(Nil).new do
@@ -306,8 +316,8 @@ module Interop
       # signal end-of-input and iterate the replies with #each.
       def chat(ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::BidiCall(::Google::Protobuf::BytesValue, ::Google::Protobuf::BytesValue)
         raw = @channel.open_bidi_stream_live(FULL_NAME, "Chat", ctx)
-        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
         GRPC::BidiCall(::Google::Protobuf::BytesValue, ::Google::Protobuf::BytesValue).new(raw, req_marshaller, res_marshaller)
       end
 
@@ -316,8 +326,8 @@ module Interop
       # signal end-of-input and iterate the replies with #each.
       def finish(ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::BidiCall(::Google::Protobuf::BytesValue, ::Google::Protobuf::BytesValue)
         raw = @channel.open_bidi_stream_live(FULL_NAME, "Finish", ctx)
-        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
-        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue)
+        req_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
+        res_marshaller = marshaller_for(::Google::Protobuf::BytesValue, ctx)
         GRPC::BidiCall(::Google::Protobuf::BytesValue, ::Google::Protobuf::BytesValue).new(raw, req_marshaller, res_marshaller)
       end
     end

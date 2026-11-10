@@ -135,7 +135,8 @@ module GRPC
                      peer_address : String = "unknown",
                      tls_socket : OpenSSL::SSL::Socket::Server? = nil,
                      @receive_limits : ReceiveLimits = ReceiveLimits.new,
-                     @send_limits : SendLimits = SendLimits.new)
+                     @send_limits : SendLimits = SendLimits.new,
+                     @protobuf_options : ProtobufOptions? = nil)
         super(socket, peer_address)
         @services = services
         @interceptors = interceptors
@@ -310,6 +311,7 @@ module GRPC
       private def prepare_request_context(stream_id : Int32, sd : StreamData) : Nil
         return if @stream_contexts.has_key?(stream_id) || stream_terminated?(stream_id)
         ctx = ServerContext.new(@peer_address, build_metadata(sd.headers), parse_deadline(sd.headers, sd.received_at))
+        ctx.protobuf_options = @protobuf_options
         register_stream_context(stream_id, ctx)
       rescue ex : StatusError
         sd.header_error = ex.status

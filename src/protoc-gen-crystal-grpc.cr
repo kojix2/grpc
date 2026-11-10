@@ -148,6 +148,10 @@ class CrystalGrpcCodeGenerator
     str << "#{indent}  protected def marshaller_for(type : T.class) : GRPC::Marshaller(T) forall T\n"
     str << "#{indent}    GRPC::ProtoMarshaller(T).new\n"
     str << "#{indent}  end\n"
+    str << "#{indent}  protected def marshaller_for(type : T.class, ctx : GRPC::ServerContext) : GRPC::Marshaller(T) forall T\n"
+    str << "#{indent}    options = ctx.protobuf_options\n"
+    str << "#{indent}    options ? GRPC::ProtoMarshaller(T).new(options: options) : marshaller_for(type)\n"
+    str << "#{indent}  end\n"
 
     # Abstract method declarations
     str << "\n"
@@ -180,8 +184,8 @@ class CrystalGrpcCodeGenerator
         output = resolve_type(meth.output_type, fd.package)
         mname = to_snake_case(meth.name)
         str << "#{indent}    when #{meth.name.inspect}\n"
-        str << "#{indent}      req_marshaller = marshaller_for(#{input})\n"
-        str << "#{indent}      res_marshaller = marshaller_for(#{output})\n"
+        str << "#{indent}      req_marshaller = marshaller_for(#{input}, ctx)\n"
+        str << "#{indent}      res_marshaller = marshaller_for(#{output}, ctx)\n"
         str << "#{indent}      req  = req_marshaller.decode(body)\n"
         str << "#{indent}      resp = #{mname}(req, ctx)\n"
         str << "#{indent}      {res_marshaller.encode(resp), GRPC::Status.ok}\n"
@@ -211,8 +215,8 @@ class CrystalGrpcCodeGenerator
         output = resolve_type(meth.output_type, fd.package)
         mname = to_snake_case(meth.name)
         str << "#{indent}    when #{meth.name.inspect}\n"
-        str << "#{indent}      req_marshaller = marshaller_for(#{input})\n"
-        str << "#{indent}      res_marshaller = marshaller_for(#{output})\n"
+        str << "#{indent}      req_marshaller = marshaller_for(#{input}, ctx)\n"
+        str << "#{indent}      res_marshaller = marshaller_for(#{output}, ctx)\n"
         str << "#{indent}      typed_writer = GRPC::ResponseStream(#{output}).new(writer, res_marshaller)\n"
         str << "#{indent}      #{mname}(req_marshaller.decode(body), typed_writer, ctx)\n"
       end
@@ -239,8 +243,8 @@ class CrystalGrpcCodeGenerator
         output = resolve_type(meth.output_type, fd.package)
         mname = to_snake_case(meth.name)
         str << "#{indent}    when #{meth.name.inspect}\n"
-        str << "#{indent}      req_marshaller = marshaller_for(#{input})\n"
-        str << "#{indent}      res_marshaller = marshaller_for(#{output})\n"
+        str << "#{indent}      req_marshaller = marshaller_for(#{input}, ctx)\n"
+        str << "#{indent}      res_marshaller = marshaller_for(#{output}, ctx)\n"
         str << "#{indent}      reqs = GRPC::RequestStream(#{input}).new(requests.ch, req_marshaller)\n"
         str << "#{indent}      resp = #{mname}(reqs, ctx)\n"
         str << "#{indent}      {res_marshaller.encode(resp), GRPC::Status.ok}\n"
@@ -269,8 +273,8 @@ class CrystalGrpcCodeGenerator
         output = resolve_type(meth.output_type, fd.package)
         mname = to_snake_case(meth.name)
         str << "#{indent}    when #{meth.name.inspect}\n"
-        str << "#{indent}      req_marshaller = marshaller_for(#{input})\n"
-        str << "#{indent}      res_marshaller = marshaller_for(#{output})\n"
+        str << "#{indent}      req_marshaller = marshaller_for(#{input}, ctx)\n"
+        str << "#{indent}      res_marshaller = marshaller_for(#{output}, ctx)\n"
         str << "#{indent}      reqs = GRPC::RequestStream(#{input}).new(requests.ch, req_marshaller)\n"
         str << "#{indent}      typed_writer = GRPC::ResponseStream(#{output}).new(writer, res_marshaller)\n"
         str << "#{indent}      #{mname}(reqs, typed_writer, ctx)\n"
@@ -302,6 +306,10 @@ class CrystalGrpcCodeGenerator
     str << "#{indent}  protected def marshaller_for(type : T.class) : GRPC::Marshaller(T) forall T\n"
     str << "#{indent}    GRPC::ProtoMarshaller(T).new\n"
     str << "#{indent}  end\n"
+    str << "#{indent}  protected def marshaller_for(type : T.class, ctx : GRPC::ClientContext) : GRPC::Marshaller(T) forall T\n"
+    str << "#{indent}    options = ctx.protobuf_options\n"
+    str << "#{indent}    options ? GRPC::ProtoMarshaller(T).new(options: options) : marshaller_for(type)\n"
+    str << "#{indent}  end\n"
 
     svc.method.each do |meth|
       input = resolve_type(meth.input_type, fd.package)
@@ -317,16 +325,16 @@ class CrystalGrpcCodeGenerator
         str << "#{indent}  end\n"
         str << "\n"
         str << "#{indent}  def #{response_name}(request : #{input}, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::UnaryResponse(#{output})\n"
-        str << "#{indent}    req_marshaller = marshaller_for(#{input})\n"
-        str << "#{indent}    res_marshaller = marshaller_for(#{output})\n"
+        str << "#{indent}    req_marshaller = marshaller_for(#{input}, ctx)\n"
+        str << "#{indent}    res_marshaller = marshaller_for(#{output}, ctx)\n"
         str << "#{indent}    response = @channel.unary_call(#{sname}, #{meth.name.inspect}, req_marshaller.encode(request), ctx)\n"
         str << "#{indent}    message = response.status.ok? ? res_marshaller.decode(response.raw) : nil\n"
         str << "#{indent}    GRPC::UnaryResponse(#{output}).new(message, response.initial_metadata, response.trailing_metadata, response.status)\n"
         str << "#{indent}  end\n"
       when :server_streaming
         str << "#{indent}  def #{mname}(request : #{input}, ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::ServerStream(#{output})\n"
-        str << "#{indent}    req_marshaller = marshaller_for(#{input})\n"
-        str << "#{indent}    res_marshaller = marshaller_for(#{output})\n"
+        str << "#{indent}    req_marshaller = marshaller_for(#{input}, ctx)\n"
+        str << "#{indent}    res_marshaller = marshaller_for(#{output}, ctx)\n"
         str << "#{indent}    raw    = @channel.open_server_stream(#{sname}, #{meth.name.inspect}, req_marshaller.encode(request), ctx)\n"
         str << "#{indent}    GRPC::ServerStream(#{output}).new(raw, res_marshaller)\n"
         str << "#{indent}  end\n"
@@ -336,8 +344,8 @@ class CrystalGrpcCodeGenerator
         str << "#{indent}  # to flush and receive the server's single response.\n"
         str << "#{indent}  def #{mname}(ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::ClientStream(#{input}, #{output})\n"
         str << "#{indent}    raw = @channel.open_client_stream_live(#{sname}, #{meth.name.inspect}, ctx)\n"
-        str << "#{indent}    req_marshaller = marshaller_for(#{input})\n"
-        str << "#{indent}    res_marshaller = marshaller_for(#{output})\n"
+        str << "#{indent}    req_marshaller = marshaller_for(#{input}, ctx)\n"
+        str << "#{indent}    res_marshaller = marshaller_for(#{output}, ctx)\n"
         str << "#{indent}    result_chan = ::Channel(#{output} | Exception).new(1)\n"
         str << "#{indent}    send_proc = Proc(#{input}, Nil).new { |msg| raw.send_raw(req_marshaller.encode(msg)) }\n"
         str << "#{indent}    close_proc = Proc(Nil).new do\n"
@@ -361,8 +369,8 @@ class CrystalGrpcCodeGenerator
         str << "#{indent}  # signal end-of-input and iterate the replies with #each.\n"
         str << "#{indent}  def #{mname}(ctx : GRPC::ClientContext = GRPC::ClientContext.new) : GRPC::BidiCall(#{input}, #{output})\n"
         str << "#{indent}    raw = @channel.open_bidi_stream_live(#{sname}, #{meth.name.inspect}, ctx)\n"
-        str << "#{indent}    req_marshaller = marshaller_for(#{input})\n"
-        str << "#{indent}    res_marshaller = marshaller_for(#{output})\n"
+        str << "#{indent}    req_marshaller = marshaller_for(#{input}, ctx)\n"
+        str << "#{indent}    res_marshaller = marshaller_for(#{output}, ctx)\n"
         str << "#{indent}    GRPC::BidiCall(#{input}, #{output}).new(raw, req_marshaller, res_marshaller)\n"
         str << "#{indent}  end\n"
       end

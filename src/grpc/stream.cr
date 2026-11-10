@@ -137,6 +137,10 @@ module GRPC
         raw.each do |bytes|
           message = begin
             marshaller.decode(bytes)
+          rescue ex : StatusError
+            @status_override = ex.status
+            raw.cancel
+            return
           rescue ex
             @status_override = Status.internal(ex.message || "failed to decode response")
             raw.cancel
