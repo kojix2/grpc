@@ -29,6 +29,8 @@ module GRPC
     @connection_attempt : ConnectionAttempt?
     @closed : Bool
     @close_signal : ::Channel(Nil)
+    @next_connection_attempt : Time::Instant?
+    @backoff_delay : Time::Span
     @draining_connections = [] of Transport::ClientTransport
     @transport_factory : ClientTransportFactory
     @mutex : Mutex
@@ -73,6 +75,8 @@ module GRPC
       @connection_attempt = nil
       @closed = false
       @close_signal = ::Channel(Nil).new
+      @next_connection_attempt = nil
+      @backoff_delay = endpoint_config.backoff.base_delay
       @transport_factory = transport_factory || ->(host : String, port : Int32, use_tls : Bool, tls_ctx : OpenSSL::SSL::Context::Client?, config : EndpointConfig) {
         Transport::Http2ClientConnection.new(host, port, use_tls, tls_ctx, config).as(Transport::ClientTransport)
       }
@@ -330,6 +334,20 @@ module GRPC
       connection : Transport::ClientTransport? = nil
       error : Exception? = nil
       begin
+        delay = @mutex.synchronize do
+          if next_attempt = @next_connection_attempt
+            next_attempt - Time.instant
+          else
+            Time::Span.zero
+          end
+        end
+        if delay > Time::Span.zero
+          select
+          when @close_signal.receive?
+            return
+          when timeout(delay)
+          end
+        end
         connection = @transport_factory.call(@endpoint.host, @endpoint.port, @endpoint.tls?, @tls_context, @endpoint_config)
       rescue ex
         error = ex
@@ -337,6 +355,17 @@ module GRPC
 
       discard = @mutex.synchronize do
         if @connection_attempt.same?(attempt) && !@closed
+          if error
+            config = @endpoint_config.backoff
+            jitter = 1.0 + ((Random.rand * 2.0 - 1.0) * config.jitter)
+            delay_seconds = Math.min(@backoff_delay.total_seconds * jitter, config.max_delay.total_seconds)
+            @next_connection_attempt = Time.instant + delay_seconds.seconds
+            next_seconds = Math.min(@backoff_delay.total_seconds * config.multiplier, config.max_delay.total_seconds)
+            @backoff_delay = next_seconds.seconds
+          else
+            @next_connection_attempt = nil
+            @backoff_delay = @endpoint_config.backoff.base_delay
+          end
           @conn = connection
           @connection_attempt = nil
           attempt.error = error
@@ -376,6 +405,19 @@ module GRPC
       validate_keepalive_config(@endpoint_config.keepalive)
       validate_concurrency_limit(@endpoint_config.concurrency_limit)
       validate_rate_limit(@endpoint_config.rate_limit)
+      validate_backoff_config(@endpoint_config.backoff)
+    end
+
+    private def validate_backoff_config(backoff : BackoffConfig) : Nil
+      validate_positive_span(backoff.base_delay, "endpoint_config.backoff.base_delay")
+      validate_positive_span(backoff.max_delay, "endpoint_config.backoff.max_delay")
+      raise ArgumentError.new("endpoint_config.backoff.max_delay must be >= base_delay") if backoff.max_delay < backoff.base_delay
+      unless backoff.multiplier.finite? && backoff.multiplier >= 1.0
+        raise ArgumentError.new("endpoint_config.backoff.multiplier must be finite and >= 1")
+      end
+      unless backoff.jitter.finite? && 0.0 <= backoff.jitter <= 1.0
+        raise ArgumentError.new("endpoint_config.backoff.jitter must be between 0 and 1")
+      end
     end
 
     private def validate_positive_span(span : Time::Span?, label : String) : Nil

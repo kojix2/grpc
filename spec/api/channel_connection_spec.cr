@@ -11,6 +11,33 @@ private class ClosedSignalTransport < FakeClientTransport
 end
 
 describe "channel connection waiting" do
+  it "applies reconnect backoff without retrying the failed RPC" do
+    attempts = 0
+    transport = FakeClientTransport.new
+    factory = ->(_host : String, _port : Int32, _tls : Bool, _tls_ctx : OpenSSL::SSL::Context::Client?, _config : GRPC::EndpointConfig) {
+      attempts += 1
+      raise GRPC::ConnectionError.new("unavailable") if attempts == 1
+      transport.as(GRPC::Transport::ClientTransport)
+    }
+    backoff = GRPC::BackoffConfig.new(base_delay: 200.milliseconds, multiplier: 2.0, jitter: 0.0, max_delay: 1.second)
+    channel = GRPC::Channel.new("localhost:12345", transport_factory: factory,
+      endpoint_config: GRPC::EndpointConfig.new(backoff: backoff))
+    begin
+      expect_raises(GRPC::ConnectionError) { channel.unary_call("test.Service", "Echo", Bytes.empty) }
+      attempts.should eq(1)
+      error = expect_raises(GRPC::StatusError) do
+        channel.unary_call("test.Service", "Echo", Bytes.empty, GRPC::ClientContext.new(deadline: 30.milliseconds))
+      end
+      error.code.should eq(GRPC::StatusCode::DEADLINE_EXCEEDED)
+      attempts.should eq(1)
+      channel.unary_call("test.Service", "Echo", Bytes[7], GRPC::ClientContext.new(deadline: 2.seconds)).raw.should eq(Bytes[7])
+      attempts.should eq(2)
+      transport.unary_calls.should eq(1)
+    ensure
+      channel.close
+    end
+  end
+
   it "lets a short deadline expire while another call shares the pending connection" do
     gate = Channel(Nil).new(1)
     started = Channel(Nil).new(1)
