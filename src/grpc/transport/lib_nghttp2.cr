@@ -70,6 +70,11 @@ lib LibNghttp2
     # 1 byte padding to reach 16
   end
 
+  struct Ping
+    hd : FrameHd
+    opaque_data : UInt8[8]
+  end
+
   # nghttp2_nv: 8 + 8 + 8 + 8 + 1 = 33, padded to 40 bytes
   struct Nv
     name : UInt8*          # offset 0
@@ -167,6 +172,7 @@ lib LibNghttp2
   fun option_new = nghttp2_option_new(option_ptr : Option**) : Int32
   fun option_del = nghttp2_option_del(option : Option*) : Void
   fun option_set_no_auto_window_update = nghttp2_option_set_no_auto_window_update(option : Option*, value : Int32) : Void
+  fun option_set_no_auto_ping_ack = nghttp2_option_set_no_auto_ping_ack(option : Option*, value : Int32) : Void
   fun session_server_new2 = nghttp2_session_server_new2(
     session_ptr : Session**, callbacks : SessionCallbacks*, user_data : Void*, option : Option*,
   ) : Int32
@@ -204,6 +210,8 @@ lib LibNghttp2
   fun submit_settings = nghttp2_submit_settings(
     session : Session*, flags : UInt8, iv : SettingsEntry*, niv : LibC::SizeT,
   ) : Int32
+
+  fun submit_ping = nghttp2_submit_ping(session : Session*, flags : UInt8, opaque_data : UInt8*) : Int32
 
   fun submit_request = nghttp2_submit_request(
     session : Session*, pri_spec : Void*, nva : Nv*, nvlen : LibC::SizeT,

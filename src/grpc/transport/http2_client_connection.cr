@@ -482,6 +482,10 @@ module GRPC
       @use_tls : Bool
       @endpoint_config : EndpointConfig
       @send_budget : SendBudget
+      @keepalive_stop : ::Channel(Nil)
+      @keepalive_ack : ::Channel(Nil)
+      @pending_ping : Bytes?
+      @ping_sequence : UInt64
       @target_authority : String
       @draining = false
 
@@ -504,6 +508,10 @@ module GRPC
         @use_tls = use_tls
         @endpoint_config = endpoint_config
         @send_budget = SendBudget.new(endpoint_config.send_limits.max_connection_buffered_bytes)
+        @keepalive_stop = ::Channel(Nil).new
+        @keepalive_ack = ::Channel(Nil).new(1)
+        @pending_ping = nil
+        @ping_sequence = 0_u64
         @target_authority = "#{host}:#{port}"
 
         io : IO
@@ -572,6 +580,45 @@ module GRPC
 
         # Start recv loop in background fiber
         spawn run_recv_loop
+        if keepalive = endpoint_config.keepalive
+          spawn run_keepalive(keepalive)
+        end
+      end
+
+      private def run_keepalive(config : KeepaliveParams) : Nil
+        loop do
+          select
+          when @keepalive_stop.receive?
+            break
+          when timeout(config.interval)
+          end
+          sent = @mutex.synchronize do
+            break if @closed || @session.null?
+            next false if !config.permit_without_calls? && @pending.empty? && @pending_streams.empty?
+            @ping_sequence &+= 1_u64
+            token_io = IO::Memory.new
+            token_io.write_bytes(@ping_sequence, IO::ByteFormat::BigEndian)
+            @pending_ping = token_io.to_slice.dup
+            check LibNghttp2.submit_ping(@session, LibNghttp2::FLAG_NONE, @pending_ping.not_nil!.to_unsafe)
+            flush_send
+            true
+          end
+          next unless sent
+          acknowledged = select
+          when @keepalive_stop.receive?
+            break
+          when @keepalive_ack.receive
+            true
+          when timeout(config.timeout)
+            false
+          end
+          unless acknowledged
+            close
+            break
+          end
+        end
+      rescue
+        close
       end
 
       private def apply_keepalive_options(tcp : TCPSocket, endpoint_config : EndpointConfig) : Nil
@@ -580,6 +627,12 @@ module GRPC
         return unless has_keepalive
 
         tcp.keepalive = true
+        if idle = endpoint_config.tcp_keepalive
+          if tcp.responds_to?(:tcp_keepalive_idle=)
+            seconds = idle.total_seconds.ceil.clamp(1.0, 32_767.0).to_i
+            tcp.tcp_keepalive_idle = seconds
+          end
+        end
       rescue
         # Keepalive tuning is best-effort and platform-dependent.
       end
@@ -999,6 +1052,17 @@ module GRPC
       end
 
       def on_frame_recv_cb(frame : Void*) : Nil
+        if frame_type(frame) == LibNghttp2::FRAME_PING && (frame_flags(frame) & LibNghttp2::FLAG_ACK) != 0
+          ping = frame.as(LibNghttp2::Ping*).value
+          if (expected = @pending_ping) && ping.opaque_data.to_slice == expected
+            @pending_ping = nil
+            select
+            when @keepalive_ack.send(nil)
+            else
+            end
+          end
+          return
+        end
         if frame_type(frame) == LibNghttp2::FRAME_GOAWAY
           @draining = true
           close_if_drained
@@ -1079,6 +1143,7 @@ module GRPC
 
       protected def shutdown_local_state : Nil
         status = Status.unavailable("connection closed")
+        @keepalive_stop.close unless @keepalive_stop.closed?
 
         calls = @pending.values
         streams = @pending_streams.values

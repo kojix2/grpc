@@ -1,6 +1,15 @@
 require "../spec_helper"
 require "../support/integration_helpers"
 
+private class TcpKeepaliveProbe < GRPC::Transport::Http2ClientConnection
+  def keepalive_idle : Int32?
+    socket = @socket.as(TCPSocket)
+    if socket.responds_to?(:tcp_keepalive_idle)
+      socket.tcp_keepalive_idle.to_i32
+    end
+  end
+end
+
 describe "GRPC connect timeout" do
   it "fails quickly when endpoint is unreachable and connect_timeout is set" do
     config = GRPC::EndpointConfig.new(connect_timeout: 100.milliseconds)
@@ -25,6 +34,24 @@ describe "GRPC connect timeout" do
 end
 
 describe "GRPC keepalive settings" do
+  it "applies the TCP idle interval where the platform exposes it" do
+    listener = TCPServer.new("127.0.0.1", 0)
+    accepted = Channel(TCPSocket).new(1)
+    spawn { accepted.send(listener.accept) }
+    config = GRPC::EndpointConfig.new(tcp_keepalive: 10.seconds)
+    connection = TcpKeepaliveProbe.new("127.0.0.1", listener.local_address.port, endpoint_config: config)
+    peer = accepted.receive
+    begin
+      if idle = connection.keepalive_idle
+        idle.should eq(10)
+      end
+    ensure
+      peer.close
+      listener.close
+      connection.close
+    end
+  end
+
   it "can perform unary RPC with keepalive options enabled" do
     port = find_free_port
     server = start_test_server(port)

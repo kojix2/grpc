@@ -161,6 +161,7 @@ module GRPC
         check LibNghttp2.option_new(pointerof(options))
         begin
           LibNghttp2.option_set_no_auto_window_update(options, 1)
+          configure_session_options(options)
           if server_side
             check LibNghttp2.session_server_new2(pointerof(@session), callbacks, @user_data, options)
           else
@@ -189,6 +190,9 @@ module GRPC
         @mutex.synchronize { teardown_session }
         @socket.close rescue nil
         raise ex
+      end
+
+      protected def configure_session_options(options : LibNghttp2::Option*) : Nil
       end
 
       private def install_callbacks(callbacks : LibNghttp2::SessionCallbacks*) : Nil
