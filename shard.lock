@@ -1,0 +1,5 @@
+version: 2.0
+shards:
+  proto:
+    git: https://github.com/kojix2/proto.git
+    version: 0.1.0+git.commit.2ef39a3eac3c1de534ace734cbf17b41793caedc

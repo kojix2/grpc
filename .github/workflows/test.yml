@@ -68,7 +68,7 @@ jobs:
           echo "LIBRARY_PATH=$(brew --prefix libnghttp2)/lib" >> $GITHUB_ENV
 
       - name: Install shards
-        run: shards install --without-development
+        run: shards install --frozen --without-development
 
       - name: Run specs
         run: crystal spec --order "$SPEC_SEED" --junit_output test-results
@@ -133,7 +133,7 @@ jobs:
         run: brew install grpcurl
 
       - name: Install shards
-        run: shards install --without-development
+        run: shards install --frozen --without-development
 
       - name: Run grpcurl E2E tests
         run: crystal spec spec/grpcurl.cr --order "$SPEC_SEED"
@@ -180,7 +180,7 @@ jobs:
           exit 1
 
       - name: Install shards
-        run: shards install --without-development
+        run: shards install --frozen --without-development
 
       - name: Run GripMock E2E tests
         run: crystal spec spec/gripmock.cr --order "$SPEC_SEED"
@@ -201,7 +201,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: crystal-lang/install-crystal@v1
       - run: sudo apt-get update && sudo apt-get install -y libnghttp2-dev protobuf-compiler
-      - run: shards install --without-development
+      - run: shards install --frozen --without-development
       - name: Rebuild protoc plugins and check committed fixtures
         run: bash script/check_generated.sh
 
@@ -221,7 +221,7 @@ jobs:
           go-version: stable
           cache-dependency-path: spec/interop/go/go.sum
       - run: sudo apt-get update && sudo apt-get install -y libnghttp2-dev
-      - run: shards install --without-development
+      - run: shards install --frozen --without-development
       - name: Resolve the latest reference dependencies
         if: matrix.reference == 'latest'
         working-directory: spec/interop/go

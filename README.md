@@ -136,4 +136,7 @@ A separate job regenerates and tests the current MinKNOW client against the
 candidate gRPC source. Nightly runs expand fragmentation coverage.
 
 See [test layout](spec/README.md) for focused tests and GripMock setup.
+The committed `shard.lock` pins proto.cr for development, code generation and
+CI; install it with `shards install --frozen`. Applications resolve their own
+lock, so update `grpc` and `proto` together when adopting regenerated messages.
 License: [MIT](LICENSE).

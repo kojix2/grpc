@@ -12,4 +12,5 @@
 /spec/fixtures/tls/*.srl
 
 *.lock
+!shard.lock
 

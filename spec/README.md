@@ -112,8 +112,9 @@ their framing seed. Use those values to reproduce the run. Nightly campaigns
 expand to 500 seeds; job timeouts bound hangs and JUnit artifacts preserve
 unit and grpc-go results.
 
-`script/check_generated.sh` rebuilds both protoc plugins, regenerates the
-collision and interop fixtures and fails on changes or new generated files.
+`script/check_generated.sh` rebuilds both protoc plugins, regenerates health,
+collision, interop and protobuf-options fixtures, and fails on changes or new
+generated files. Install their locked generator with `shards install --frozen`.
 Run `bash script/check_generated.sh --write` when intentionally refreshing
 fixtures. The normal CI suite actually calls all four generated RPC methods,
 so code-generation checks cover Crystal's lazily instantiated method bodies.
