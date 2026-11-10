@@ -74,6 +74,8 @@ module GRPC
           next LibNghttp2::ERR_CALLBACK_FAILURE.to_i64 if rc < 0
         end
         to_copy.to_i64
+      rescue
+        LibNghttp2::ERR_CALLBACK_FAILURE.to_i64
       end
 
       # DATA read callback for server-streaming: sends one message chunk.
@@ -90,6 +92,8 @@ module GRPC
           data_flags.value |= LibNghttp2::DATA_FLAG_EOF | LibNghttp2::DATA_FLAG_NO_END_STREAM
         end
         to_copy.to_i64
+      rescue
+        LibNghttp2::ERR_CALLBACK_FAILURE.to_i64
       end
 
       # service_full_name => Service

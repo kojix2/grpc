@@ -78,6 +78,8 @@ module GRPC
         @body = @message_buffer.io
         @header_error = nil
         @closed = false
+        @session_active = false
+        @close_requested = false
       end
 
       def body_bytes : Bytes
@@ -115,6 +117,8 @@ module GRPC
       @mutex : Mutex
       @user_data : Void* # GC anchor for Box.box(self)
       @closed : Bool
+      @session_active : Bool
+      @close_requested : Bool
 
       def closed? : Bool
         @closed
@@ -123,6 +127,8 @@ module GRPC
       def initialize(@socket : IO, @peer_address : String = "unknown")
         @mutex = Mutex.new(:reentrant)
         @closed = false
+        @session_active = false
+        @close_requested = false
         @user_data = Pointer(Void).null              # filled in subclass after Box.box(self)
         @session = Pointer(LibNghttp2::Session).null # filled in setup_session
       end
@@ -170,45 +176,48 @@ module GRPC
         LibNghttp2.session_callbacks_set_on_begin_headers_callback(callbacks,
           LibNghttp2::OnBeginHeadersCallback.new do |_, frame, user_data|
             conn = Box(Http2Connection).unbox(user_data)
-            conn.on_begin_headers_cb(frame)
-            0
+            conn.invoke_callback { conn.on_begin_headers_cb(frame) }
           end
         )
         LibNghttp2.session_callbacks_set_on_header_callback(callbacks,
           LibNghttp2::OnHeaderCallback.new do |_, frame, name, nlen, value, vlen, _, user_data|
             conn = Box(Http2Connection).unbox(user_data)
-            conn.on_header_cb(frame, name, nlen, value, vlen)
-            0
+            conn.invoke_callback { conn.on_header_cb(frame, name, nlen, value, vlen) }
           end
         )
         LibNghttp2.session_callbacks_set_on_data_chunk_recv_callback(callbacks,
           LibNghttp2::OnDataChunkRecvCallback.new do |_, _, stream_id, data, len, user_data|
             conn = Box(Http2Connection).unbox(user_data)
-            conn.on_data_chunk_cb(stream_id, data, len)
-            0
+            conn.invoke_callback { conn.on_data_chunk_cb(stream_id, data, len) }
           end
         )
         LibNghttp2.session_callbacks_set_on_frame_recv_callback(callbacks,
           LibNghttp2::OnFrameRecvCallback.new do |_, frame, user_data|
             conn = Box(Http2Connection).unbox(user_data)
-            conn.on_frame_recv_cb(frame)
-            0
+            conn.invoke_callback { conn.on_frame_recv_cb(frame) }
           end
         )
         LibNghttp2.session_callbacks_set_on_frame_send_callback(callbacks,
           LibNghttp2::OnFrameSendCallback.new do |_, frame, user_data|
             conn = Box(Http2Connection).unbox(user_data)
-            conn.on_frame_send_cb(frame)
-            0
+            conn.invoke_callback { conn.on_frame_send_cb(frame) }
           end
         )
         LibNghttp2.session_callbacks_set_on_stream_close_callback(callbacks,
           LibNghttp2::OnStreamCloseCallback.new do |_, stream_id, error_code, user_data|
             conn = Box(Http2Connection).unbox(user_data)
-            conn.on_stream_close_cb(stream_id, error_code)
-            0
+            conn.invoke_callback { conn.on_stream_close_cb(stream_id, error_code) }
           end
         )
+      end
+
+      # Do not unwind a Crystal exception through libnghttp2's C stack. The
+      # enclosing session operation will fail and tear down the connection.
+      def invoke_callback(& : -> Nil) : Int32
+        yield
+        0
+      rescue
+        LibNghttp2::ERR_CALLBACK_FAILURE
       end
 
       # --- Callbacks (called from nghttp2, protected by GIL via @mutex) ---
@@ -248,11 +257,20 @@ module GRPC
 
       # flush_send writes all pending nghttp2 outbound data to the socket.
       protected def flush_send : Nil
-        return if @closed
+        return if @closed || @session_active
         empty_send_count = 0
         loop do
           data_ptr = Pointer(UInt8).null
-          n = LibNghttp2.session_mem_send(@session, pointerof(data_ptr))
+          @session_active = true
+          begin
+            n = session_mem_send(pointerof(data_ptr))
+          ensure
+            @session_active = false
+          end
+          if @close_requested
+            close
+            return
+          end
           raise ConnectionError.new("session_mem_send failed: #{String.new(LibNghttp2.strerror(n.to_i32))} (#{n})") if n < 0
           if n == 0
             break if LibNghttp2.session_want_write(@session) == 0
@@ -272,6 +290,10 @@ module GRPC
         raise ConnectionError.new("HTTP/2 socket write failed: #{ex.message}")
       end
 
+      protected def session_mem_send(data_ptr : UInt8**) : LibC::SSizeT
+        LibNghttp2.session_mem_send(@session, data_ptr)
+      end
+
       # run_recv_loop reads from the socket and feeds data to nghttp2.
       # Runs until the connection closes.
       def run_recv_loop : Nil
@@ -281,7 +303,13 @@ module GRPC
           break if n == 0
           @mutex.synchronize do
             break if @closed || @session.null?
-            result = LibNghttp2.session_mem_recv(@session, buf.to_unsafe, n)
+            @session_active = true
+            begin
+              result = LibNghttp2.session_mem_recv(@session, buf.to_unsafe, n)
+            ensure
+              @session_active = false
+            end
+            break if @close_requested
             if result < 0
               @closed = true
               break
@@ -298,6 +326,11 @@ module GRPC
       def close : Nil
         @mutex.synchronize do
           return if @session.null?
+          if @session_active
+            @close_requested = true
+            return
+          end
+          @close_requested = false
 
           begin
             unless @closed

@@ -411,11 +411,15 @@ module GRPC
         sb.offset += to_copy
         data_flags.value |= LibNghttp2::DATA_FLAG_EOF if sb.remaining == 0
         to_copy.to_i64
+      rescue
+        LibNghttp2::ERR_CALLBACK_FAILURE.to_i64
       end
 
       DATA_READ_CB_LIVE = LibNghttp2::DataSourceReadCallback.new do |_session, stream_id, buf, length, data_flags, _source, user_data|
         conn = Box(Http2ClientConnection).unbox(user_data)
         conn.read_live_send_data(stream_id, buf, length, data_flags)
+      rescue
+        LibNghttp2::ERR_CALLBACK_FAILURE.to_i64
       end
 
       # stream_id => PendingCall (unary)
