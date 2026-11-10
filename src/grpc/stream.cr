@@ -208,6 +208,9 @@ module GRPC
     @close_proc : -> Nil
     @result : ::Channel(Res | Exception)
     @closed : Bool
+    @completion : ::Channel(Nil)
+    @completion_mutex : Mutex
+    @cached_result : Res | Exception | Nil
     @headers_proc : -> Metadata
     @status_proc : -> Status
     @trailers_proc : -> Metadata
@@ -219,6 +222,9 @@ module GRPC
                    @trailers_proc : -> Metadata = -> { Metadata.new },
                    @cancel_proc : -> Nil = -> { })
       @closed = false
+      @completion = ::Channel(Nil).new
+      @completion_mutex = Mutex.new
+      @cached_result = nil
       @cancelled = false
       @cancel_mutex = Mutex.new
     end
@@ -228,16 +234,31 @@ module GRPC
       @send_proc.call(message)
     end
 
-    # close_and_recv closes the request stream and waits for the server response.
+    # Close once and cache the response or exception for all callers.
     def close_and_recv : Res
-      unless @closed
+      first = @completion_mutex.synchronize do
+        next false if @closed
         @closed = true
-        @close_proc.call
+        true
       end
-      result = @result.receive
+
+      if first
+        result = begin
+          @close_proc.call
+          @result.receive
+        rescue ex
+          ex
+        end
+        @completion_mutex.synchronize { @cached_result = result }
+        @completion.close
+      else
+        @completion.receive?
+      end
+
+      result = @completion_mutex.synchronize { @cached_result }
       case result
       when Exception then raise result
-      else                result
+      else                result.as(Res)
       end
     end
 

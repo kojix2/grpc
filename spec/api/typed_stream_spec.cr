@@ -42,6 +42,55 @@ describe GRPC::ClientStream(Int32, Int32) do
   end
 
   describe "completion and cancellation" do
+    it "shares one response across concurrent and subsequent close calls" do
+      closes = 0
+      result = Channel(Int32 | Exception).new(1)
+      call = GRPC::ClientStream(Int32, Int32).new(
+        ->(_msg : Int32) { }, -> { closes += 1; nil }, result)
+      completed = Channel(Int32).new(2)
+      2.times { spawn { completed.send(call.close_and_recv) } }
+      Fiber.yield
+      result.send(42)
+      2.times do
+        select
+        when value = completed.receive
+          value.should eq(42)
+        when timeout(1.second)
+          fail "a close caller did not receive the result"
+        end
+      end
+      call.close_and_recv.should eq(42)
+      closes.should eq(1)
+    end
+
+    it "caches failures and unblocks every close caller on cancellation" do
+      result = Channel(Int32 | Exception).new(1)
+      failure = GRPC::StatusError.new(GRPC::StatusCode::CANCELLED, "cancelled")
+      call = GRPC::ClientStream(Int32, Int32).new(
+        ->(_msg : Int32) { }, -> { }, result,
+        -> { GRPC::Metadata.new }, -> { GRPC::Status.cancelled }, -> { GRPC::Metadata.new },
+        -> { result.send(failure); nil })
+      completed = Channel(GRPC::StatusCode).new(2)
+      2.times do
+        spawn do
+          call.close_and_recv
+        rescue ex : GRPC::StatusError
+          completed.send(ex.code)
+        end
+      end
+      Fiber.yield
+      call.cancel
+      2.times do
+        select
+        when code = completed.receive
+          code.should eq(GRPC::StatusCode::CANCELLED)
+        when timeout(1.second)
+          fail "cancellation left a close caller waiting"
+        end
+      end
+      expect_raises(GRPC::StatusError, "cancelled") { call.close_and_recv }
+    end
+
     it "invokes cancel callback only once" do
       cancels = 0
       result = ::Channel(Int32 | Exception).new(1)
