@@ -1,4 +1,5 @@
 require "./receive_limits"
+require "./send_limits"
 
 module GRPC
   # Endpoint describes where a client channel connects.
@@ -124,6 +125,7 @@ module GRPC
     property rate_limit : RateLimitConfig?
     property backoff : BackoffConfig
     property receive_limits : ReceiveLimits
+    property send_limits : SendLimits
 
     def initialize(
       @connect_timeout : Time::Span? = nil,
@@ -133,6 +135,7 @@ module GRPC
       @rate_limit : RateLimitConfig? = nil,
       @backoff : BackoffConfig = BackoffConfig.new,
       @receive_limits : ReceiveLimits = ReceiveLimits.new,
+      @send_limits : SendLimits = SendLimits.new,
     )
     end
   end

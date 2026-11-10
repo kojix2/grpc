@@ -2,7 +2,9 @@ require "../spec_helper"
 
 class StreamingBufferProbe < GRPC::Transport::Http2ServerConnection
   def initialize
-    super(IO::Memory.new, {} of String => GRPC::Service)
+    limits = GRPC::SendLimits.new(max_message_size: 32 * 1024,
+      max_buffered_bytes: 32 * 1024 + 8 * 6, max_connection_buffered_bytes: 64 * 1024)
+    super(IO::Memory.new, {} of String => GRPC::Service, send_limits: limits)
     @stream_boxes[1] = Box.box(GRPC::Transport::StreamData.new)
   end
 
@@ -11,7 +13,13 @@ class StreamingBufferProbe < GRPC::Transport::Http2ServerConnection
     @stream_send_bufs[1] = buffer
     @stream_send_boxes[1] = [Box.box(buffer)]
     @stream_data_in_flight.add(1)
+    @send_bytes[1] = buffer.data.size.to_i64
+    @total_send_bytes = buffer.data.size.to_i64
     buffer
+  end
+
+  def set_deadline(deadline : Time) : Nil
+    @stream_contexts[1] = GRPC::ServerContext.new("peer", deadline: deadline)
   end
 
   def finish_data_frame : Nil
@@ -73,15 +81,16 @@ describe "GRPC streaming send buffers" do
     end
   end
 
-  it "bounds a stalled consumer's queue and returns RESOURCE_EXHAUSTED" do
+  it "bounds a stalled consumer's queue and waits only until the deadline" do
     connection = StreamingBufferProbe.new
     begin
       connection.stage_buffer
       8.times { connection.send_chunk }
-      error = expect_raises(GRPC::StatusError, "HTTP/2 consumer stalled") do
+      connection.set_deadline(Time.utc + 50.milliseconds)
+      error = expect_raises(GRPC::StatusError) do
         connection.send_chunk
       end
-      error.code.should eq(GRPC::StatusCode::RESOURCE_EXHAUSTED)
+      error.code.should eq(GRPC::StatusCode::DEADLINE_EXCEEDED)
       connection.queued_chunks.should eq(8)
     ensure
       connection.close

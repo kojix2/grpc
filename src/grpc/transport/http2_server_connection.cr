@@ -126,12 +126,16 @@ module GRPC
       @stream_terminated : Set(Int32)
       # stream_id => stop signal for deadline watcher fiber
       @deadline_watch_stops : Hash(Int32, ::Channel(Nil))
+      @send_bytes : Hash(Int32, Int64)
+      @total_send_bytes : Int64
+      @send_changed : ::Channel(Nil)
 
       def initialize(socket : IO, services : Hash(String, Service),
                      interceptors : Array(ServerInterceptor) = [] of ServerInterceptor,
                      peer_address : String = "unknown",
                      tls_socket : OpenSSL::SSL::Socket::Server? = nil,
-                     @receive_limits : ReceiveLimits = ReceiveLimits.new)
+                     @receive_limits : ReceiveLimits = ReceiveLimits.new,
+                     @send_limits : SendLimits = SendLimits.new)
         super(socket, peer_address)
         @services = services
         @interceptors = interceptors
@@ -148,6 +152,9 @@ module GRPC
         @stream_headers_sent = Set(Int32).new
         @stream_terminated = Set(Int32).new
         @deadline_watch_stops = {} of Int32 => ::Channel(Nil)
+        @send_bytes = {} of Int32 => Int64
+        @total_send_bytes = 0_i64
+        @send_changed = ::Channel(Nil).new
         setup_session(server_side: true)
       end
 
@@ -255,6 +262,7 @@ module GRPC
       end
 
       def on_stream_close_cb(stream_id : Int32, error_code : UInt32) : Nil
+        release_send_bytes(stream_id, @send_bytes[stream_id]? || 0_i64)
         @stream_boxes.delete(stream_id)
         @response_ctxs.delete(stream_id)
         @stream_send_bufs.delete(stream_id)
@@ -282,6 +290,7 @@ module GRPC
           # source is exhausted; release its GC anchor at that point.
           if buffer = @stream_send_bufs[stream_id]?
             return if buffer.remaining > 0
+            release_send_bytes(stream_id, buffer.data.size.to_i64)
           end
           @stream_send_bufs.delete(stream_id)
           @stream_send_boxes.delete(stream_id)
@@ -372,7 +381,7 @@ module GRPC
           writer = RawResponseStream.new(->(framed : Bytes) {
             send_stream_headers(stream_id, ctx.initial_metadata)
             send_stream_chunk(stream_id, framed)
-          })
+          }, max_message_size: @send_limits.max_message_size)
           status = dispatch_bidi_stream(method_name, state.requests, ctx, writer, service)
           send_stream_headers(stream_id, ctx.initial_metadata)
           send_stream_trailers(stream_id, state.error_status || status, ctx.trailing_metadata)
@@ -401,7 +410,7 @@ module GRPC
             ctx.check_active!
             send_stream_headers(stream_id, ctx.initial_metadata)
             send_stream_chunk(stream_id, framed)
-          })
+          }, max_message_size: @send_limits.max_message_size)
           status = dispatch_server_stream(method_name, decoded, ctx, writer, service)
           send_stream_headers(stream_id, ctx.initial_metadata)
           send_stream_trailers(stream_id, status, ctx.trailing_metadata)
@@ -505,27 +514,68 @@ module GRPC
       end
 
       private def send_stream_chunk(stream_id : Int32, framed_bytes : Bytes) : Nil
-        deadline = Time.instant + 5.seconds
+        if framed_bytes.size - 5 > @send_limits.max_message_size ||
+           framed_bytes.size > @send_limits.max_buffered_bytes ||
+           framed_bytes.size > @send_limits.max_connection_buffered_bytes
+          raise StatusError.new(StatusCode::RESOURCE_EXHAUSTED, "message exceeds server send limit")
+        end
         loop do
-          accepted = @mutex.synchronize do
+          accepted, signal, ctx = @mutex.synchronize do
             raise ConnectionError.new("stream closed") if @closed || @session.null? || stream_terminated?(stream_id)
-            if @stream_data_in_flight.includes?(stream_id)
-              queue = (@stream_pending_chunks[stream_id] ||= Deque(Bytes).new)
-              if queue.size < 8
-                queue << framed_bytes
-                true
+            context = @stream_contexts[stream_id]?
+            context.try &.check_active!
+            stream_bytes = @send_bytes[stream_id]? || 0_i64
+            if stream_bytes + framed_bytes.size <= @send_limits.max_buffered_bytes &&
+               @total_send_bytes + framed_bytes.size <= @send_limits.max_connection_buffered_bytes
+              @send_bytes[stream_id] = stream_bytes + framed_bytes.size
+              @total_send_bytes += framed_bytes.size
+              if @stream_data_in_flight.includes?(stream_id)
+                (@stream_pending_chunks[stream_id] ||= Deque(Bytes).new) << framed_bytes
               else
-                false
+                submit_stream_chunk_now(stream_id, framed_bytes, flush: true)
               end
+              {true, nil, context}
             else
-              submit_stream_chunk_now(stream_id, framed_bytes, flush: true)
-              true
+              {false, @send_changed, context}
             end
           end
           return if accepted
-          raise StatusError.new(StatusCode::RESOURCE_EXHAUSTED, "HTTP/2 consumer stalled") if Time.instant >= deadline
-          sleep 1.millisecond
+          changed = signal.not_nil!
+          if context = ctx
+            if deadline = context.deadline
+              remaining = deadline - Time.utc
+              context.check_active! if remaining <= Time::Span.zero
+              select
+              when changed.receive?
+              when context.cancellation_signal.receive?
+              when timeout(remaining)
+              end
+            else
+              select
+              when changed.receive?
+              when context.cancellation_signal.receive?
+              end
+            end
+            context.check_active!
+          else
+            changed.receive?
+          end
         end
+      end
+
+      private def release_send_bytes(stream_id : Int32, bytes : Int64) : Nil
+        return if bytes == 0
+        remaining = (@send_bytes[stream_id]? || 0_i64) - bytes
+        raise "server send budget underflow" if remaining < 0
+        if remaining == 0
+          @send_bytes.delete(stream_id)
+        else
+          @send_bytes[stream_id] = remaining
+        end
+        @total_send_bytes -= bytes
+        previous = @send_changed
+        @send_changed = ::Channel(Nil).new
+        previous.close
       end
 
       private def submit_stream_chunk_now(stream_id : Int32, framed_bytes : Bytes, flush : Bool) : Nil
@@ -538,7 +588,12 @@ module GRPC
         src.ptr = boxed
         dp = LibNghttp2::DataProvider.new(source: src, read_callback: STREAMING_DATA_READ_CB)
         rc = LibNghttp2.submit_data(@session, LibNghttp2::FLAG_NONE, stream_id, pointerof(dp))
-        raise ConnectionError.new("submit_data failed: #{String.new(LibNghttp2.strerror(rc))} (#{rc})") if rc < 0
+        if rc < 0
+          @stream_send_bufs.delete(stream_id)
+          @stream_send_boxes.delete(stream_id)
+          release_send_bytes(stream_id, framed_bytes.size.to_i64)
+          raise ConnectionError.new("submit_data failed: #{String.new(LibNghttp2.strerror(rc))} (#{rc})")
+        end
         @stream_data_in_flight.add(stream_id)
         flush_send if flush
       end
@@ -569,10 +624,13 @@ module GRPC
       private def send_response(stream_id : Int32, body : Bytes, status : Status,
                                 trailers : Metadata = Metadata.new,
                                 initial_metadata : Metadata = Metadata.new) : Nil
+        if body.size > @send_limits.max_message_size
+          raise StatusError.new(StatusCode::RESOURCE_EXHAUSTED, "message exceeds server send limit")
+        end
+        framed = Codec.encode(body)
         @mutex.synchronize do
           return if @closed || @session.null? || stream_terminated?(stream_id)
           mark_stream_terminated(stream_id)
-          framed = Codec.encode(body)
           trailer_entries = build_trailer_entries(status, trailers)
           resp_ctx = ResponseContext.new(
             framed, stream_id, trailer_entries
@@ -665,6 +723,11 @@ module GRPC
         @stream_pending_chunks.clear
         @stream_pending_trailers.clear
         @stream_data_in_flight.clear
+        @send_bytes.clear
+        @total_send_bytes = 0_i64
+        previous = @send_changed
+        @send_changed = ::Channel(Nil).new
+        previous.close
         @live_request_states = {} of Int32 => LiveRequestState
         @stream_contexts = {} of Int32 => ServerContext
         @stream_headers_sent.clear

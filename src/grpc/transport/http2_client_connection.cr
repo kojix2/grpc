@@ -3,6 +3,7 @@ require "./flow_controlled_buffer"
 require "./grpc_status_interpreter"
 require "./interface"
 require "./stream_state"
+require "./send_budget"
 require "../endpoint"
 
 module GRPC
@@ -269,17 +270,26 @@ module GRPC
       @deferred : Bool
       @resume_requested : Bool
       @lsb_mutex : Mutex
+      @stream_budget : SendBudget
+      @connection_budget : SendBudget
+      @close_signal : ::Channel(Nil)
+      @context : ClientContext?
+      @limits : SendLimits
       # Counting semaphore for bounded mode.  Pre-filled with *capacity* permits;
       # push consumes one permit (blocks when 0), read_into returns one on shift.
       @permits : ::Channel(Bool)?
 
-      def initialize(capacity : Int32 = 0)
+      def initialize(capacity : Int32 = 0, @limits : SendLimits = SendLimits.new,
+                     connection_budget : SendBudget? = nil, @context : ClientContext? = nil)
         @deque = Deque(Bytes).new
         @current = nil
         @closed = false
         @deferred = false
         @resume_requested = false
         @lsb_mutex = Mutex.new
+        @stream_budget = SendBudget.new(@limits.max_buffered_bytes.to_i64)
+        @connection_budget = connection_budget || SendBudget.new(@limits.max_connection_buffered_bytes)
+        @close_signal = ::Channel(Nil).new
         if capacity > 0
           permits = ::Channel(Bool).new(capacity)
           capacity.times { permits.send(true) }
@@ -290,18 +300,38 @@ module GRPC
       end
 
       def push(bytes : Bytes) : Nil
-        @lsb_mutex.synchronize do
-          raise SendClosedError.new if @closed
-        end
-        if permits = @permits
-          unless permits.receive?
-            raise SendClosedError.new
+        validate_message_size!(bytes.size - 5) if bytes.size >= 5
+        @stream_budget.acquire(bytes.size, @close_signal, @context)
+        connection_reserved = false
+        accepted = false
+        begin
+          @connection_budget.acquire(bytes.size, @close_signal, @context)
+          connection_reserved = true
+          @lsb_mutex.synchronize do
+            raise SendClosedError.new if @closed
+          end
+          if permits = @permits
+            unless permits.receive?
+              raise SendClosedError.new
+            end
+          end
+          @lsb_mutex.synchronize do
+            raise SendClosedError.new if @closed
+            @deque.push(bytes)
+            @resume_requested = true
+            accepted = true
+          end
+        ensure
+          unless accepted
+            @stream_budget.release(bytes.size)
+            @connection_budget.release(bytes.size) if connection_reserved
           end
         end
-        @lsb_mutex.synchronize do
-          raise SendClosedError.new if @closed
-          @deque.push(bytes)
-          @resume_requested = true
+      end
+
+      def validate_message_size!(size : Int32) : Nil
+        if size > @limits.max_message_size
+          raise StatusError.new(StatusCode::RESOURCE_EXHAUSTED, "message exceeds send limit: #{size} > #{@limits.max_message_size}")
         end
       end
 
@@ -312,6 +342,7 @@ module GRPC
           @closed = true
           @resume_requested = true
           permits = @permits
+          @close_signal.close
         end
         permits.try &.close
       end
@@ -324,8 +355,11 @@ module GRPC
       def abort : Nil
         close
         @lsb_mutex.synchronize do
+          retained = @deque.sum(0_i64) { |bytes| bytes.size.to_i64 }
+          retained += @current.try(&.size) || 0
           @deque.clear
           @current = nil
+          release_bytes(retained.to_i32)
         end
       end
 
@@ -381,6 +415,7 @@ module GRPC
       private def advance_current_if_exhausted : Nil
         if (cur = @current) && cur.pos == cur.size
           @current = nil
+          release_bytes(cur.size.to_i32)
         end
       end
 
@@ -392,8 +427,17 @@ module GRPC
         return LibNghttp2::ERR_DEFERRED.to_i64 if to_copy == 0
         buf.copy_from(cur.to_slice.to_unsafe + cur.pos, to_copy)
         cur.pos += to_copy
-        data_flags.value |= LibNghttp2::DATA_FLAG_EOF if cur.pos == cur.size && @deque.empty? && @closed
+        if cur.pos == cur.size
+          data_flags.value |= LibNghttp2::DATA_FLAG_EOF if @deque.empty? && @closed
+          @current = nil
+          release_bytes(cur.size.to_i32)
+        end
         to_copy.to_i64
+      end
+
+      private def release_bytes(bytes : Int32) : Nil
+        @stream_budget.release(bytes)
+        @connection_budget.release(bytes)
       end
     end
 
@@ -437,6 +481,7 @@ module GRPC
       @tls_socket_anchor : OpenSSL::SSL::Socket::Client?
       @use_tls : Bool
       @endpoint_config : EndpointConfig
+      @send_budget : SendBudget
       @target_authority : String
       @draining = false
 
@@ -458,6 +503,7 @@ module GRPC
         @tls_socket_anchor = nil
         @use_tls = use_tls
         @endpoint_config = endpoint_config
+        @send_budget = SendBudget.new(endpoint_config.send_limits.max_connection_buffered_bytes)
         @target_authority = "#{host}:#{port}"
 
         io : IO
@@ -613,7 +659,7 @@ module GRPC
 
       private def pending_to_raw_client_call(ps : PendingStream) : RawClientCall
         RawClientCall.new(
-          ->(b : Bytes) { ps.send_outgoing(Codec.encode(b, compress: ps.outbound_compression?)) },
+          ->(b : Bytes) { encode_live_message(ps, b) },
           -> {
             ps.close_send
             # Drain the channel until it is closed (nil sentinel).
@@ -639,7 +685,7 @@ module GRPC
 
       private def pending_to_raw_bidi_call(ps : PendingStream) : RawBidiCall
         RawBidiCall.new(
-          ->(b : Bytes) { ps.send_outgoing(Codec.encode(b, compress: ps.outbound_compression?)) },
+          ->(b : Bytes) { encode_live_message(ps, b) },
           stream_close_proc(ps),
           ps.messages,
           stream_headers_proc(ps),
@@ -652,6 +698,11 @@ module GRPC
 
       private def stream_headers_proc(ps : PendingStream) : -> Metadata
         -> { ps.grpc_headers }
+      end
+
+      private def encode_live_message(ps : PendingStream, bytes : Bytes) : Nil
+        ps.live_send_buf.try &.validate_message_size!(bytes.size)
+        ps.send_outgoing(Codec.encode(bytes, compress: ps.outbound_compression?))
       end
 
       private def stream_status_proc(ps : PendingStream) : -> Status
@@ -814,7 +865,8 @@ module GRPC
           ctx.try &.check_active!
           metadata = ctx.effective_metadata if ctx
           ensure_accepting_calls!
-          lsb = LiveSendBuffer.new(send_queue_size)
+          limits = ctx.try(&.send_limits) || @endpoint_config.send_limits
+          lsb = LiveSendBuffer.new(send_queue_size, limits, @send_budget, ctx)
           ps.live_send_buf = lsb
           ps.outbound_compression = request_compression?(metadata)
 
