@@ -67,6 +67,20 @@ on the old connection. Calls are not automatically retried.
 TLS configures `h2` ALPN on supplied client and server contexts as well as
 default contexts. The client requires the peer to negotiate `h2`.
 
+Connection attempts are shared between callers; each `ClientContext` can stop
+waiting at its own deadline or through `ctx.cancel`. The default connection
+timeout is 10 seconds; `EndpointConfig#connect_timeout` also bounds the TLS
+handshake. Failed attempts use `BackoffConfig` before the next attempt. A
+failed RPC is never automatically replayed. The default HTTP/2 transport also
+propagates context cancellation to active RPCs; custom transports must implement
+the context-aware overloads to provide the same behavior.
+
+HTTP/2 PING keepalive is disabled unless `EndpointConfig#keepalive` is set.
+Configure its interval with the service owner: overly frequent PINGs can cause
+the peer to send GOAWAY. TCP keepalive and HTTP/2 PING are separate mechanisms.
+When the Crystal socket API supports setting the TCP keepalive idle time,
+`EndpointConfig#tcp_keepalive` also configures that time.
+
 ## Receive limits
 
 `GRPC::ReceiveLimits` defaults to 64 MiB each for wire payload, decoded message
@@ -80,8 +94,32 @@ Regenerate existing `.grpc.cr` clients to use on-demand typed response decoding.
 Responses are decoded when iterated, so unread data stays in the transport's
 byte budget.
 
-Clients can send gzip requests and decode gzip responses. Servers decode gzip
-requests and currently send uncompressed responses.
+Clients can send gzip requests with `ClientContext.new(compression: "gzip")`
+and decode gzip responses. Servers decode gzip requests. Set
+`Server.new(response_compression: true)` to compress responses when the client
+advertises gzip. Reflection serves both v1 and v1alpha.
+
+## Send limits
+
+`GRPC::SendLimits` defaults to 64 MiB per message, 64 MiB plus the frame header
+per streaming queue, and 256 MiB across streaming queues on one connection.
+Set it through `EndpointConfig.new(send_limits: limits)` on clients,
+`ClientContext.new(send_limits: limits)` for a client stream override, or
+`Server.new(send_limits: limits)` on default servers. The connection-wide
+limit comes from the endpoint, not the per-call override. Oversized messages
+raise `RESOURCE_EXHAUSTED`; a full queue waits for capacity, deadline or
+cancellation. These limits cover retained streaming frames, not unary bodies,
+temporary encoding buffers, application-owned data or process-wide RAM.
+The socket writer separately buffers approximately 256 KiB of serialized
+HTTP/2 output, plus at most one nghttp2 output chunk, per connection.
+
+With an updated proto.cr runtime and regenerated message and gRPC stubs, set
+`ClientContext.new(protobuf_options: GRPC::ProtobufOptions.new(...))` and
+`Server.new(protobuf_options: ...)` to configure the Protobuf limits. A custom
+`marshaller_for` can also return `ProtoMarshaller(T).new` with `encode_options:`
+and `decode_options:`. Existing generated types continue to work with the
+default marshaller; requesting options with an old message type raises an
+argument error. Protobuf limits are independent of gRPC frame limits.
 
 ## Test
 

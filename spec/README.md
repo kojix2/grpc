@@ -47,9 +47,18 @@ crystal spec spec/transport/pending_stream_spec.cr
 crystal spec spec/api spec/transport
 crystal spec --order 20261101
 crystal spec spec/grpcurl.cr
+crystal spec spec/grpc_go_server.cr  # requires the built grpc-go peer
 # With GripMock running as configured in CI:
 crystal spec spec/gripmock.cr
 crystal tool format --check
+```
+
+`spec/protobuf_options.cr` is an explicit cross-repository suite that requires
+the updated proto.cr runtime. With a sibling `../proto.cr` checkout, run:
+
+```sh
+CRYSTAL_PATH="$(cd ../proto.cr && pwd)/src:$(crystal env CRYSTAL_PATH)" \
+  crystal spec spec/protobuf_options.cr
 ```
 
 ## Client interoperability
@@ -72,8 +81,9 @@ The TLS fixture disables certificate verification for its local self-signed
 certificate; it exercises TLS negotiation, not CA or hostname verification.
 
 This is client-focused. It does not claim official full gRPC conformance,
-server interoperability, real-device MinKNOW compatibility or multithreaded
-transport support.
+real-device MinKNOW compatibility or multithreaded transport support. The
+separate `spec/grpc_go_server.cr` uses the same peer as a Go client to test a
+server-first bidi response and connection reuse after a rejected RPC.
 
 CI runs this suite against both the committed Go dependencies (`locked`) and
 the latest released grpc-go/Protobuf dependencies (`latest`), using stable Go.
