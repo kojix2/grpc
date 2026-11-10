@@ -7,17 +7,39 @@ module GRPC
       abstract def unary_call(service : String, method : String,
                               request_body : Bytes, metadata : Metadata) : ResponseEnvelope
 
+      # Custom transports may override the context-aware overloads to observe
+      # cancellation after submission. Existing transports remain compatible.
+      def unary_call(service : String, method : String,
+                     request_body : Bytes, ctx : ClientContext) : ResponseEnvelope
+        unary_call(service, method, request_body, ctx.effective_metadata)
+      end
+
       abstract def open_server_stream(service : String, method : String,
                                       request_bytes : Bytes,
                                       metadata : Metadata) : RawServerStream
+
+      def open_server_stream(service : String, method : String,
+                             request_bytes : Bytes, ctx : ClientContext) : RawServerStream
+        open_server_stream(service, method, request_bytes, ctx.effective_metadata)
+      end
 
       abstract def open_bidi_stream_live(service : String, method : String,
                                          metadata : Metadata,
                                          send_queue_size : Int32) : RawBidiCall
 
+      def open_bidi_stream_live(service : String, method : String,
+                                ctx : ClientContext, send_queue_size : Int32) : RawBidiCall
+        open_bidi_stream_live(service, method, ctx.effective_metadata, send_queue_size)
+      end
+
       abstract def open_client_stream_live(service : String, method : String,
                                            metadata : Metadata,
                                            send_queue_size : Int32) : RawClientCall
+
+      def open_client_stream_live(service : String, method : String,
+                                  ctx : ClientContext, send_queue_size : Int32) : RawClientCall
+        open_client_stream_live(service, method, ctx.effective_metadata, send_queue_size)
+      end
 
       abstract def closed? : Bool
 

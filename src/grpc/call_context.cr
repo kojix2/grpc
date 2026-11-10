@@ -12,6 +12,7 @@ module GRPC
     getter peer : String
     getter trailing_metadata : Metadata
     getter initial_metadata : Metadata
+    getter cancellation_signal : ::Channel(Nil)
     property deadline : Time?
 
     @cancelled : Atomic(Bool)
@@ -20,11 +21,13 @@ module GRPC
       @trailing_metadata = Metadata.new
       @initial_metadata = Metadata.new
       @cancelled = Atomic(Bool).new(false)
+      @cancellation_signal = ::Channel(Nil).new
     end
 
     # cancel marks this call as cancelled from the server side.
     def cancel : Nil
-      @cancelled.set(true)
+      return unless @cancelled.compare_and_set(false, true)[1]
+      @cancellation_signal.close
     end
 
     def cancelled? : Bool
@@ -64,6 +67,7 @@ module GRPC
   class ClientContext
     getter metadata : Metadata
     property deadline : Time?
+    getter cancellation_signal : ::Channel(Nil)
 
     def initialize(
       metadata : Hash(String, String) | Metadata = Metadata.new,
@@ -77,6 +81,8 @@ module GRPC
                   when Time::Span then Time.utc + deadline
                   when Time       then deadline
                   end
+      @cancelled = Atomic(Bool).new(false)
+      @cancellation_signal = ::Channel(Nil).new
     end
 
     # effective_metadata returns the call metadata including grpc-timeout if a deadline is set.
@@ -105,8 +111,19 @@ module GRPC
       Time.utc >= dl
     end
 
+    # Cancellation wakes fibers waiting for a connection or a channel permit.
+    def cancel : Nil
+      return unless @cancelled.compare_and_set(false, true)[1]
+      @cancellation_signal.close
+    end
+
+    def cancelled? : Bool
+      @cancelled.get
+    end
+
     def check_active! : Nil
       raise StatusError.new(StatusCode::DEADLINE_EXCEEDED, "deadline exceeded") if timed_out?
+      raise StatusError.new(StatusCode::CANCELLED, "call cancelled") if cancelled?
     end
 
     private def encode_timeout(remaining : Time::Span) : String

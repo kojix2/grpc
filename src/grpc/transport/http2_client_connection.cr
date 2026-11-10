@@ -400,7 +400,8 @@ module GRPC
     # Http2ClientConnection manages one HTTP/2 connection from a gRPC client.
     class Http2ClientConnection < Http2Connection
       include ClientTransport
-      DATA_READ_CB = LibNghttp2::DataSourceReadCallback.new do |_session, _stream_id, buf, length, data_flags, source, _user_data|
+      DEFAULT_CONNECT_TIMEOUT = 10.seconds
+      DATA_READ_CB            = LibNghttp2::DataSourceReadCallback.new do |_session, _stream_id, buf, length, data_flags, source, _user_data|
         sb = Box(SendBuffer).unbox(source.value.ptr)
         to_copy = Math.min(length.to_i, sb.remaining).to_i
         if to_copy == 0
@@ -446,11 +447,9 @@ module GRPC
       def initialize(host : String, port : Int32, use_tls : Bool = false,
                      tls_context : OpenSSL::SSL::Context::Client? = nil,
                      endpoint_config : EndpointConfig = EndpointConfig.new)
-        tcp = if connect_timeout = endpoint_config.connect_timeout
-                TCPSocket.new(host, port, connect_timeout: connect_timeout)
-              else
-                TCPSocket.new(host, port)
-              end
+        connect_timeout = endpoint_config.connect_timeout || DEFAULT_CONNECT_TIMEOUT
+        started = Time.instant
+        tcp = TCPSocket.new(host, port, dns_timeout: connect_timeout, connect_timeout: connect_timeout)
         tcp.tcp_nodelay = true
         apply_keepalive_options(tcp, endpoint_config)
         peer = tcp.remote_address.to_s rescue "#{host}:#{port}"
@@ -463,16 +462,53 @@ module GRPC
 
         io : IO
         if use_tls
-          ctx = tls_context || OpenSSL::SSL::Context::Client.new
-          ctx.alpn_protocol = "h2"
-          ssl_socket = OpenSSL::SSL::Socket::Client.new(tcp, ctx, sync_close: true, hostname: host)
-          unless ssl_socket.alpn_protocol == "h2"
-            ssl_socket.close
-            raise ConnectionError.new("TLS peer did not negotiate h2 ALPN")
+          begin
+            remaining = connect_timeout - (Time.instant - started)
+            raise ConnectionError.new("connection timed out before TLS handshake") if remaining <= Time::Span.zero
+            tcp.read_timeout = remaining
+            tcp.write_timeout = remaining
+            ctx = tls_context || OpenSSL::SSL::Context::Client.new
+            ctx.alpn_protocol = "h2"
+            handshake_stop = ::Channel(Nil).new
+            handshake_mutex = Mutex.new
+            handshake_finished = false
+            handshake_expired = false
+            spawn do
+              select
+              when handshake_stop.receive?
+              when timeout(remaining)
+                handshake_mutex.synchronize do
+                  unless handshake_finished
+                    handshake_expired = true
+                    tcp.close rescue nil
+                  end
+                end
+              end
+            end
+            begin
+              ssl_socket = OpenSSL::SSL::Socket::Client.new(tcp, ctx, sync_close: true, hostname: host)
+              handshake_mutex.synchronize do
+                raise ConnectionError.new("TLS handshake timed out") if handshake_expired
+                handshake_finished = true
+              end
+            ensure
+              handshake_mutex.synchronize { handshake_finished = true }
+              handshake_stop.close
+            end
+            unless ssl_socket.alpn_protocol == "h2"
+              ssl_socket.close
+              raise ConnectionError.new("TLS peer did not negotiate h2 ALPN")
+            end
+            @tls_context_anchor = ctx
+            @tls_socket_anchor = ssl_socket
+            io = ssl_socket
+          rescue ex
+            tcp.close rescue nil
+            raise ex
+          ensure
+            tcp.read_timeout = nil
+            tcp.write_timeout = nil
           end
-          @tls_context_anchor = ctx
-          @tls_socket_anchor = ssl_socket
-          io = ssl_socket
         else
           io = tcp
         end
@@ -509,12 +545,26 @@ module GRPC
           Codec.encode(request_body, compress: request_compression?(metadata)), metadata)
       end
 
+      def unary_call(service : String, method : String, request_body : Bytes,
+                     ctx : ClientContext) : ResponseEnvelope
+        metadata = ctx.effective_metadata
+        submit_unary_request(service, method,
+          Codec.encode(request_body, compress: request_compression?(metadata)), metadata, ctx)
+      end
+
       # open_server_stream sends one gRPC request and returns a RawServerStream that
       # delivers server-pushed messages as they arrive.
       def open_server_stream(service : String, method : String, request_bytes : Bytes,
                              metadata : Metadata = Metadata.new) : RawServerStream
         pending_to_raw_stream(submit_streaming_request(service, method,
           Codec.encode(request_bytes, compress: request_compression?(metadata)), metadata))
+      end
+
+      def open_server_stream(service : String, method : String, request_bytes : Bytes,
+                             ctx : ClientContext) : RawServerStream
+        metadata = ctx.effective_metadata
+        pending_to_raw_stream(submit_streaming_request(service, method,
+          Codec.encode(request_bytes, compress: request_compression?(metadata)), metadata, ctx))
       end
 
       # open_bidi_stream_live opens a true full-duplex bidi stream.
@@ -528,6 +578,11 @@ module GRPC
         pending_to_raw_bidi_call(submit_bidi_stream_live(service, method, metadata, send_queue_size))
       end
 
+      def open_bidi_stream_live(service : String, method : String,
+                                ctx : ClientContext, send_queue_size : Int32) : RawBidiCall
+        pending_to_raw_bidi_call(submit_bidi_stream_live(service, method, ctx.effective_metadata, send_queue_size, ctx))
+      end
+
       # open_client_stream_live opens a live client-streaming RPC.
       # Returns a RawClientCall whose send_raw / close_and_recv methods let the
       # caller send messages incrementally; the server's single response arrives
@@ -538,6 +593,11 @@ module GRPC
                                   metadata : Metadata = Metadata.new,
                                   send_queue_size : Int32 = 0) : RawClientCall
         pending_to_raw_client_call(submit_bidi_stream_live(service, method, metadata, send_queue_size))
+      end
+
+      def open_client_stream_live(service : String, method : String,
+                                  ctx : ClientContext, send_queue_size : Int32) : RawClientCall
+        pending_to_raw_client_call(submit_bidi_stream_live(service, method, ctx.effective_metadata, send_queue_size, ctx))
       end
 
       # ---- Private submission helpers ----
@@ -614,10 +674,12 @@ module GRPC
       # unary response arrives.  Shared by unary_call and client_stream_call.
       private def submit_unary_request(service : String, method : String,
                                        framed_body : Bytes,
-                                       metadata : Metadata) : ResponseEnvelope
+                                       metadata : Metadata, ctx : ClientContext? = nil) : ResponseEnvelope
         call = PendingCall.new(@endpoint_config.receive_limits)
 
         @mutex.synchronize do
+          ctx.try &.check_active!
+          metadata = ctx.effective_metadata if ctx
           ensure_accepting_calls!
           sb = SendBuffer.new(framed_body)
           call.send_buf = sb
@@ -639,7 +701,7 @@ module GRPC
           @stream_boxes[stream_id] = boxed_call
           @data_source_boxes[stream_id] = boxed_src
           call.cancel_proc = build_cancel_proc(stream_id)
-          start_deadline_watcher(stream_id, metadata, call)
+          start_deadline_watcher(stream_id, metadata, call, ctx)
           flush_send
         end
 
@@ -692,10 +754,12 @@ module GRPC
       # the server-streamed response.  Shared by open_server_stream and open_bidi_stream.
       private def submit_streaming_request(service : String, method : String,
                                            framed_body : Bytes,
-                                           metadata : Metadata) : PendingStream
+                                           metadata : Metadata, ctx : ClientContext? = nil) : PendingStream
         ps = PendingStream.new(@endpoint_config.receive_limits)
 
         @mutex.synchronize do
+          ctx.try &.check_active!
+          metadata = ctx.effective_metadata if ctx
           ensure_accepting_calls!
           sb = SendBuffer.new(framed_body)
           ps.send_buf = sb
@@ -717,7 +781,7 @@ module GRPC
           @pending_streams[stream_id] = ps
           @stream_boxes[stream_id] = boxed_ps
           @data_source_boxes[stream_id] = boxed_src
-          start_deadline_watcher(stream_id, metadata, ps)
+          start_deadline_watcher(stream_id, metadata, ps, ctx)
 
           # Wire up the cancel proc so PendingStream.cancel can send RST_STREAM.
           ps.cancel_proc = -> {
@@ -742,10 +806,13 @@ module GRPC
       # messages via PendingStream#send_outgoing, which calls session_resume_data.
       private def submit_bidi_stream_live(service : String, method : String,
                                           metadata : Metadata,
-                                          send_queue_size : Int32 = 0) : PendingStream
+                                          send_queue_size : Int32 = 0,
+                                          ctx : ClientContext? = nil) : PendingStream
         ps = PendingStream.new(@endpoint_config.receive_limits)
 
         @mutex.synchronize do
+          ctx.try &.check_active!
+          metadata = ctx.effective_metadata if ctx
           ensure_accepting_calls!
           lsb = LiveSendBuffer.new(send_queue_size)
           ps.live_send_buf = lsb
@@ -766,7 +833,7 @@ module GRPC
           ps.inbound.consumed = ->(bytes : Int32) { consume_stream_bytes(stream_id, bytes) }
           @pending_streams[stream_id] = ps
           @stream_boxes[stream_id] = boxed_ps
-          start_deadline_watcher(stream_id, metadata, ps)
+          start_deadline_watcher(stream_id, metadata, ps, ctx)
 
           ps.send_resume_proc = build_live_resume_proc(ps, stream_id)
           ps.cancel_proc = build_cancel_proc(stream_id)
@@ -986,34 +1053,57 @@ module GRPC
 
       # ameba:disable Metrics/CyclomaticComplexity
       private def start_deadline_watcher(stream_id : Int32, metadata : Metadata,
-                                         terminal : PendingCall | PendingStream) : Nil
+                                         terminal : PendingCall | PendingStream,
+                                         ctx : ClientContext? = nil) : Nil
         timeout_value = metadata.get("grpc-timeout")
-        return unless timeout_value
-        duration = parse_timeout(timeout_value)
-        return unless duration
+        duration = timeout_value.try { |value| parse_timeout(value) }
+        return unless duration || ctx
 
-        deadline = Time.instant + duration
+        deadline = duration.try { |value| Time.instant + value }
         terminal.deadline = deadline
         stop = ::Channel(Nil).new(1)
         @deadline_watch_stops[stream_id] = stop
         spawn do
-          expired = false
-          # Scheduling this fiber must not extend the RPC's timeout.
-          remaining = deadline - Time.instant
-          if remaining > Time::Span.zero
-            select
-            when stop.receive
-            when timeout(remaining)
-              expired = true
-            end
-          else
-            expired = true
-          end
-          next unless expired
+          event = if expiry = deadline
+                    remaining = expiry - Time.instant
+                    if remaining <= Time::Span.zero
+                      :deadline
+                    elsif context = ctx
+                      select
+                      when stop.receive
+                        :stopped
+                      when context.cancellation_signal.receive?
+                        :cancelled
+                      when timeout(remaining)
+                        :deadline
+                      end
+                    else
+                      select
+                      when stop.receive
+                        :stopped
+                      when timeout(remaining)
+                        :deadline
+                      end
+                    end
+                  elsif context = ctx
+                    select
+                    when stop.receive
+                      :stopped
+                    when context.cancellation_signal.receive?
+                      :cancelled
+                    end
+                  else
+                    :stopped
+                  end
+          next if event == :stopped
 
           @mutex.synchronize do
             next unless @deadline_watch_stops.delete(stream_id)
-            status = Status.new(StatusCode::DEADLINE_EXCEEDED, "deadline exceeded")
+            status = if event == :deadline || (deadline && Time.instant >= deadline)
+                       Status.new(StatusCode::DEADLINE_EXCEEDED, "deadline exceeded")
+                     else
+                       Status.cancelled("call cancelled")
+                     end
             case terminal
             when PendingCall
               terminal.transport_error = status

@@ -17,10 +17,18 @@ module GRPC
   class Channel
     alias ClientTransportFactory = Proc(String, Int32, Bool, OpenSSL::SSL::Context::Client?, EndpointConfig, Transport::ClientTransport)
 
+    private class ConnectionAttempt
+      getter done = ::Channel(Nil).new
+      property error : Exception?
+    end
+
     @endpoint : Endpoint
     @endpoint_config : EndpointConfig
     @tls_context : OpenSSL::SSL::Context::Client?
     @conn : Transport::ClientTransport?
+    @connection_attempt : ConnectionAttempt?
+    @closed : Bool
+    @close_signal : ::Channel(Nil)
     @draining_connections = [] of Transport::ClientTransport
     @transport_factory : ClientTransportFactory
     @mutex : Mutex
@@ -62,6 +70,9 @@ module GRPC
       @endpoint_config = endpoint_config
       @tls_context = tls_context
       @conn = nil
+      @connection_attempt = nil
+      @closed = false
+      @close_signal = ::Channel(Nil).new
       @transport_factory = transport_factory || ->(host : String, port : Int32, use_tls : Bool, tls_ctx : OpenSSL::SSL::Context::Client?, config : EndpointConfig) {
         Transport::Http2ClientConnection.new(host, port, use_tls, tls_ctx, config).as(Transport::ClientTransport)
       }
@@ -89,9 +100,9 @@ module GRPC
 
       if @interceptors.empty?
         begin
-          connection = get_or_create_connection
+          connection = get_or_create_connection(ctx)
           ctx.check_active!
-          connection.unary_call(service, method, request_bytes, ctx.effective_metadata)
+          connection.unary_call(service, method, request_bytes, ctx)
         ensure
           release.call
         end
@@ -100,9 +111,9 @@ module GRPC
         info = CallInfo.new(method_path, RPCKind::Unary)
         req = RequestEnvelope.new(info, request_bytes)
         base = UnaryClientCall.new do |_method_path, req_env, call_ctx|
-          connection = get_or_create_connection
+          connection = get_or_create_connection(call_ctx)
           call_ctx.check_active!
-          response = connection.unary_call(service, method, req_env.raw, call_ctx.effective_metadata)
+          response = connection.unary_call(service, method, req_env.raw, call_ctx)
           ResponseEnvelope.new(
             req_env.info,
             response.raw,
@@ -154,9 +165,9 @@ module GRPC
 
       if @interceptors.empty?
         begin
-          connection = get_or_create_connection
+          connection = get_or_create_connection(ctx)
           ctx.check_active!
-          raw = connection.open_server_stream(service, method, request_bytes, ctx.effective_metadata)
+          raw = connection.open_server_stream(service, method, request_bytes, ctx)
           raw.with_on_finish(release)
         rescue ex
           release.call
@@ -167,9 +178,9 @@ module GRPC
         info = CallInfo.new(method_path, RPCKind::ServerStreaming)
         req = RequestEnvelope.new(info, request_bytes)
         base = ServerStreamClientCall.new do |_mp, req_env, call_ctx|
-          connection = get_or_create_connection
+          connection = get_or_create_connection(call_ctx)
           call_ctx.check_active!
-          connection.open_server_stream(service, method, req_env.raw, call_ctx.effective_metadata)
+          connection.open_server_stream(service, method, req_env.raw, call_ctx)
         end
         chain = Interceptors.build_client_chain(@interceptors, base)
         begin
@@ -200,9 +211,9 @@ module GRPC
       method_path = "/#{service}/#{method}"
       if @interceptors.empty?
         begin
-          connection = get_or_create_connection
+          connection = get_or_create_connection(ctx)
           ctx.check_active!
-          raw = connection.open_bidi_stream_live(service, method, ctx.effective_metadata, send_queue_size)
+          raw = connection.open_bidi_stream_live(service, method, ctx, send_queue_size)
           raw.with_on_finish(release)
         rescue ex
           release.call
@@ -210,9 +221,9 @@ module GRPC
         end
       else
         base = LiveBidiStreamClientCall.new do |_mp, call_ctx|
-          connection = get_or_create_connection
+          connection = get_or_create_connection(call_ctx)
           call_ctx.check_active!
-          connection.open_bidi_stream_live(service, method, call_ctx.effective_metadata, send_queue_size)
+          connection.open_bidi_stream_live(service, method, call_ctx, send_queue_size)
         end
         chain = Interceptors.build_client_chain(@interceptors, base)
         begin
@@ -243,9 +254,9 @@ module GRPC
       method_path = "/#{service}/#{method}"
       if @interceptors.empty?
         begin
-          connection = get_or_create_connection
+          connection = get_or_create_connection(ctx)
           ctx.check_active!
-          raw = connection.open_client_stream_live(service, method, ctx.effective_metadata, send_queue_size)
+          raw = connection.open_client_stream_live(service, method, ctx, send_queue_size)
           raw.with_on_finish(release)
         rescue ex
           release.call
@@ -253,9 +264,9 @@ module GRPC
         end
       else
         base = LiveClientStreamClientCall.new do |_mp, call_ctx|
-          connection = get_or_create_connection
+          connection = get_or_create_connection(call_ctx)
           call_ctx.check_active!
-          connection.open_client_stream_live(service, method, call_ctx.effective_metadata, send_queue_size)
+          connection.open_client_stream_live(service, method, call_ctx, send_queue_size)
         end
         chain = Interceptors.build_client_chain(@interceptors, base)
         begin
@@ -269,23 +280,93 @@ module GRPC
     end
 
     def close : Nil
-      @mutex.synchronize do
-        @conn.try &.close
-        @draining_connections.each(&.close)
+      connections = @mutex.synchronize do
+        return if @closed
+        @closed = true
+        @close_signal.close
+        if attempt = @connection_attempt
+          attempt.error = ConnectionError.new("channel closed")
+          @connection_attempt = nil
+          attempt.done.close
+        end
+        all = @draining_connections.dup
+        all << @conn.not_nil! if @conn
+        @conn = nil
         @draining_connections.clear
+        all
+      end
+      connections.each(&.close)
+    end
+
+    private def get_or_create_connection(ctx : ClientContext? = nil) : Transport::ClientTransport
+      loop do
+        ctx.try &.check_active!
+        connection, attempt = @mutex.synchronize do
+          raise ConnectionError.new("channel closed") if @closed
+          @draining_connections.reject!(&.closed?)
+          c = @conn
+          if c && c.accepting_new_calls?
+            {c, nil}
+          else
+            @draining_connections << c if c && !c.closed?
+            @conn = nil
+            pending = @connection_attempt
+            unless pending
+              pending = ConnectionAttempt.new
+              @connection_attempt = pending
+              spawn establish_connection(pending)
+            end
+            {nil, pending}
+          end
+        end
+        return connection if connection
+        pending = attempt.not_nil!
+        wait_for_connection(pending, ctx)
+        raise pending.error.not_nil! if pending.error
       end
     end
 
-    private def get_or_create_connection : Transport::ClientTransport
-      @mutex.synchronize do
-        c = @conn
-        @draining_connections.reject!(&.closed?)
-        if c.nil? || !c.accepting_new_calls?
-          @draining_connections << c if c && !c.closed?
-          c = @transport_factory.call(@endpoint.host, @endpoint.port, @endpoint.tls?, @tls_context, @endpoint_config)
-          @conn = c
+    private def establish_connection(attempt : ConnectionAttempt) : Nil
+      connection : Transport::ClientTransport? = nil
+      error : Exception? = nil
+      begin
+        connection = @transport_factory.call(@endpoint.host, @endpoint.port, @endpoint.tls?, @tls_context, @endpoint_config)
+      rescue ex
+        error = ex
+      end
+
+      discard = @mutex.synchronize do
+        if @connection_attempt.same?(attempt) && !@closed
+          @conn = connection
+          @connection_attempt = nil
+          attempt.error = error
+          attempt.done.close
+          false
+        else
+          true
         end
-        c
+      end
+      connection.try &.close if discard
+    end
+
+    private def wait_for_connection(attempt : ConnectionAttempt, ctx : ClientContext?) : Nil
+      if ctx
+        ctx.check_active!
+        if remaining = ctx.remaining
+          select
+          when attempt.done.receive?
+          when ctx.cancellation_signal.receive?
+          when timeout(remaining)
+          end
+        else
+          select
+          when attempt.done.receive?
+          when ctx.cancellation_signal.receive?
+          end
+        end
+        ctx.check_active!
+      else
+        attempt.done.receive?
       end
     end
 
@@ -359,7 +440,17 @@ module GRPC
         if remaining = ctx.try(&.remaining)
           wait_for = Math.min(wait_for, remaining)
         end
-        sleep(wait_for) if wait_for > Time::Span.zero
+        if wait_for > Time::Span.zero
+          if context = ctx
+            select
+            when context.cancellation_signal.receive?
+              context.check_active!
+            when timeout(wait_for)
+            end
+          else
+            sleep(wait_for)
+          end
+        end
       end
     end
 
@@ -368,11 +459,27 @@ module GRPC
       return -> { } unless permits
 
       ctx.try &.check_active!
-      if remaining = ctx.try(&.remaining)
-        select
-        when permits.receive
-        when timeout(remaining)
-          raise StatusError.new(StatusCode::DEADLINE_EXCEEDED, "deadline exceeded waiting for concurrency slot")
+      if context = ctx
+        if remaining = context.remaining
+          select
+          when permits.receive
+          when context.cancellation_signal.receive?
+            context.check_active!
+          when timeout(remaining)
+            raise StatusError.new(StatusCode::DEADLINE_EXCEEDED, "deadline exceeded waiting for concurrency slot")
+          end
+        else
+          select
+          when permits.receive
+          when context.cancellation_signal.receive?
+            context.check_active!
+          end
+        end
+        begin
+          context.check_active!
+        rescue ex
+          permits.send(nil)
+          raise ex
         end
       else
         permits.receive

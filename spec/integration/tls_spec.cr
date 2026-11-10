@@ -1,6 +1,65 @@
 require "../spec_helper"
 require "../support/integration_helpers"
 
+describe "TLS handshake deadlines" do
+  it "lets an RPC deadline expire while the peer stalls during the handshake" do
+    listener = TCPServer.new("127.0.0.1", 0)
+    accepted = Channel(TCPSocket).new(1)
+    spawn { accepted.send(listener.accept) }
+    context = OpenSSL::SSL::Context::Client.new
+    context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
+    channel = GRPC::Channel.new("https://127.0.0.1:#{listener.local_address.port}", tls_context: context,
+      endpoint_config: GRPC::EndpointConfig.new(connect_timeout: 2.seconds))
+    result = Channel(GRPC::StatusCode).new(1)
+    spawn do
+      channel.unary_call("test.Service", "Echo", Bytes.empty, GRPC::ClientContext.new(deadline: 50.milliseconds))
+    rescue ex : GRPC::StatusError
+      result.send(ex.code)
+    end
+    peer = accepted.receive
+    begin
+      select
+      when code = result.receive
+        code.should eq(GRPC::StatusCode::DEADLINE_EXCEEDED)
+      when timeout(1.second)
+        fail "RPC waited for the stalled TLS handshake"
+      end
+    ensure
+      peer.close
+      listener.close
+      channel.close
+    end
+  end
+
+  it "bounds a stalled TLS handshake with the connection timeout" do
+    listener = TCPServer.new("127.0.0.1", 0)
+    accepted = Channel(TCPSocket).new(1)
+    spawn { accepted.send(listener.accept) }
+    context = OpenSSL::SSL::Context::Client.new
+    context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
+    channel = GRPC::Channel.new("https://127.0.0.1:#{listener.local_address.port}", tls_context: context,
+      endpoint_config: GRPC::EndpointConfig.new(connect_timeout: 100.milliseconds))
+    result = Channel(Exception).new(1)
+    spawn do
+      channel.unary_call("test.Service", "Echo", Bytes.empty)
+    rescue ex
+      result.send(ex)
+    end
+    peer = accepted.receive
+    begin
+      select
+      when result.receive
+      when timeout(2.seconds)
+        fail "TLS handshake exceeded the connection timeout"
+      end
+    ensure
+      peer.close
+      listener.close
+      channel.close
+    end
+  end
+end
+
 describe "GRPC TLS integration" do
   it "performs a unary RPC round-trip over TLS" do
     port = find_free_port
