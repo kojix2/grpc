@@ -410,7 +410,7 @@ module GRPC
   # responses. It operates on raw Bytes and is used by the transport and interceptor
   # layers. Service implementations receive the typed ResponseStream(T) instead.
   class RawResponseStream
-    def initialize(@send_proc : Bytes -> Nil, *,
+    def initialize(@send_proc : Bytes -> Nil, *, @compress : Bool = false,
                    @max_message_size : Int32 = Int32::MAX)
     end
 
@@ -419,7 +419,7 @@ module GRPC
       if message_bytes.size > @max_message_size
         raise StatusError.new(StatusCode::RESOURCE_EXHAUSTED, "message exceeds server send limit")
       end
-      @send_proc.call(Codec.encode(message_bytes))
+      @send_proc.call(Codec.encode(message_bytes, compress: @compress))
     end
   end
 

@@ -10,10 +10,10 @@ class GRPC::RawResponseStream
 end
 
 class MalformedFrameConnection < GRPC::Transport::Http2ServerConnection
-  private def build_initial_headers(metadata : GRPC::Metadata) : Array(LibNghttp2::Nv)
-    headers = super(metadata)
-    # Production responses are uncompressed. This test peer advertises gzip
-    # so corrupt compressed DATA reaches the decompressor under valid headers.
+  private def build_initial_headers(metadata : GRPC::Metadata, compress : Bool = false) : Array(LibNghttp2::Nv)
+    headers = super(metadata, compress)
+    # Advertise manually constructed gzip DATA even when ordinary server
+    # response compression is disabled.
     if encoding = metadata.get("grpc-encoding")
       headers << make_nv("grpc-encoding", encoding)
     end

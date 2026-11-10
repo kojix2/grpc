@@ -17,6 +17,7 @@ module GRPC
     getter initial_metadata : Metadata
     getter cancellation_signal : ::Channel(Nil)
     property deadline : Time?
+    property? response_compression : Bool = false
     property protobuf_options : ProtobufOptions? = nil
 
     @cancelled : Atomic(Bool)
@@ -72,6 +73,7 @@ module GRPC
     getter metadata : Metadata
     property deadline : Time?
     getter send_limits : SendLimits?
+    getter compression : String?
     getter protobuf_options : ProtobufOptions?
     getter cancellation_signal : ::Channel(Nil)
 
@@ -79,8 +81,12 @@ module GRPC
       metadata : Hash(String, String) | Metadata = Metadata.new,
       deadline : Time::Span | Time? = nil,
       @send_limits : SendLimits? = nil,
+      @compression : String? = nil,
       @protobuf_options : ProtobufOptions? = nil,
     )
+      unless @compression.nil? || @compression.in?("identity", "gzip")
+        raise ArgumentError.new("compression must be identity or gzip")
+      end
       @metadata = case metadata
                   when Metadata then metadata
                   else               Metadata.new(metadata)
@@ -96,12 +102,15 @@ module GRPC
     # effective_metadata returns the call metadata including grpc-timeout if a deadline is set.
     def effective_metadata : Metadata
       dl = @deadline
-      return @metadata unless dl
+      return @metadata unless dl || @compression
 
-      remaining = dl - Time.utc
       m = Metadata.new
       m.merge!(@metadata)
-      m.set("grpc-timeout", encode_timeout(remaining)) if remaining > Time::Span.zero
+      if deadline = dl
+        remaining = deadline - Time.utc
+        m.set("grpc-timeout", encode_timeout(remaining)) if remaining > Time::Span.zero
+      end
+      m.set("grpc-encoding", @compression.not_nil!) if @compression
       m
     end
 

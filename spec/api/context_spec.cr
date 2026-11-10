@@ -1,6 +1,14 @@
 require "../spec_helper"
 
 describe GRPC::ClientContext do
+  it "sets request compression without mutating the caller's metadata" do
+    metadata = GRPC::Metadata.new
+    ctx = GRPC::ClientContext.new(metadata: metadata, compression: "gzip")
+    ctx.effective_metadata.get("grpc-encoding").should eq("gzip")
+    metadata.get("grpc-encoding").should be_nil
+    expect_raises(ArgumentError) { GRPC::ClientContext.new(compression: "unsupported") }
+  end
+
   describe "metadata" do
     it "holds metadata from a hash" do
       ctx = GRPC::ClientContext.new(metadata: {"authorization" => "Bearer token"})

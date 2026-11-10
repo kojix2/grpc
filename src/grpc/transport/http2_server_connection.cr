@@ -136,6 +136,7 @@ module GRPC
                      tls_socket : OpenSSL::SSL::Socket::Server? = nil,
                      @receive_limits : ReceiveLimits = ReceiveLimits.new,
                      @send_limits : SendLimits = SendLimits.new,
+                     @response_compression : Bool = false,
                      @protobuf_options : ProtobufOptions? = nil)
         super(socket, peer_address)
         @services = services
@@ -312,6 +313,10 @@ module GRPC
         return if @stream_contexts.has_key?(stream_id) || stream_terminated?(stream_id)
         ctx = ServerContext.new(@peer_address, build_metadata(sd.headers), parse_deadline(sd.headers, sd.received_at))
         ctx.protobuf_options = @protobuf_options
+        accepts_gzip = sd.headers.get_all("grpc-accept-encoding").any? do |value|
+          value.split(',').any? { |encoding| encoding.strip == "gzip" }
+        end
+        ctx.response_compression = @response_compression && accepts_gzip
         register_stream_context(stream_id, ctx)
       rescue ex : StatusError
         sd.header_error = ex.status
@@ -377,13 +382,13 @@ module GRPC
           if err = state.error_status
             send_error(stream_id, err.code, err.message)
           else
-            send_response(stream_id, response_bytes, status, ctx.trailing_metadata, ctx.initial_metadata)
+            send_response(stream_id, response_bytes, status, ctx.trailing_metadata, ctx.initial_metadata, ctx.response_compression?)
           end
         when :bidi
           writer = RawResponseStream.new(->(framed : Bytes) {
             send_stream_headers(stream_id, ctx.initial_metadata)
             send_stream_chunk(stream_id, framed)
-          }, max_message_size: @send_limits.max_message_size)
+          }, compress: ctx.response_compression?, max_message_size: @send_limits.max_message_size)
           status = dispatch_bidi_stream(method_name, state.requests, ctx, writer, service)
           send_stream_headers(stream_id, ctx.initial_metadata)
           send_stream_trailers(stream_id, state.error_status || status, ctx.trailing_metadata)
@@ -412,7 +417,7 @@ module GRPC
             ctx.check_active!
             send_stream_headers(stream_id, ctx.initial_metadata)
             send_stream_chunk(stream_id, framed)
-          }, max_message_size: @send_limits.max_message_size)
+          }, compress: ctx.response_compression?, max_message_size: @send_limits.max_message_size)
           status = dispatch_server_stream(method_name, decoded, ctx, writer, service)
           send_stream_headers(stream_id, ctx.initial_metadata)
           send_stream_trailers(stream_id, status, ctx.trailing_metadata)
@@ -480,7 +485,7 @@ module GRPC
         if @interceptors.empty?
           response_bytes, status = service.dispatch(method_name, decoded, ctx)
           ctx.check_active!
-          send_response(stream_id, response_bytes, status, ctx.trailing_metadata, ctx.initial_metadata)
+          send_response(stream_id, response_bytes, status, ctx.trailing_metadata, ctx.initial_metadata, ctx.response_compression?)
         else
           full_path = "/#{service.service_full_name}/#{method_name}"
           info = CallInfo.new(full_path, RPCKind::Unary)
@@ -496,7 +501,7 @@ module GRPC
           initial.merge!(response.initial_metadata)
           trailers = ctx.trailing_metadata.dup
           trailers.merge!(response.trailing_metadata)
-          send_response(stream_id, response.raw, response.status, trailers, initial)
+          send_response(stream_id, response.raw, response.status, trailers, initial, ctx.response_compression?)
         end
       end
 
@@ -506,7 +511,8 @@ module GRPC
         @mutex.synchronize do
           return if @closed || @session.null? || stream_terminated?(stream_id)
           return if @stream_headers_sent.includes?(stream_id)
-          nva = build_initial_headers(metadata)
+          compress = @stream_contexts[stream_id]?.try(&.response_compression?) || false
+          nva = build_initial_headers(metadata, compress)
           rc = LibNghttp2.submit_headers(@session, LibNghttp2::FLAG_NONE, stream_id, nil,
             nva.to_unsafe, nva.size, nil)
           raise_submit_error("submit_headers", rc) if rc < 0
@@ -625,11 +631,12 @@ module GRPC
 
       private def send_response(stream_id : Int32, body : Bytes, status : Status,
                                 trailers : Metadata = Metadata.new,
-                                initial_metadata : Metadata = Metadata.new) : Nil
+                                initial_metadata : Metadata = Metadata.new,
+                                compress : Bool = false) : Nil
         if body.size > @send_limits.max_message_size
           raise StatusError.new(StatusCode::RESOURCE_EXHAUSTED, "message exceeds server send limit")
         end
-        framed = Codec.encode(body)
+        framed = Codec.encode(body, compress: compress)
         @mutex.synchronize do
           return if @closed || @session.null? || stream_terminated?(stream_id)
           mark_stream_terminated(stream_id)
@@ -639,7 +646,7 @@ module GRPC
           )
           @response_ctxs[stream_id] = resp_ctx
 
-          nva = build_initial_headers(initial_metadata)
+          nva = build_initial_headers(initial_metadata, compress)
 
           src = LibNghttp2::DataSource.new
           src.ptr = Box.box(resp_ctx)
@@ -690,12 +697,13 @@ module GRPC
         trailers
       end
 
-      private def build_initial_headers(metadata : Metadata) : Array(LibNghttp2::Nv)
+      private def build_initial_headers(metadata : Metadata, compress : Bool = false) : Array(LibNghttp2::Nv)
         headers = [
           make_nv(":status", "200"),
           make_nv("content-type", "application/grpc"),
           make_nv("grpc-accept-encoding", "gzip"),
         ] of LibNghttp2::Nv
+        headers << make_nv("grpc-encoding", "gzip") if compress
         metadata.each_wire do |key, value|
           next if key.starts_with?(":") || key == "content-type" || key.starts_with?("grpc-")
           headers << make_nv(key, value)
