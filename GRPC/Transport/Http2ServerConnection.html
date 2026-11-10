@@ -207,6 +207,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ProtobufOptions" data-name="grpc::protobufoptions">
+      <a href="../../GRPC/ProtobufOptions.html">ProtobufOptions</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/ProtoMarshaller" data-name="grpc::protomarshaller(t)">
       <a href="../../GRPC/ProtoMarshaller.html">ProtoMarshaller</a>
       
@@ -267,6 +272,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Reflection/V1Service" data-name="grpc::reflection::v1service">
+      <a href="../../GRPC/Reflection/V1Service.html">V1Service</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Reflection/Wire" data-name="grpc::reflection::wire">
       <a href="../../GRPC/Reflection/Wire.html">Wire</a>
       
@@ -304,6 +314,11 @@
   
   <li class=" " data-id="grpc/GRPC/SendClosedError" data-name="grpc::sendclosederror">
       <a href="../../GRPC/SendClosedError.html">SendClosedError</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/SendLimits" data-name="grpc::sendlimits">
+      <a href="../../GRPC/SendLimits.html">SendLimits</a>
       
     </li>
   
@@ -444,6 +459,11 @@
   
   <li class=" " data-id="grpc/GRPC/Transport/ResponseContext" data-name="grpc::transport::responsecontext">
       <a href="../../GRPC/Transport/ResponseContext.html">ResponseContext</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Transport/SendBudget" data-name="grpc::transport::sendbudget">
+      <a href="../../GRPC/Transport/SendBudget.html">SendBudget</a>
       
     </li>
   
@@ -689,7 +709,7 @@ It receives gRPC requests, dispatches to registered services, and sends response
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_server_connection.cr#L32" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_server_connection.cr#L32" target="_blank">
         grpc/transport/http2_server_connection.cr
       </a>
     
@@ -712,27 +732,31 @@ It receives gRPC requests, dispatches to registered services, and sends response
     
       <dt class="entry-const" id="DATA_READ_CB">
         <strong>DATA_READ_CB</strong> = <code><span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DataSourceReadCallback</span>.new <span class="k">do</span> <span class="o">|</span>session, stream_id, buf, length, data_flags, source, _user_data<span class="o">|</span>
-  ctx <span class="o">=</span> <span class="t">Box</span>(<span class="t">ResponseContext</span>).unbox(source.value.ptr)
-  to_copy <span class="o">=</span> (<span class="t">Math</span>.min(length.to_i, ctx.remaining)).to_i
-  <span class="k">if</span> to_copy <span class="o">&gt;</span> <span class="n">0</span>
-    buf.copy_from(ctx.data.to_unsafe <span class="o">+</span> ctx.offset, to_copy)
-    ctx.offset <span class="o">=</span> ctx.offset <span class="o">+</span> to_copy
-  <span class="k">end</span>
-  <span class="k">if</span> ctx.remaining <span class="o">==</span> <span class="n">0</span>
-    data_flags.value <span class="o">=</span> data_flags.value <span class="o">|</span> (<span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_EOF</span> <span class="o">|</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_NO_END_STREAM</span>)
+  <span class="k">begin</span>
+    ctx <span class="o">=</span> <span class="t">Box</span>(<span class="t">ResponseContext</span>).unbox(source.value.ptr)
+    to_copy <span class="o">=</span> (<span class="t">Math</span>.min(length.to_i, ctx.remaining)).to_i
+    <span class="k">if</span> to_copy <span class="o">&gt;</span> <span class="n">0</span>
+      buf.copy_from(ctx.data.to_unsafe <span class="o">+</span> ctx.offset, to_copy)
+      ctx.offset <span class="o">=</span> ctx.offset <span class="o">+</span> to_copy
+    <span class="k">end</span>
+    <span class="k">if</span> ctx.remaining <span class="o">==</span> <span class="n">0</span>
+      data_flags.value <span class="o">=</span> data_flags.value <span class="o">|</span> (<span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_EOF</span> <span class="o">|</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_NO_END_STREAM</span>)
 
-    trailer_nva <span class="o">=</span> <span class="o">[]</span> <span class="k">of</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">Nv</span>
-    ctx.trailer_entries.each <span class="k">do</span> <span class="o">|</span>name, value<span class="o">|</span>
-      name_slice <span class="o">=</span> name.to_slice
-      value_slice <span class="o">=</span> value.to_slice
-      trailer_nva <span class="o">&lt;&lt;</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">Nv</span>.new(name: name_slice.to_unsafe, value: value_slice.to_unsafe, namelen: name_slice.size, valuelen: value_slice.size, flags: <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">NV_FLAG_NONE</span>)
+      trailer_nva <span class="o">=</span> <span class="o">[]</span> <span class="k">of</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">Nv</span>
+      ctx.trailer_entries.each <span class="k">do</span> <span class="o">|</span>name, value<span class="o">|</span>
+        name_slice <span class="o">=</span> name.to_slice
+        value_slice <span class="o">=</span> value.to_slice
+        trailer_nva <span class="o">&lt;&lt;</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">Nv</span>.new(name: name_slice.to_unsafe, value: value_slice.to_unsafe, namelen: name_slice.size, valuelen: value_slice.size, flags: <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">NV_FLAG_NONE</span>)
+      <span class="k">end</span>
+      rc <span class="o">=</span> <span class="t">LibNghttp2</span>.submit_trailer(session, stream_id, trailer_nva.to_unsafe, trailer_nva.size)
+      <span class="k">if</span> rc <span class="o">&lt;</span> <span class="n">0</span>
+        <span class="k">next</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">ERR_CALLBACK_FAILURE</span>.to_i64
+      <span class="k">end</span>
     <span class="k">end</span>
-    rc <span class="o">=</span> <span class="t">LibNghttp2</span>.submit_trailer(session, stream_id, trailer_nva.to_unsafe, trailer_nva.size)
-    <span class="k">if</span> rc <span class="o">&lt;</span> <span class="n">0</span>
-      <span class="k">next</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">ERR_CALLBACK_FAILURE</span>.to_i64
-    <span class="k">end</span>
+    to_copy.to_i64
+  <span class="k">rescue</span>
+    <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">ERR_CALLBACK_FAILURE</span>.to_i64
   <span class="k">end</span>
-  to_copy.to_i64
 <span class="k">end</span></code>
       </dt>
       
@@ -752,16 +776,20 @@ nghttp2_submit_trailer is safe to call from the data source read callback.</p>
     
       <dt class="entry-const" id="STREAMING_DATA_READ_CB">
         <strong>STREAMING_DATA_READ_CB</strong> = <code><span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DataSourceReadCallback</span>.new <span class="k">do</span> <span class="o">|</span>_session, _stream_id, buf, length, data_flags, source, _user_data<span class="o">|</span>
-  sb <span class="o">=</span> <span class="t">Box</span>(<span class="t">SendBuffer</span>).unbox(source.value.ptr)
-  to_copy <span class="o">=</span> (<span class="t">Math</span>.min(length.to_i, sb.remaining)).to_i
-  <span class="k">if</span> to_copy <span class="o">&gt;</span> <span class="n">0</span>
-    buf.copy_from(sb.data.to_unsafe <span class="o">+</span> sb.offset, to_copy)
-    sb.offset <span class="o">=</span> sb.offset <span class="o">+</span> to_copy
+  <span class="k">begin</span>
+    sb <span class="o">=</span> <span class="t">Box</span>(<span class="t">SendBuffer</span>).unbox(source.value.ptr)
+    to_copy <span class="o">=</span> (<span class="t">Math</span>.min(length.to_i, sb.remaining)).to_i
+    <span class="k">if</span> to_copy <span class="o">&gt;</span> <span class="n">0</span>
+      buf.copy_from(sb.data.to_unsafe <span class="o">+</span> sb.offset, to_copy)
+      sb.offset <span class="o">=</span> sb.offset <span class="o">+</span> to_copy
+    <span class="k">end</span>
+    <span class="k">if</span> sb.remaining <span class="o">==</span> <span class="n">0</span>
+      data_flags.value <span class="o">=</span> data_flags.value <span class="o">|</span> (<span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_EOF</span> <span class="o">|</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_NO_END_STREAM</span>)
+    <span class="k">end</span>
+    to_copy.to_i64
+  <span class="k">rescue</span>
+    <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">ERR_CALLBACK_FAILURE</span>.to_i64
   <span class="k">end</span>
-  <span class="k">if</span> sb.remaining <span class="o">==</span> <span class="n">0</span>
-    data_flags.value <span class="o">=</span> data_flags.value <span class="o">|</span> (<span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_EOF</span> <span class="o">|</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_NO_END_STREAM</span>)
-  <span class="k">end</span>
-  to_copy.to_i64
 <span class="k">end</span></code>
       </dt>
       
@@ -788,7 +816,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28socket%3AIO%2Cservices%3AHash%28String%2CService%29%2Cinterceptors%3AArray%28ServerInterceptor%29%3D%5B%5DofServerInterceptor%2Cpeer_address%3AString%3D%22unknown%22%2Ctls_socket%3AOpenSSL%3A%3ASSL%3A%3ASocket%3A%3AServer%7CNil%3Dnil%2Creceive_limits%3AReceiveLimits%3DReceiveLimits.new%29-class-method" class="signature"><strong>.new</strong>(socket : IO, services : Hash(String, Service), interceptors : Array(ServerInterceptor) = <span class="o">[]</span> <span class="k">of</span> <span class="t">ServerInterceptor</span>, peer_address : String = <span class="s">&quot;unknown&quot;</span>, tls_socket : OpenSSL::SSL::Socket::Server | Nil = <span class="n">nil</span>, receive_limits : ReceiveLimits = <span class="t">ReceiveLimits</span>.new)</a>
+        <a href="#new%28socket%3AIO%2Cservices%3AHash%28String%2CService%29%2Cinterceptors%3AArray%28ServerInterceptor%29%3D%5B%5DofServerInterceptor%2Cpeer_address%3AString%3D%22unknown%22%2Ctls_socket%3AOpenSSL%3A%3ASSL%3A%3ASocket%3A%3AServer%7CNil%3Dnil%2Creceive_limits%3AReceiveLimits%3DReceiveLimits.new%2Csend_limits%3ASendLimits%3DSendLimits.new%2Cresponse_compression%3ABool%3Dfalse%2Cprotobuf_options%3AProtobufOptions%7CNil%3Dnil%29-class-method" class="signature"><strong>.new</strong>(socket : IO, services : Hash(String, Service), interceptors : Array(ServerInterceptor) = <span class="o">[]</span> <span class="k">of</span> <span class="t">ServerInterceptor</span>, peer_address : String = <span class="s">&quot;unknown&quot;</span>, tls_socket : OpenSSL::SSL::Socket::Server | Nil = <span class="n">nil</span>, receive_limits : ReceiveLimits = <span class="t">ReceiveLimits</span>.new, send_limits : SendLimits = <span class="t">SendLimits</span>.new, response_compression : Bool = <span class="n">false</span>, protobuf_options : ProtobufOptions | Nil = <span class="n">nil</span>)</a>
         
       </li>
     
@@ -893,6 +921,11 @@ so the stream stays open for subsequent data or trailer submission.</p>
     closed?</a>, 
     
   
+    <a href="../../GRPC/Transport/Http2Connection.html#invoke_callback%28%26%3A-%3ENil%29%3AInt32-instance-method" class="tooltip">
+      <span>invoke_callback(& :  -> Nil) : Int32</span>
+    invoke_callback</a>, 
+    
+  
     <a href="../../GRPC/Transport/Http2Connection.html#on_begin_headers_cb%28frame%3APointer%28Void%29%29%3ANil-instance-method" class="tooltip">
       <span>on_begin_headers_cb(frame : Pointer(Void)) : Nil</span>
     on_begin_headers_cb</a>, 
@@ -987,18 +1020,18 @@ so the stream stays open for subsequent data or trailer submission.</p>
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(socket:IO,services:Hash(String,Service),interceptors:Array(ServerInterceptor)=[]ofServerInterceptor,peer_address:String=&quot;unknown&quot;,tls_socket:OpenSSL::SSL::Socket::Server|Nil=nil,receive_limits:ReceiveLimits=ReceiveLimits.new)-class-method">
+    <div class="entry-detail" id="new(socket:IO,services:Hash(String,Service),interceptors:Array(ServerInterceptor)=[]ofServerInterceptor,peer_address:String=&quot;unknown&quot;,tls_socket:OpenSSL::SSL::Socket::Server|Nil=nil,receive_limits:ReceiveLimits=ReceiveLimits.new,send_limits:SendLimits=SendLimits.new,response_compression:Bool=false,protobuf_options:ProtobufOptions|Nil=nil)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(socket : IO, services : Hash(String, <a href="../../GRPC/Service.html">Service</a>), interceptors : Array(<a href="../../GRPC/ServerInterceptor.html">ServerInterceptor</a>) = <span class="o">[]</span> <span class="k">of</span> <span class="t">ServerInterceptor</span>, peer_address : String = <span class="s">&quot;unknown&quot;</span>, tls_socket : OpenSSL::SSL::Socket::Server | Nil = <span class="n">nil</span>, receive_limits : <a href="../../GRPC/ReceiveLimits.html">ReceiveLimits</a> = <span class="t">ReceiveLimits</span>.new)
+        def self.<strong>new</strong>(socket : IO, services : Hash(String, <a href="../../GRPC/Service.html">Service</a>), interceptors : Array(<a href="../../GRPC/ServerInterceptor.html">ServerInterceptor</a>) = <span class="o">[]</span> <span class="k">of</span> <span class="t">ServerInterceptor</span>, peer_address : String = <span class="s">&quot;unknown&quot;</span>, tls_socket : OpenSSL::SSL::Socket::Server | Nil = <span class="n">nil</span>, receive_limits : <a href="../../GRPC/ReceiveLimits.html">ReceiveLimits</a> = <span class="t">ReceiveLimits</span>.new, send_limits : <a href="../../GRPC/SendLimits.html">SendLimits</a> = <span class="t">SendLimits</span>.new, response_compression : Bool = <span class="n">false</span>, protobuf_options : <a href="../../GRPC/ProtobufOptions.html">ProtobufOptions</a> | Nil = <span class="n">nil</span>)
 
-        <a class="method-permalink" href="#new%28socket%3AIO%2Cservices%3AHash%28String%2CService%29%2Cinterceptors%3AArray%28ServerInterceptor%29%3D%5B%5DofServerInterceptor%2Cpeer_address%3AString%3D%22unknown%22%2Ctls_socket%3AOpenSSL%3A%3ASSL%3A%3ASocket%3A%3AServer%7CNil%3Dnil%2Creceive_limits%3AReceiveLimits%3DReceiveLimits.new%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28socket%3AIO%2Cservices%3AHash%28String%2CService%29%2Cinterceptors%3AArray%28ServerInterceptor%29%3D%5B%5DofServerInterceptor%2Cpeer_address%3AString%3D%22unknown%22%2Ctls_socket%3AOpenSSL%3A%3ASSL%3A%3ASocket%3A%3AServer%7CNil%3Dnil%2Creceive_limits%3AReceiveLimits%3DReceiveLimits.new%2Csend_limits%3ASendLimits%3DSendLimits.new%2Cresponse_compression%3ABool%3Dfalse%2Cprotobuf_options%3AProtobufOptions%7CNil%3Dnil%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_server_connection.cr#L126" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_server_connection.cr#L133" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1030,7 +1063,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_server_connection.cr#L152" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_server_connection.cr#L165" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1046,7 +1079,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_server_connection.cr#L177" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_server_connection.cr#L190" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1062,7 +1095,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_server_connection.cr#L215" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_server_connection.cr#L225" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1078,7 +1111,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_server_connection.cr#L269" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_server_connection.cr#L284" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1094,7 +1127,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_server_connection.cr#L164" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_server_connection.cr#L177" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1110,7 +1143,7 @@ so the stream stays open for subsequent data or trailer submission.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_server_connection.cr#L252" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_server_connection.cr#L266" target="_blank">View source</a>]
         
       </div>
     </div>

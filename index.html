@@ -207,6 +207,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ProtobufOptions" data-name="grpc::protobufoptions">
+      <a href="GRPC/ProtobufOptions.html">ProtobufOptions</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/ProtoMarshaller" data-name="grpc::protomarshaller(t)">
       <a href="GRPC/ProtoMarshaller.html">ProtoMarshaller</a>
       
@@ -267,6 +272,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Reflection/V1Service" data-name="grpc::reflection::v1service">
+      <a href="GRPC/Reflection/V1Service.html">V1Service</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Reflection/Wire" data-name="grpc::reflection::wire">
       <a href="GRPC/Reflection/Wire.html">Wire</a>
       
@@ -304,6 +314,11 @@
   
   <li class=" " data-id="grpc/GRPC/SendClosedError" data-name="grpc::sendclosederror">
       <a href="GRPC/SendClosedError.html">SendClosedError</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/SendLimits" data-name="grpc::sendlimits">
+      <a href="GRPC/SendLimits.html">SendLimits</a>
       
     </li>
   
@@ -444,6 +459,11 @@
   
   <li class=" " data-id="grpc/GRPC/Transport/ResponseContext" data-name="grpc::transport::responsecontext">
       <a href="GRPC/Transport/ResponseContext.html">ResponseContext</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Transport/SendBudget" data-name="grpc::transport::sendbudget">
+      <a href="GRPC/Transport/SendBudget.html">SendBudget</a>
       
     </li>
   
@@ -682,6 +702,18 @@ reply consumption). <code>SendClosedError</code> means the message was not enque
 on the old connection. Calls are not automatically retried.</p>
 <p>TLS configures <code>h2</code> ALPN on supplied client and server contexts as well as
 default contexts. The client requires the peer to negotiate <code>h2</code>.</p>
+<p>Connection attempts are shared between callers; each <code>ClientContext</code> can stop
+waiting at its own deadline or through <code>ctx.cancel</code>. The default connection
+timeout is 10 seconds; <code>EndpointConfig#connect_timeout</code> also bounds the TLS
+handshake. Failed attempts use <code>BackoffConfig</code> before the next attempt. A
+failed RPC is never automatically replayed. The default HTTP/2 transport also
+propagates context cancellation to active RPCs; custom transports must implement
+the context-aware overloads to provide the same behavior.</p>
+<p>HTTP/2 PING keepalive is disabled unless <code>EndpointConfig#keepalive</code> is set.
+Configure its interval with the service owner: overly frequent PINGs can cause
+the peer to send GOAWAY. TCP keepalive and HTTP/2 PING are separate mechanisms.
+When the Crystal socket API supports setting the TCP keepalive idle time,
+<code>EndpointConfig#tcp_keepalive</code> also configures that time.</p>
 <h2><a id="receive-limits" class="anchor" href="#receive-limits">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -696,8 +728,33 @@ RAM limits. Custom transports enforce their own budgets.</p>
 <p>Regenerate existing <code>.grpc.cr</code> clients to use on-demand typed response decoding.
 Responses are decoded when iterated, so unread data stays in the transport's
 byte budget.</p>
-<p>Clients can send gzip requests and decode gzip responses. Servers decode gzip
-requests and currently send uncompressed responses.</p>
+<p>Clients can send gzip requests with <code>ClientContext.new(compression: &quot;gzip&quot;)</code>
+and decode gzip responses. Servers decode gzip requests. Set
+<code>Server.new(response_compression: true)</code> to compress responses when the client
+advertises gzip. Reflection serves both v1 and v1alpha.</p>
+<h2><a id="send-limits" class="anchor" href="#send-limits">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Send limits</h2>
+<p><code><a href="GRPC/SendLimits.html">GRPC::SendLimits</a></code> defaults to 64 MiB per message, 64 MiB plus the frame header
+per streaming queue, and 256 MiB across streaming queues on one connection.
+Set it through <code>EndpointConfig.new(send_limits: limits)</code> on clients,
+<code>ClientContext.new(send_limits: limits)</code> for a client stream override, or
+<code>Server.new(send_limits: limits)</code> on default servers. The connection-wide
+limit comes from the endpoint, not the per-call override. Oversized messages
+raise <code>RESOURCE_EXHAUSTED</code>; a full queue waits for capacity, deadline or
+cancellation. These limits cover retained streaming frames, not unary bodies,
+temporary encoding buffers, application-owned data or process-wide RAM.
+The socket writer separately buffers approximately 256 KiB of serialized
+HTTP/2 output, plus at most one nghttp2 output chunk, per connection.</p>
+<p>With an updated proto.cr runtime and regenerated message and gRPC stubs, set
+<code>ClientContext.new(protobuf_options: GRPC::ProtobufOptions.new(...))</code> and
+<code>Server.new(protobuf_options: ...)</code> to configure the Protobuf limits. A custom
+<code>marshaller_for</code> can also return <code>ProtoMarshaller(T).new</code> with <code>encode_options:</code>
+and <code>decode_options:</code>. Existing generated types continue to work with the
+default marshaller; requesting options with an old message type raises an
+argument error. Protobuf limits are independent of gRPC frame limits.</p>
 <h2><a id="test" class="anchor" href="#test">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -712,6 +769,9 @@ client against locked and latest grpc-go dependencies over plaintext and TLS.
 A separate job regenerates and tests the current MinKNOW client against the
 candidate gRPC source. Nightly runs expand fragmentation coverage.</p>
 <p>See <a href="spec/README.md">test layout</a> for focused tests and GripMock setup.
+The committed <code>shard.lock</code> pins proto.cr for development, code generation and
+CI; install it with <code>shards install --frozen</code>. Applications resolve their own
+lock, so update <code>grpc</code> and <code>proto</code> together when adopting regenerated messages.
 License: <a href="LICENSE">MIT</a>.</p>
 </div>
 </body>

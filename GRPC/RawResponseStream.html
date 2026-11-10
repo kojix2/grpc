@@ -207,6 +207,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ProtobufOptions" data-name="grpc::protobufoptions">
+      <a href="../GRPC/ProtobufOptions.html">ProtobufOptions</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/ProtoMarshaller" data-name="grpc::protomarshaller(t)">
       <a href="../GRPC/ProtoMarshaller.html">ProtoMarshaller</a>
       
@@ -267,6 +272,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Reflection/V1Service" data-name="grpc::reflection::v1service">
+      <a href="../GRPC/Reflection/V1Service.html">V1Service</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Reflection/Wire" data-name="grpc::reflection::wire">
       <a href="../GRPC/Reflection/Wire.html">Wire</a>
       
@@ -304,6 +314,11 @@
   
   <li class=" " data-id="grpc/GRPC/SendClosedError" data-name="grpc::sendclosederror">
       <a href="../GRPC/SendClosedError.html">SendClosedError</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/SendLimits" data-name="grpc::sendlimits">
+      <a href="../GRPC/SendLimits.html">SendLimits</a>
       
     </li>
   
@@ -444,6 +459,11 @@
   
   <li class=" " data-id="grpc/GRPC/Transport/ResponseContext" data-name="grpc::transport::responsecontext">
       <a href="../GRPC/Transport/ResponseContext.html">ResponseContext</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Transport/SendBudget" data-name="grpc::transport::sendbudget">
+      <a href="../GRPC/Transport/SendBudget.html">SendBudget</a>
       
     </li>
   
@@ -676,7 +696,7 @@ layers. Service implementations receive the typed ResponseStream(T) instead.</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/stream.cr#L387" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/stream.cr#L412" target="_blank">
         grpc/stream.cr
       </a>
     
@@ -699,7 +719,7 @@ layers. Service implementations receive the typed ResponseStream(T) instead.</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28send_proc%3ABytes-%3ENil%29-class-method" class="signature"><strong>.new</strong>(send_proc : Bytes -> Nil)</a>
+        <a href="#new%28send_proc%3ABytes-%3ENil%2C%2A%2Ccompress%3ABool%3Dfalse%2Cmax_message_size%3AInt32%3DInt32%3A%3AMAX%29-class-method" class="signature"><strong>.new</strong>(send_proc : Bytes -> Nil, *, compress : Bool = <span class="n">false</span>, max_message_size : Int32 = <span class="t">Int32</span><span class="t">::</span><span class="t">MAX</span>)</a>
         
       </li>
     
@@ -772,18 +792,18 @@ layers. Service implementations receive the typed ResponseStream(T) instead.</p>
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(send_proc:Bytes-&gt;Nil)-class-method">
+    <div class="entry-detail" id="new(send_proc:Bytes-&gt;Nil,*,compress:Bool=false,max_message_size:Int32=Int32::MAX)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(send_proc : Bytes -> Nil)
+        def self.<strong>new</strong>(send_proc : Bytes -> Nil, *, compress : Bool = <span class="n">false</span>, max_message_size : Int32 = <span class="t">Int32</span><span class="t">::</span><span class="t">MAX</span>)
 
-        <a class="method-permalink" href="#new%28send_proc%3ABytes-%3ENil%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28send_proc%3ABytes-%3ENil%2C%2A%2Ccompress%3ABool%3Dfalse%2Cmax_message_size%3AInt32%3DInt32%3A%3AMAX%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/stream.cr#L388" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/stream.cr#L413" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -820,7 +840,7 @@ layers. Service implementations receive the typed ResponseStream(T) instead.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/stream.cr#L392" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/stream.cr#L418" target="_blank">View source</a>]
         
       </div>
     </div>

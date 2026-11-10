@@ -207,6 +207,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ProtobufOptions" data-name="grpc::protobufoptions">
+      <a href="../../GRPC/ProtobufOptions.html">ProtobufOptions</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/ProtoMarshaller" data-name="grpc::protomarshaller(t)">
       <a href="../../GRPC/ProtoMarshaller.html">ProtoMarshaller</a>
       
@@ -267,6 +272,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Reflection/V1Service" data-name="grpc::reflection::v1service">
+      <a href="../../GRPC/Reflection/V1Service.html">V1Service</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Reflection/Wire" data-name="grpc::reflection::wire">
       <a href="../../GRPC/Reflection/Wire.html">Wire</a>
       
@@ -304,6 +314,11 @@
   
   <li class=" " data-id="grpc/GRPC/SendClosedError" data-name="grpc::sendclosederror">
       <a href="../../GRPC/SendClosedError.html">SendClosedError</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/SendLimits" data-name="grpc::sendlimits">
+      <a href="../../GRPC/SendLimits.html">SendLimits</a>
       
     </li>
   
@@ -444,6 +459,11 @@
   
   <li class=" " data-id="grpc/GRPC/Transport/ResponseContext" data-name="grpc::transport::responsecontext">
       <a href="../../GRPC/Transport/ResponseContext.html">ResponseContext</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Transport/SendBudget" data-name="grpc::transport::sendbudget">
+      <a href="../../GRPC/Transport/SendBudget.html">SendBudget</a>
       
     </li>
   
@@ -691,7 +711,7 @@ Subclasses implement server-specific or client-specific logic.</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_connection.cr#L108" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_connection.cr#L112" target="_blank">
         grpc/transport/http2_connection.cr
       </a>
     
@@ -712,8 +732,18 @@ Subclasses implement server-specific or client-specific logic.</p>
   
   <dl>
     
+      <dt class="entry-const" id="CLOSE_DRAIN_TIMEOUT">
+        <strong>CLOSE_DRAIN_TIMEOUT</strong> = <code><span class="n">100</span>.milliseconds</code>
+      </dt>
+      
+    
       <dt class="entry-const" id="HTTP2_CLIENT_PREFACE">
         <strong>HTTP2_CLIENT_PREFACE</strong> = <code><span class="s">&quot;PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n&quot;</span></code>
+      </dt>
+      
+    
+      <dt class="entry-const" id="MAX_PENDING_OUTPUT">
+        <strong>MAX_PENDING_OUTPUT</strong> = <code><span class="n">256</span> <span class="o">*</span> <span class="n">1024</span></code>
       </dt>
       
     
@@ -767,6 +797,13 @@ Subclasses implement server-specific or client-specific logic.</p>
     
       <li class="entry-summary">
         <a href="#closed%3F%3ABool-instance-method" class="signature"><strong>#closed?</strong> : Bool</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#invoke_callback%28%26%3A-%3ENil%29%3AInt32-instance-method" class="signature"><strong>#invoke_callback</strong>(& :  -> Nil) : Int32</a>
+        
+          <div class="summary"><p>Do not unwind a Crystal exception through libnghttp2's C stack.</p></div>
         
       </li>
     
@@ -862,7 +899,7 @@ Subclasses implement server-specific or client-specific logic.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_connection.cr#L123" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_connection.cr#L136" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -894,7 +931,7 @@ Subclasses implement server-specific or client-specific logic.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_connection.cr#L298" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_connection.cr#L399" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -910,7 +947,29 @@ Subclasses implement server-specific or client-specific logic.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_connection.cr#L119" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_connection.cr#L132" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="invoke_callback(&amp;:-&gt;Nil):Int32-instance-method">
+      <div class="signature">
+        
+        def <strong>invoke_callback</strong>(& :  -> Nil) : Int32
+
+        <a class="method-permalink" href="#invoke_callback%28%26%3A-%3ENil%29%3AInt32-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Do not unwind a Crystal exception through libnghttp2's C stack. The
+enclosing session operation will fail and tear down the connection.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_connection.cr#L239" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -926,7 +985,7 @@ Subclasses implement server-specific or client-specific logic.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_connection.cr#L216" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_connection.cr#L248" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -942,7 +1001,7 @@ Subclasses implement server-specific or client-specific logic.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_connection.cr#L223" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_connection.cr#L255" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -958,7 +1017,7 @@ Subclasses implement server-specific or client-specific logic.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_connection.cr#L226" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_connection.cr#L258" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -974,7 +1033,7 @@ Subclasses implement server-specific or client-specific logic.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_connection.cr#L229" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_connection.cr#L261" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -990,7 +1049,7 @@ Subclasses implement server-specific or client-specific logic.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_connection.cr#L219" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_connection.cr#L251" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1006,7 +1065,7 @@ Subclasses implement server-specific or client-specific logic.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_connection.cr#L232" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_connection.cr#L264" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1028,7 +1087,7 @@ Runs until the connection closes.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_connection.cr#L277" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_connection.cr#L372" target="_blank">View source</a>]
         
       </div>
     </div>

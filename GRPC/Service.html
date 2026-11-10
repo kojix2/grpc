@@ -207,6 +207,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ProtobufOptions" data-name="grpc::protobufoptions">
+      <a href="../GRPC/ProtobufOptions.html">ProtobufOptions</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/ProtoMarshaller" data-name="grpc::protomarshaller(t)">
       <a href="../GRPC/ProtoMarshaller.html">ProtoMarshaller</a>
       
@@ -267,6 +272,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Reflection/V1Service" data-name="grpc::reflection::v1service">
+      <a href="../GRPC/Reflection/V1Service.html">V1Service</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Reflection/Wire" data-name="grpc::reflection::wire">
       <a href="../GRPC/Reflection/Wire.html">Wire</a>
       
@@ -304,6 +314,11 @@
   
   <li class=" " data-id="grpc/GRPC/SendClosedError" data-name="grpc::sendclosederror">
       <a href="../GRPC/SendClosedError.html">SendClosedError</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/SendLimits" data-name="grpc::sendlimits">
+      <a href="../GRPC/SendLimits.html">SendLimits</a>
       
     </li>
   
@@ -444,6 +459,11 @@
   
   <li class=" " data-id="grpc/GRPC/Transport/ResponseContext" data-name="grpc::transport::responsecontext">
       <a href="../GRPC/Transport/ResponseContext.html">ResponseContext</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Transport/SendBudget" data-name="grpc::transport::sendbudget">
+      <a href="../GRPC/Transport/SendBudget.html">SendBudget</a>
       
     </li>
   
@@ -701,6 +721,8 @@ SERVICE_FULL_NAME = &quot;helloworld.Greeter&quot;</p>
     
       <li class="other-type"><a href="../GRPC/Reflection/Service.html">GRPC::Reflection::Service</a></li>
     
+      <li class="other-type"><a href="../GRPC/Reflection/V1Service.html">GRPC::Reflection::V1Service</a></li>
+    
   </ul>
 
 
@@ -718,7 +740,7 @@ SERVICE_FULL_NAME = &quot;helloworld.Greeter&quot;</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/service_handler.cr#L74" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/service_handler.cr#L74" target="_blank">
         grpc/service_handler.cr
       </a>
     
@@ -869,7 +891,7 @@ Generated service base classes override this; the default is false (unary).</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/service_handler.cr#L113" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/service_handler.cr#L113" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -891,7 +913,7 @@ Generated service base classes override this; the default is false (unary).</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/service_handler.cr#L98" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/service_handler.cr#L98" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -913,7 +935,7 @@ Returns {response_body : Bytes, status : Status}.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/service_handler.cr#L80" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/service_handler.cr#L80" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -937,7 +959,7 @@ typed ResponseStream(T) before handing off to the user implementation.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/service_handler.cr#L121" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/service_handler.cr#L121" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -961,7 +983,7 @@ Generated service base classes override this; the default returns UNIMPLEMENTED.
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/service_handler.cr#L106" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/service_handler.cr#L106" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -984,7 +1006,7 @@ typed ResponseStream(T) before handing off to the user implementation.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/service_handler.cr#L91" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/service_handler.cr#L91" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1006,7 +1028,7 @@ Generated service base classes override this; the default is false (unary).</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/service_handler.cr#L84" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/service_handler.cr#L84" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1027,7 +1049,7 @@ Generated service base classes override this; the default is false (unary).</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/service_handler.cr#L76" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/service_handler.cr#L76" target="_blank">View source</a>]
         
       </div>
     </div>

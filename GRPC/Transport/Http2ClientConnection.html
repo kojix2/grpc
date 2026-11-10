@@ -207,6 +207,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ProtobufOptions" data-name="grpc::protobufoptions">
+      <a href="../../GRPC/ProtobufOptions.html">ProtobufOptions</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/ProtoMarshaller" data-name="grpc::protomarshaller(t)">
       <a href="../../GRPC/ProtoMarshaller.html">ProtoMarshaller</a>
       
@@ -267,6 +272,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Reflection/V1Service" data-name="grpc::reflection::v1service">
+      <a href="../../GRPC/Reflection/V1Service.html">V1Service</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Reflection/Wire" data-name="grpc::reflection::wire">
       <a href="../../GRPC/Reflection/Wire.html">Wire</a>
       
@@ -304,6 +314,11 @@
   
   <li class=" " data-id="grpc/GRPC/SendClosedError" data-name="grpc::sendclosederror">
       <a href="../../GRPC/SendClosedError.html">SendClosedError</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/SendLimits" data-name="grpc::sendlimits">
+      <a href="../../GRPC/SendLimits.html">SendLimits</a>
       
     </li>
   
@@ -444,6 +459,11 @@
   
   <li class=" " data-id="grpc/GRPC/Transport/ResponseContext" data-name="grpc::transport::responsecontext">
       <a href="../../GRPC/Transport/ResponseContext.html">ResponseContext</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Transport/SendBudget" data-name="grpc::transport::sendbudget">
+      <a href="../../GRPC/Transport/SendBudget.html">SendBudget</a>
       
     </li>
   
@@ -688,7 +708,7 @@
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_client_connection.cr#L401" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L445" target="_blank">
         grpc/transport/http2_client_connection.cr
       </a>
     
@@ -711,27 +731,40 @@
     
       <dt class="entry-const" id="DATA_READ_CB">
         <strong>DATA_READ_CB</strong> = <code><span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DataSourceReadCallback</span>.new <span class="k">do</span> <span class="o">|</span>_session, _stream_id, buf, length, data_flags, source, _user_data<span class="o">|</span>
-  sb <span class="o">=</span> <span class="t">Box</span>(<span class="t">SendBuffer</span>).unbox(source.value.ptr)
-  to_copy <span class="o">=</span> (<span class="t">Math</span>.min(length.to_i, sb.remaining)).to_i
-  <span class="k">if</span> to_copy <span class="o">==</span> <span class="n">0</span>
-    data_flags.value <span class="o">=</span> data_flags.value <span class="o">|</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_EOF</span>
-    <span class="k">next</span> <span class="n">0_i64</span>
+  <span class="k">begin</span>
+    sb <span class="o">=</span> <span class="t">Box</span>(<span class="t">SendBuffer</span>).unbox(source.value.ptr)
+    to_copy <span class="o">=</span> (<span class="t">Math</span>.min(length.to_i, sb.remaining)).to_i
+    <span class="k">if</span> to_copy <span class="o">==</span> <span class="n">0</span>
+      data_flags.value <span class="o">=</span> data_flags.value <span class="o">|</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_EOF</span>
+      <span class="k">next</span> <span class="n">0_i64</span>
+    <span class="k">end</span>
+    buf.copy_from(sb.data.to_unsafe <span class="o">+</span> sb.offset, to_copy)
+    sb.offset <span class="o">=</span> sb.offset <span class="o">+</span> to_copy
+    <span class="k">if</span> sb.remaining <span class="o">==</span> <span class="n">0</span>
+      data_flags.value <span class="o">=</span> data_flags.value <span class="o">|</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_EOF</span>
+    <span class="k">end</span>
+    to_copy.to_i64
+  <span class="k">rescue</span>
+    <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">ERR_CALLBACK_FAILURE</span>.to_i64
   <span class="k">end</span>
-  buf.copy_from(sb.data.to_unsafe <span class="o">+</span> sb.offset, to_copy)
-  sb.offset <span class="o">=</span> sb.offset <span class="o">+</span> to_copy
-  <span class="k">if</span> sb.remaining <span class="o">==</span> <span class="n">0</span>
-    data_flags.value <span class="o">=</span> data_flags.value <span class="o">|</span> <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DATA_FLAG_EOF</span>
-  <span class="k">end</span>
-  to_copy.to_i64
 <span class="k">end</span></code>
       </dt>
       
     
       <dt class="entry-const" id="DATA_READ_CB_LIVE">
         <strong>DATA_READ_CB_LIVE</strong> = <code><span class="t">LibNghttp2</span><span class="t">::</span><span class="t">DataSourceReadCallback</span>.new <span class="k">do</span> <span class="o">|</span>_session, stream_id, buf, length, data_flags, _source, user_data<span class="o">|</span>
-  conn <span class="o">=</span> <span class="t">Box</span>(<span class="t">Http2ClientConnection</span>).unbox(user_data)
-  conn.read_live_send_data(stream_id, buf, length, data_flags)
+  <span class="k">begin</span>
+    conn <span class="o">=</span> <span class="t">Box</span>(<span class="t">Http2ClientConnection</span>).unbox(user_data)
+    conn.read_live_send_data(stream_id, buf, length, data_flags)
+  <span class="k">rescue</span>
+    <span class="t">LibNghttp2</span><span class="t">::</span><span class="t">ERR_CALLBACK_FAILURE</span>.to_i64
+  <span class="k">end</span>
 <span class="k">end</span></code>
+      </dt>
+      
+    
+      <dt class="entry-const" id="DEFAULT_CONNECT_TIMEOUT">
+        <strong>DEFAULT_CONNECT_TIMEOUT</strong> = <code><span class="n">10</span>.seconds</code>
       </dt>
       
     
@@ -813,9 +846,19 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#open_bidi_stream_live%28service%3AString%2Cmethod%3AString%2Cctx%3AClientContext%2Csend_queue_size%3AInt32%29%3ARawBidiCall-instance-method" class="signature"><strong>#open_bidi_stream_live</strong>(service : String, method : String, ctx : ClientContext, send_queue_size : Int32) : RawBidiCall</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#open_client_stream_live%28service%3AString%2Cmethod%3AString%2Cmetadata%3AMetadata%3DMetadata.new%2Csend_queue_size%3AInt32%3D0%29%3ARawClientCall-instance-method" class="signature"><strong>#open_client_stream_live</strong>(service : String, method : String, metadata : Metadata = <span class="t">Metadata</span>.new, send_queue_size : Int32 = <span class="n">0</span>) : RawClientCall</a>
         
           <div class="summary"><p>open_client_stream_live opens a live client-streaming RPC.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#open_client_stream_live%28service%3AString%2Cmethod%3AString%2Cctx%3AClientContext%2Csend_queue_size%3AInt32%29%3ARawClientCall-instance-method" class="signature"><strong>#open_client_stream_live</strong>(service : String, method : String, ctx : ClientContext, send_queue_size : Int32) : RawClientCall</a>
         
       </li>
     
@@ -827,9 +870,21 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#open_server_stream%28service%3AString%2Cmethod%3AString%2Crequest_bytes%3ABytes%2Cctx%3AClientContext%29%3ARawServerStream-instance-method" class="signature"><strong>#open_server_stream</strong>(service : String, method : String, request_bytes : Bytes, ctx : ClientContext) : RawServerStream</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_body%3ABytes%2Cmetadata%3AMetadata%3DMetadata.new%29%3AResponseEnvelope-instance-method" class="signature"><strong>#unary_call</strong>(service : String, method : String, request_body : Bytes, metadata : Metadata = <span class="t">Metadata</span>.new) : ResponseEnvelope</a>
         
           <div class="summary"><p>unary_call sends one gRPC request and blocks until the response arrives.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_body%3ABytes%2Cctx%3AClientContext%29%3AResponseEnvelope-instance-method" class="signature"><strong>#unary_call</strong>(service : String, method : String, request_body : Bytes, ctx : ClientContext) : ResponseEnvelope</a>
+        
+          <div class="summary"><p>Custom transports may override the context-aware overloads to observe cancellation after submission.</p></div>
         
       </li>
     
@@ -860,22 +915,22 @@
     
   
     <a href="../../GRPC/Transport/ClientTransport.html#open_bidi_stream_live%28service%3AString%2Cmethod%3AString%2Cmetadata%3AMetadata%2Csend_queue_size%3AInt32%29%3ARawBidiCall-instance-method" class="tooltip">
-      <span>open_bidi_stream_live(service : String, method : String, metadata : Metadata, send_queue_size : Int32) : RawBidiCall</span>
+      <span>open_bidi_stream_live(service : String, method : String, metadata : Metadata, send_queue_size : Int32) : RawBidiCall<br/>open_bidi_stream_live(service : String, method : String, ctx : ClientContext, send_queue_size : Int32) : RawBidiCall</span>
     open_bidi_stream_live</a>, 
     
   
     <a href="../../GRPC/Transport/ClientTransport.html#open_client_stream_live%28service%3AString%2Cmethod%3AString%2Cmetadata%3AMetadata%2Csend_queue_size%3AInt32%29%3ARawClientCall-instance-method" class="tooltip">
-      <span>open_client_stream_live(service : String, method : String, metadata : Metadata, send_queue_size : Int32) : RawClientCall</span>
+      <span>open_client_stream_live(service : String, method : String, metadata : Metadata, send_queue_size : Int32) : RawClientCall<br/>open_client_stream_live(service : String, method : String, ctx : ClientContext, send_queue_size : Int32) : RawClientCall</span>
     open_client_stream_live</a>, 
     
   
     <a href="../../GRPC/Transport/ClientTransport.html#open_server_stream%28service%3AString%2Cmethod%3AString%2Crequest_bytes%3ABytes%2Cmetadata%3AMetadata%29%3ARawServerStream-instance-method" class="tooltip">
-      <span>open_server_stream(service : String, method : String, request_bytes : Bytes, metadata : Metadata) : RawServerStream</span>
+      <span>open_server_stream(service : String, method : String, request_bytes : Bytes, metadata : Metadata) : RawServerStream<br/>open_server_stream(service : String, method : String, request_bytes : Bytes, ctx : ClientContext) : RawServerStream</span>
     open_server_stream</a>, 
     
   
     <a href="../../GRPC/Transport/ClientTransport.html#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_body%3ABytes%2Cmetadata%3AMetadata%29%3AResponseEnvelope-instance-method" class="tooltip">
-      <span>unary_call(service : String, method : String, request_body : Bytes, metadata : Metadata) : ResponseEnvelope</span>
+      <span>unary_call(service : String, method : String, request_body : Bytes, metadata : Metadata) : ResponseEnvelope<br/>unary_call(service : String, method : String, request_body : Bytes, ctx : ClientContext) : ResponseEnvelope</span>
     unary_call</a>
     
   
@@ -904,6 +959,11 @@
     <a href="../../GRPC/Transport/Http2Connection.html#closed%3F%3ABool-instance-method" class="tooltip">
       <span>closed? : Bool</span>
     closed?</a>, 
+    
+  
+    <a href="../../GRPC/Transport/Http2Connection.html#invoke_callback%28%26%3A-%3ENil%29%3AInt32-instance-method" class="tooltip">
+      <span>invoke_callback(& :  -> Nil) : Int32</span>
+    invoke_callback</a>, 
     
   
     <a href="../../GRPC/Transport/Http2Connection.html#on_begin_headers_cb%28frame%3APointer%28Void%29%29%3ANil-instance-method" class="tooltip">
@@ -1011,7 +1071,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_client_connection.cr#L442" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L496" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1052,7 +1112,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_client_connection.cr#L438" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L492" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1068,7 +1128,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_client_connection.cr#L845" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L1021" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1084,7 +1144,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_client_connection.cr#L869" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L1045" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1100,7 +1160,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_client_connection.cr#L878" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L1054" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1116,7 +1176,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_client_connection.cr#L856" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L1032" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1132,7 +1192,7 @@
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_client_connection.cr#L901" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L1088" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1157,7 +1217,23 @@ send_raw blocks the calling fiber (0 = unbounded).</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_client_connection.cr#L521" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L674" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="open_bidi_stream_live(service:String,method:String,ctx:ClientContext,send_queue_size:Int32):RawBidiCall-instance-method">
+      <div class="signature">
+        
+        def <strong>open_bidi_stream_live</strong>(service : String, method : String, ctx : <a href="../../GRPC/ClientContext.html">ClientContext</a>, send_queue_size : Int32) : <a href="../../GRPC/RawBidiCall.html">RawBidiCall</a>
+
+        <a class="method-permalink" href="#open_bidi_stream_live%28service%3AString%2Cmethod%3AString%2Cctx%3AClientContext%2Csend_queue_size%3AInt32%29%3ARawBidiCall-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L680" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1183,7 +1259,23 @@ send_raw blocks the calling fiber (0 = unbounded).</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_client_connection.cr#L533" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L691" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="open_client_stream_live(service:String,method:String,ctx:ClientContext,send_queue_size:Int32):RawClientCall-instance-method">
+      <div class="signature">
+        
+        def <strong>open_client_stream_live</strong>(service : String, method : String, ctx : <a href="../../GRPC/ClientContext.html">ClientContext</a>, send_queue_size : Int32) : <a href="../../GRPC/RawClientCall.html">RawClientCall</a>
+
+        <a class="method-permalink" href="#open_client_stream_live%28service%3AString%2Cmethod%3AString%2Cctx%3AClientContext%2Csend_queue_size%3AInt32%29%3ARawClientCall-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L697" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1205,7 +1297,23 @@ delivers server-pushed messages as they arrive.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_client_connection.cr#L510" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L656" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="open_server_stream(service:String,method:String,request_bytes:Bytes,ctx:ClientContext):RawServerStream-instance-method">
+      <div class="signature">
+        
+        def <strong>open_server_stream</strong>(service : String, method : String, request_bytes : Bytes, ctx : <a href="../../GRPC/ClientContext.html">ClientContext</a>) : <a href="../../GRPC/RawServerStream.html">RawServerStream</a>
+
+        <a class="method-permalink" href="#open_server_stream%28service%3AString%2Cmethod%3AString%2Crequest_bytes%3ABytes%2Cctx%3AClientContext%29%3ARawServerStream-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L662" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1226,7 +1334,33 @@ delivers server-pushed messages as they arrive.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/transport/http2_client_connection.cr#L502" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L641" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="unary_call(service:String,method:String,request_body:Bytes,ctx:ClientContext):ResponseEnvelope-instance-method">
+      <div class="signature">
+        
+        def <strong>unary_call</strong>(service : String, method : String, request_body : Bytes, ctx : <a href="../../GRPC/ClientContext.html">ClientContext</a>) : <a href="../../GRPC/ResponseEnvelope.html">ResponseEnvelope</a>
+
+        <a class="method-permalink" href="#unary_call%28service%3AString%2Cmethod%3AString%2Crequest_body%3ABytes%2Cctx%3AClientContext%29%3AResponseEnvelope-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from module <a href="../../GRPC/Transport/ClientTransport.html">GRPC::Transport::ClientTransport</a>
+            </div>
+          
+          <p>Custom transports may override the context-aware overloads to observe
+cancellation after submission. Existing transports remain compatible.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/transport/http2_client_connection.cr#L647" target="_blank">View source</a>]
         
       </div>
     </div>

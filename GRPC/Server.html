@@ -207,6 +207,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ProtobufOptions" data-name="grpc::protobufoptions">
+      <a href="../GRPC/ProtobufOptions.html">ProtobufOptions</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/ProtoMarshaller" data-name="grpc::protomarshaller(t)">
       <a href="../GRPC/ProtoMarshaller.html">ProtoMarshaller</a>
       
@@ -267,6 +272,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Reflection/V1Service" data-name="grpc::reflection::v1service">
+      <a href="../GRPC/Reflection/V1Service.html">V1Service</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Reflection/Wire" data-name="grpc::reflection::wire">
       <a href="../GRPC/Reflection/Wire.html">Wire</a>
       
@@ -304,6 +314,11 @@
   
   <li class=" " data-id="grpc/GRPC/SendClosedError" data-name="grpc::sendclosederror">
       <a href="../GRPC/SendClosedError.html">SendClosedError</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/SendLimits" data-name="grpc::sendlimits">
+      <a href="../GRPC/SendLimits.html">SendLimits</a>
       
     </li>
   
@@ -444,6 +459,11 @@
   
   <li class=" " data-id="grpc/GRPC/Transport/ResponseContext" data-name="grpc::transport::responsecontext">
       <a href="../GRPC/Transport/ResponseContext.html">ResponseContext</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Transport/SendBudget" data-name="grpc::transport::sendbudget">
+      <a href="../GRPC/Transport/SendBudget.html">SendBudget</a>
       
     </li>
   
@@ -683,7 +703,7 @@ server.listen &quot;0.0.0.0&quot;, 50051</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L18" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L18" target="_blank">
         grpc/server.cr
       </a>
     
@@ -725,7 +745,7 @@ server.listen &quot;0.0.0.0&quot;, 50051</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28transport_factory%3AServerTransportFactory%7CNil%3Dnil%2Creceive_limits%3AReceiveLimits%3DReceiveLimits.new%29-class-method" class="signature"><strong>.new</strong>(transport_factory : ServerTransportFactory | Nil = <span class="n">nil</span>, receive_limits : ReceiveLimits = <span class="t">ReceiveLimits</span>.new)</a>
+        <a href="#new%28transport_factory%3AServerTransportFactory%7CNil%3Dnil%2Creceive_limits%3AReceiveLimits%3DReceiveLimits.new%2Csend_limits%3ASendLimits%3DSendLimits.new%2Cresponse_compression%3ABool%3Dfalse%2Cprotobuf_options%3AProtobufOptions%7CNil%3Dnil%29-class-method" class="signature"><strong>.new</strong>(transport_factory : ServerTransportFactory | Nil = <span class="n">nil</span>, receive_limits : ReceiveLimits = <span class="t">ReceiveLimits</span>.new, send_limits : SendLimits = <span class="t">SendLimits</span>.new, response_compression : Bool = <span class="n">false</span>, protobuf_options : ProtobufOptions | Nil = <span class="n">nil</span>)</a>
         
       </li>
     
@@ -887,18 +907,18 @@ server.listen &quot;0.0.0.0&quot;, 50051</p>
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(transport_factory:ServerTransportFactory|Nil=nil,receive_limits:ReceiveLimits=ReceiveLimits.new)-class-method">
+    <div class="entry-detail" id="new(transport_factory:ServerTransportFactory|Nil=nil,receive_limits:ReceiveLimits=ReceiveLimits.new,send_limits:SendLimits=SendLimits.new,response_compression:Bool=false,protobuf_options:ProtobufOptions|Nil=nil)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(transport_factory : <a href="../GRPC/Server/ServerTransportFactory.html">ServerTransportFactory</a> | Nil = <span class="n">nil</span>, receive_limits : <a href="../GRPC/ReceiveLimits.html">ReceiveLimits</a> = <span class="t">ReceiveLimits</span>.new)
+        def self.<strong>new</strong>(transport_factory : <a href="../GRPC/Server/ServerTransportFactory.html">ServerTransportFactory</a> | Nil = <span class="n">nil</span>, receive_limits : <a href="../GRPC/ReceiveLimits.html">ReceiveLimits</a> = <span class="t">ReceiveLimits</span>.new, send_limits : <a href="../GRPC/SendLimits.html">SendLimits</a> = <span class="t">SendLimits</span>.new, response_compression : Bool = <span class="n">false</span>, protobuf_options : <a href="../GRPC/ProtobufOptions.html">ProtobufOptions</a> | Nil = <span class="n">nil</span>)
 
-        <a class="method-permalink" href="#new%28transport_factory%3AServerTransportFactory%7CNil%3Dnil%2Creceive_limits%3AReceiveLimits%3DReceiveLimits.new%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28transport_factory%3AServerTransportFactory%7CNil%3Dnil%2Creceive_limits%3AReceiveLimits%3DReceiveLimits.new%2Csend_limits%3ASendLimits%3DSendLimits.new%2Cresponse_compression%3ABool%3Dfalse%2Cprotobuf_options%3AProtobufOptions%7CNil%3Dnil%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L34" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L34" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -936,7 +956,7 @@ Call serve (or start for non-blocking) afterward.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L107" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L110" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -958,7 +978,7 @@ Calling this multiple times returns the same instance.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L151" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L154" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -980,7 +1000,7 @@ Register FileDescriptorProto bytes on the returned service via add_file_descript
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L165" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L168" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1001,7 +1021,7 @@ Register FileDescriptorProto bytes on the returned service via add_file_descript
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L51" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L54" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1024,7 +1044,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L83" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L86" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1045,7 +1065,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L89" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L92" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1066,7 +1086,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L95" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L98" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1087,7 +1107,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L100" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L103" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1108,7 +1128,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L183" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L187" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1129,7 +1149,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L114" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L117" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1151,7 +1171,7 @@ Useful for tests and embedded servers.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L129" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L132" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1167,7 +1187,7 @@ Useful for tests and embedded servers.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L134" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L137" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1191,7 +1211,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L64" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L67" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -1212,7 +1232,7 @@ Must be called before listen/bind.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/server.cr#L74" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/server.cr#L77" target="_blank">View source</a>]
         
       </div>
     </div>

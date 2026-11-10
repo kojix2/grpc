@@ -207,6 +207,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/ProtobufOptions" data-name="grpc::protobufoptions">
+      <a href="../GRPC/ProtobufOptions.html">ProtobufOptions</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/ProtoMarshaller" data-name="grpc::protomarshaller(t)">
       <a href="../GRPC/ProtoMarshaller.html">ProtoMarshaller</a>
       
@@ -267,6 +272,11 @@
       
     </li>
   
+  <li class=" " data-id="grpc/GRPC/Reflection/V1Service" data-name="grpc::reflection::v1service">
+      <a href="../GRPC/Reflection/V1Service.html">V1Service</a>
+      
+    </li>
+  
   <li class=" " data-id="grpc/GRPC/Reflection/Wire" data-name="grpc::reflection::wire">
       <a href="../GRPC/Reflection/Wire.html">Wire</a>
       
@@ -304,6 +314,11 @@
   
   <li class=" " data-id="grpc/GRPC/SendClosedError" data-name="grpc::sendclosederror">
       <a href="../GRPC/SendClosedError.html">SendClosedError</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/SendLimits" data-name="grpc::sendlimits">
+      <a href="../GRPC/SendLimits.html">SendLimits</a>
       
     </li>
   
@@ -444,6 +459,11 @@
   
   <li class=" " data-id="grpc/GRPC/Transport/ResponseContext" data-name="grpc::transport::responsecontext">
       <a href="../GRPC/Transport/ResponseContext.html">ResponseContext</a>
+      
+    </li>
+  
+  <li class=" " data-id="grpc/GRPC/Transport/SendBudget" data-name="grpc::transport::sendbudget">
+      <a href="../GRPC/Transport/SendBudget.html">SendBudget</a>
       
     </li>
   
@@ -680,7 +700,7 @@ reply = client.say_hello(req, ctx: ctx)</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/call_context.cr#L64" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L72" target="_blank">
         grpc/call_context.cr
       </a>
     
@@ -703,7 +723,7 @@ reply = client.say_hello(req, ctx: ctx)</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28metadata%3AHash%28String%2CString%29%7CMetadata%3DMetadata.new%2Cdeadline%3ATime%3A%3ASpan%7CTime%7CNil%3Dnil%29-class-method" class="signature"><strong>.new</strong>(metadata : Hash(String, String) | Metadata = <span class="t">Metadata</span>.new, deadline : Time::Span | Time | Nil = <span class="n">nil</span>)</a>
+        <a href="#new%28metadata%3AHash%28String%2CString%29%7CMetadata%3DMetadata.new%2Cdeadline%3ATime%3A%3ASpan%7CTime%7CNil%3Dnil%2Csend_limits%3ASendLimits%7CNil%3Dnil%2Ccompression%3AString%7CNil%3Dnil%2Cprotobuf_options%3AProtobufOptions%7CNil%3Dnil%29-class-method" class="signature"><strong>.new</strong>(metadata : Hash(String, String) | Metadata = <span class="t">Metadata</span>.new, deadline : Time::Span | Time | Nil = <span class="n">nil</span>, send_limits : SendLimits | Nil = <span class="n">nil</span>, compression : String | Nil = <span class="n">nil</span>, protobuf_options : ProtobufOptions | Nil = <span class="n">nil</span>)</a>
         
       </li>
     
@@ -726,7 +746,29 @@ reply = client.say_hello(req, ctx: ctx)</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
+        <a href="#cancel%3ANil-instance-method" class="signature"><strong>#cancel</strong> : Nil</a>
+        
+          <div class="summary"><p>Cancellation wakes fibers waiting for a connection or a channel permit.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#cancellation_signal%3A%3A%3AChannel%28Nil%29-instance-method" class="signature"><strong>#cancellation_signal</strong> : ::Channel(Nil)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#cancelled%3F%3ABool-instance-method" class="signature"><strong>#cancelled?</strong> : Bool</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#check_active%21%3ANil-instance-method" class="signature"><strong>#check_active!</strong> : Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#compression%3AString%7CNil-instance-method" class="signature"><strong>#compression</strong> : String | Nil</a>
         
       </li>
     
@@ -753,9 +795,19 @@ reply = client.say_hello(req, ctx: ctx)</p>
       </li>
     
       <li class="entry-summary">
+        <a href="#protobuf_options%3AProtobufOptions%7CNil-instance-method" class="signature"><strong>#protobuf_options</strong> : ProtobufOptions | Nil</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#remaining%3ATime%3A%3ASpan%7CNil-instance-method" class="signature"><strong>#remaining</strong> : Time::Span | Nil</a>
         
           <div class="summary"><p>remaining returns how much time is left before the deadline.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#send_limits%3ASendLimits%7CNil-instance-method" class="signature"><strong>#send_limits</strong> : SendLimits | Nil</a>
         
       </li>
     
@@ -808,18 +860,18 @@ reply = client.say_hello(req, ctx: ctx)</p>
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(metadata:Hash(String,String)|Metadata=Metadata.new,deadline:Time::Span|Time|Nil=nil)-class-method">
+    <div class="entry-detail" id="new(metadata:Hash(String,String)|Metadata=Metadata.new,deadline:Time::Span|Time|Nil=nil,send_limits:SendLimits|Nil=nil,compression:String|Nil=nil,protobuf_options:ProtobufOptions|Nil=nil)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(metadata : Hash(String, String) | <a href="../GRPC/Metadata.html">Metadata</a> = <span class="t">Metadata</span>.new, deadline : Time::Span | Time | Nil = <span class="n">nil</span>)
+        def self.<strong>new</strong>(metadata : Hash(String, String) | <a href="../GRPC/Metadata.html">Metadata</a> = <span class="t">Metadata</span>.new, deadline : Time::Span | Time | Nil = <span class="n">nil</span>, send_limits : <a href="../GRPC/SendLimits.html">SendLimits</a> | Nil = <span class="n">nil</span>, compression : String | Nil = <span class="n">nil</span>, protobuf_options : <a href="../GRPC/ProtobufOptions.html">ProtobufOptions</a> | Nil = <span class="n">nil</span>)
 
-        <a class="method-permalink" href="#new%28metadata%3AHash%28String%2CString%29%7CMetadata%3DMetadata.new%2Cdeadline%3ATime%3A%3ASpan%7CTime%7CNil%3Dnil%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28metadata%3AHash%28String%2CString%29%7CMetadata%3DMetadata.new%2Cdeadline%3ATime%3A%3ASpan%7CTime%7CNil%3Dnil%2Csend_limits%3ASendLimits%7CNil%3Dnil%2Ccompression%3AString%7CNil%3Dnil%2Cprotobuf_options%3AProtobufOptions%7CNil%3Dnil%29-class-method">#</a>
       </div>
       
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/call_context.cr#L68" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L80" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -840,6 +892,59 @@ reply = client.say_hello(req, ctx: ctx)</p>
     Instance Method Detail
   </h2>
   
+    <div class="entry-detail" id="cancel:Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>cancel</strong> : Nil
+
+        <a class="method-permalink" href="#cancel%3ANil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Cancellation wakes fibers waiting for a connection or a channel permit.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L132" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="cancellation_signal:::Channel(Nil)-instance-method">
+      <div class="signature">
+        
+        def <strong>cancellation_signal</strong> : ::Channel(Nil)
+
+        <a class="method-permalink" href="#cancellation_signal%3A%3A%3AChannel%28Nil%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L78" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="cancelled?:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>cancelled?</strong> : Bool
+
+        <a class="method-permalink" href="#cancelled%3F%3ABool-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L137" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="check_active!:Nil-instance-method">
       <div class="signature">
         
@@ -851,7 +956,23 @@ reply = client.say_hello(req, ctx: ctx)</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/call_context.cr#L108" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L141" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="compression:String|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>compression</strong> : String | Nil
+
+        <a class="method-permalink" href="#compression%3AString%7CNil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L76" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -867,7 +988,7 @@ reply = client.say_hello(req, ctx: ctx)</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/call_context.cr#L66" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L74" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -883,7 +1004,7 @@ reply = client.say_hello(req, ctx: ctx)</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/call_context.cr#L66" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L74" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -904,7 +1025,7 @@ reply = client.say_hello(req, ctx: ctx)</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/call_context.cr#L83" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L103" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -920,7 +1041,23 @@ reply = client.say_hello(req, ctx: ctx)</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/call_context.cr#L65" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L73" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="protobuf_options:ProtobufOptions|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>protobuf_options</strong> : <a href="../GRPC/ProtobufOptions.html">ProtobufOptions</a> | Nil
+
+        <a class="method-permalink" href="#protobuf_options%3AProtobufOptions%7CNil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L77" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -941,7 +1078,23 @@ reply = client.say_hello(req, ctx: ctx)</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/call_context.cr#L95" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L118" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="send_limits:SendLimits|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>send_limits</strong> : <a href="../GRPC/SendLimits.html">SendLimits</a> | Nil
+
+        <a class="method-permalink" href="#send_limits%3ASendLimits%7CNil-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L75" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -957,7 +1110,7 @@ reply = client.say_hello(req, ctx: ctx)</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/8955cbfe3ab2eaa7c257e89e56947f57d243fe36/src/grpc/call_context.cr#L102" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/call_context.cr#L125" target="_blank">View source</a>]
         
       </div>
     </div>
