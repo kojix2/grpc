@@ -557,5 +557,31 @@ module GRPC
         io.to_slice
       end
     end
+
+    # v1 and v1alpha reflection messages use the same wire layout. Share one
+    # descriptor registry so registrations are visible through both services.
+    class V1Service < GRPC::Service
+      SERVICE_FULL_NAME = "grpc.reflection.v1.ServerReflection"
+
+      def initialize(@delegate : Service)
+      end
+
+      def service_full_name : String
+        SERVICE_FULL_NAME
+      end
+
+      def dispatch(method : String, request_body : Bytes, ctx : GRPC::ServerContext) : {Bytes, GRPC::Status}
+        @delegate.dispatch(method, request_body, ctx)
+      end
+
+      def bidi_streaming?(method : String) : Bool
+        @delegate.bidi_streaming?(method)
+      end
+
+      def dispatch_bidi_stream(method : String, requests : GRPC::RawRequestStream,
+                               ctx : GRPC::ServerContext, writer : GRPC::RawResponseStream) : GRPC::Status
+        @delegate.dispatch_bidi_stream(method, requests, ctx, writer)
+      end
+    end
   end
 end

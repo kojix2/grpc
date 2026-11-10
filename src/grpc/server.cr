@@ -179,6 +179,7 @@ module GRPC
       end
       handle(service)
       @reflection_service = service
+      handle(Reflection::V1Service.new(service))
       service
     end
 

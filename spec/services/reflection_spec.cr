@@ -1,7 +1,35 @@
 require "../spec_helper"
 require "../support/reflection"
+require "../support/integration_helpers"
 
 describe GRPC::Reflection::Service do
+  it "serves the v1 endpoint from the same descriptor registry as v1alpha" do
+    port = find_free_port
+    server = GRPC::Server.new
+    server.handle(ReflectionRegistryProbeService.new)
+    reflection = server.enable_reflection
+    descriptor = ReflectionSpecWire.build_demo_file_descriptor_proto
+    reflection.add_file_descriptor(descriptor)
+    server.bind("127.0.0.1:#{port}")
+    server.start
+    channel = GRPC::Channel.new("127.0.0.1:#{port}")
+    begin
+      call = channel.open_bidi_stream_live("grpc.reflection.v1.ServerReflection", "ServerReflectionInfo",
+        GRPC::ClientContext.new(deadline: 3.seconds))
+      call.send_raw(ReflectionSpecWire.encode_request(7, ""))
+      call.send_raw(ReflectionSpecWire.encode_request(4, "demo.HelloRequest"))
+      call.close_send
+      replies = call.to_a
+      call.status.ok?.should be_true
+      replies.size.should eq(2)
+      ReflectionSpecWire.decode_list_services_response(replies[0]).should contain("grpc.reflection.v1.ServerReflection")
+      ReflectionSpecWire.decode_file_descriptor_response(replies[1]).should eq([descriptor])
+    ensure
+      channel.close
+      server.stop
+    end
+  end
+
   it "lists registered services" do
     service = GRPC::Reflection::Service.new
     service.register_service("demo.Greeter")
