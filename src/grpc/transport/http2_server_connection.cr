@@ -187,22 +187,19 @@ module GRPC
 
         return if stream_terminated?(stream_id)
 
-        if status = immediate_stream_rejection(sd)
+        if status = sd.header_error
           send_error(stream_id, status.code, status.message)
           return
         end
 
         chunk = Slice.new(data, len)
-        if target = request_stream_target(sd)
-          service, method_name, kind = target
-          state = @live_request_states[stream_id]?
-          unless state
-            state = LiveRequestState.new(kind, ->(bytes : Int32) { consume_stream_bytes(stream_id, bytes) }, @receive_limits)
-            state.deframer.encoding = sd.headers.get("grpc-encoding")
-            @live_request_states[stream_id] = state
-            spawn dispatch_live_request_stream(stream_id, sd, service, method_name, state)
+        if sd.request_streaming?
+          if state = @live_request_states[stream_id]?
+            append_live_request_chunk(stream_id, state, chunk)
+          else
+            # The handler may have completed before the peer stopped sending.
+            consume_stream_bytes(stream_id, chunk.size, flush: false)
           end
-          append_live_request_chunk(stream_id, state, chunk)
           return
         end
 
@@ -231,6 +228,18 @@ module GRPC
           return
         end
 
+        if type == LibNghttp2::FRAME_HEADERS && !sd.routed?
+          sd.routed = true
+          if target = request_stream_target(sd)
+            service, method_name, kind = target
+            sd.request_streaming = true
+            state = LiveRequestState.new(kind, ->(bytes : Int32) { consume_stream_bytes(stream_id, bytes) }, @receive_limits)
+            state.deframer.encoding = sd.headers.get("grpc-encoding")
+            @live_request_states[stream_id] = state
+            spawn dispatch_live_request_stream(stream_id, sd, service, method_name, state)
+          end
+        end
+
         return unless frame_end_stream?(frame)
         return if stream_terminated?(stream_id)
 
@@ -239,15 +248,7 @@ module GRPC
           return
         end
 
-        if target = request_stream_target(sd)
-          service, method_name, kind = target
-          state = LiveRequestState.new(kind, ->(bytes : Int32) { consume_stream_bytes(stream_id, bytes) }, @receive_limits)
-          state.deframer.encoding = sd.headers.get("grpc-encoding")
-          @live_request_states[stream_id] = state
-          spawn dispatch_live_request_stream(stream_id, sd, service, method_name, state)
-          finish_live_request_stream(stream_id, state)
-          return
-        end
+        return if sd.request_streaming?
 
         # Dispatch in a separate fiber so the recv loop is not blocked.
         spawn dispatch_request(stream_id, sd)
@@ -390,7 +391,7 @@ module GRPC
 
       # route_request handles unary and server-streaming RPCs only.
       # Client-streaming and bidi-streaming are handled live via dispatch_live_request_stream
-      # (driven by on_data_chunk_cb / on_frame_recv_cb) and never reach this method.
+      # (started after request HEADERS) and never reach this method.
       private def route_request(stream_id : Int32, service : Service,
                                 method_name : String, request_bytes : Bytes,
                                 ctx : ServerContext, encoding : String?) : Nil

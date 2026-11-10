@@ -70,6 +70,8 @@ module GRPC
       property body : IO::Memory
       property header_error : Status?
       property? closed : Bool
+      property? routed : Bool
+      property? request_streaming : Bool
       getter received_at = Time.utc
 
       def initialize(limits : ReceiveLimits = ReceiveLimits.new)
@@ -78,6 +80,8 @@ module GRPC
         @body = @message_buffer.io
         @header_error = nil
         @closed = false
+        @routed = false
+        @request_streaming = false
         @session_active = false
         @close_requested = false
       end
