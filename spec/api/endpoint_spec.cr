@@ -42,5 +42,8 @@ describe GRPC::Endpoint do
   it "renders addresses with the correct scheme" do
     GRPC::Endpoint.new("example.com", 50051).to_address.should eq("http://example.com:50051")
     GRPC::Endpoint.new("example.com", 443, true).to_address.should eq("https://example.com:443")
+    GRPC::Endpoint.new("::1", 443, true).to_address.should eq("https://[::1]:443")
+    GRPC::Endpoint.new("[::1]", 443, true).to_address.should eq("https://[::1]:443")
+    GRPC::Endpoint.socket_host("[::1]").should eq("::1")
   end
 end

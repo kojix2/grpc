@@ -72,7 +72,19 @@ module GRPC
 
     def to_address : String
       scheme = tls? ? "https" : "http"
-      "#{scheme}://#{host}:#{port}"
+      "#{scheme}://#{self.class.authority(host, port)}"
+    end
+
+    # URI authorities require brackets around IPv6 literals, while socket and
+    # TLS APIs need the unbracketed host.
+    def self.socket_host(host : String) : String
+      host.starts_with?("[") && host.ends_with?("]") ? host[1...-1] : host
+    end
+
+    def self.authority(host : String, port : Int32) : String
+      bare = socket_host(host)
+      name = bare.includes?(':') ? "[#{bare}]" : bare
+      "#{name}:#{port}"
     end
   end
 

@@ -498,7 +498,8 @@ module GRPC
                      endpoint_config : EndpointConfig = EndpointConfig.new)
         connect_timeout = endpoint_config.connect_timeout || DEFAULT_CONNECT_TIMEOUT
         started = Time.instant
-        tcp = TCPSocket.new(host, port, dns_timeout: connect_timeout, connect_timeout: connect_timeout)
+        socket_host = Endpoint.socket_host(host)
+        tcp = TCPSocket.new(socket_host, port, dns_timeout: connect_timeout, connect_timeout: connect_timeout)
         tcp.tcp_nodelay = true
         apply_keepalive_options(tcp, endpoint_config)
         peer = tcp.remote_address.to_s rescue "#{host}:#{port}"
@@ -512,7 +513,7 @@ module GRPC
         @keepalive_ack = ::Channel(Nil).new(1)
         @pending_ping = nil
         @ping_sequence = 0_u64
-        @target_authority = "#{host}:#{port}"
+        @target_authority = Endpoint.authority(host, port)
 
         io : IO
         if use_tls
@@ -540,7 +541,7 @@ module GRPC
               end
             end
             begin
-              ssl_socket = OpenSSL::SSL::Socket::Client.new(tcp, ctx, sync_close: true, hostname: host)
+              ssl_socket = OpenSSL::SSL::Socket::Client.new(tcp, ctx, sync_close: true, hostname: socket_host)
               handshake_mutex.synchronize do
                 raise ConnectionError.new("TLS handshake timed out") if handshake_expired
                 handshake_finished = true

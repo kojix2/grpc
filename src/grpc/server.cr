@@ -222,7 +222,7 @@ module GRPC
     private def split_address(address : String) : {String, Int32}
       if address.includes?(":")
         idx = address.rindex(':') || 0
-        host = address[0, idx]
+        host = Endpoint.socket_host(address[0, idx])
         host = "0.0.0.0" if host.empty?
         port = address[idx + 1..].to_i
         {host, port}

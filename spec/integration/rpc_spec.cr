@@ -3,6 +3,25 @@ require "../support/integration_helpers"
 
 describe "HTTP/2 RPCs" do
   describe "unary" do
+    it "round-trips through a bracketed IPv6 endpoint" do
+      listener = TCPServer.new("::1", 0)
+      port = listener.local_address.port
+      listener.close
+      server = GRPC::Server.new
+      server.handle EchoService.new
+      server.bind("[::1]:#{port}")
+      server.start
+      channel = GRPC::Channel.new("http://[::1]:#{port}")
+      begin
+        response = channel.unary_call("test.Echo", "Echo", TestProto.encode_string("ipv6"))
+        response.status.ok?.should be_true
+        TestProto.decode_string(response.raw).should eq("echo:ipv6")
+      ensure
+        channel.close
+        server.stop
+      end
+    end
+
     it "performs a unary RPC round-trip" do
       port = find_free_port
       server = start_test_server(port)
