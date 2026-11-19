@@ -695,7 +695,7 @@ It encapsulates host/port/TLS derived from an address string.</p>
   </h2>
   
     
-      <a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/endpoint.cr#L7" target="_blank">
+      <a href="https://github.com/kojix2/grpc/blob/aaa2eed7c26edbfc3239c9a84f660311235bfdce/src/grpc/endpoint.cr#L7" target="_blank">
         grpc/endpoint.cr
       </a>
     
@@ -733,6 +733,30 @@ It encapsulates host/port/TLS derived from an address string.</p>
 
 
   
+  <h2>
+    <a id="class-method-summary" class="anchor" href="#class-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Class Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#authority%28host%3AString%2Cport%3AInt32%29%3AString-class-method" class="signature"><strong>.authority</strong>(host : String, port : Int32) : String</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#socket_host%28host%3AString%29%3AString-class-method" class="signature"><strong>.socket_host</strong>(host : String) : String</a>
+        
+          <div class="summary"><p>URI authorities require brackets around IPv6 literals, while socket and TLS APIs need the unbracketed host.</p></div>
+        
+      </li>
+    
+  </ul>
+
 
   
 
@@ -835,7 +859,7 @@ It encapsulates host/port/TLS derived from an address string.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/endpoint.cr#L12" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/aaa2eed7c26edbfc3239c9a84f660311235bfdce/src/grpc/endpoint.cr#L12" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -862,7 +886,7 @@ It encapsulates host/port/TLS derived from an address string.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/endpoint.cr#L20" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/aaa2eed7c26edbfc3239c9a84f660311235bfdce/src/grpc/endpoint.cr#L20" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -870,6 +894,54 @@ It encapsulates host/port/TLS derived from an address string.</p>
 
 
   
+  <h2>
+    <a id="class-method-detail" class="anchor" href="#class-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Class Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="authority(host:String,port:Int32):String-class-method">
+      <div class="signature">
+        
+        def self.<strong>authority</strong>(host : String, port : Int32) : String
+
+        <a class="method-permalink" href="#authority%28host%3AString%2Cport%3AInt32%29%3AString-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/aaa2eed7c26edbfc3239c9a84f660311235bfdce/src/grpc/endpoint.cr#L84" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="socket_host(host:String):String-class-method">
+      <div class="signature">
+        
+        def self.<strong>socket_host</strong>(host : String) : String
+
+        <a class="method-permalink" href="#socket_host%28host%3AString%29%3AString-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>URI authorities require brackets around IPv6 literals, while socket and
+TLS APIs need the unbracketed host.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/kojix2/grpc/blob/aaa2eed7c26edbfc3239c9a84f660311235bfdce/src/grpc/endpoint.cr#L80" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
 
   
 
@@ -894,7 +966,7 @@ It encapsulates host/port/TLS derived from an address string.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/endpoint.cr#L8" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/aaa2eed7c26edbfc3239c9a84f660311235bfdce/src/grpc/endpoint.cr#L8" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -910,7 +982,7 @@ It encapsulates host/port/TLS derived from an address string.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/endpoint.cr#L9" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/aaa2eed7c26edbfc3239c9a84f660311235bfdce/src/grpc/endpoint.cr#L9" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -926,7 +998,7 @@ It encapsulates host/port/TLS derived from an address string.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/endpoint.cr#L10" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/aaa2eed7c26edbfc3239c9a84f660311235bfdce/src/grpc/endpoint.cr#L10" target="_blank">View source</a>]
         
       </div>
     </div>
@@ -942,7 +1014,7 @@ It encapsulates host/port/TLS derived from an address string.</p>
       <br/>
       <div>
         
-          [<a href="https://github.com/kojix2/grpc/blob/bf8855be8f52212e6b395ea937244da82bfb4c75/src/grpc/endpoint.cr#L73" target="_blank">View source</a>]
+          [<a href="https://github.com/kojix2/grpc/blob/aaa2eed7c26edbfc3239c9a84f660311235bfdce/src/grpc/endpoint.cr#L73" target="_blank">View source</a>]
         
       </div>
     </div>
